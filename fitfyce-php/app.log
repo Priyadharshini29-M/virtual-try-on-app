@@ -1,0 +1,547 @@
+[2026-02-20 05:10:45] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771564244_3b48f6.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771564245_d057f0.jpg"}}
+[2026-02-20 05:10:45] [ERROR] Download failed {"url":"https://tryon.digifyce.com/uploads/cloth_1771564244_3b48f6.jpg","status":404}
+[2026-02-20 06:55:37] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771570536_0e6b48.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771570537_155e78.jpg"}}
+[2026-02-20 06:55:37] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771570536_0e6b48.jpg","temp_path":"/tmp/vton_Cmidqv"}
+[2026-02-20 06:55:38] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771570537_155e78.jpg","temp_path":"/tmp/vton_QMSCqS"}
+[2026-02-20 06:55:38] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_Cmidqv","avatar_image_path":"/tmp/vton_QMSCqS","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-20 06:55:54] [INFO] API response {"status_code":200,"has_image":true}
+[2026-02-20 06:55:54] [INFO] Result image saved {"path":"/home/u218702675/domains/tryon.digifyce.com/public_html/results/tryon_result_20260220_065554_db13e3.jpg"}
+[2026-02-20 06:55:54] [INFO] Request completed {"execution_time_sec":16.79,"status":200}
+[2026-02-20 06:58:38] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771570717_621df9.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771570718_3f5481.jpg"}}
+[2026-02-20 06:58:38] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771570717_621df9.jpg","temp_path":"/tmp/vton_OSjNYt"}
+[2026-02-20 06:58:38] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771570718_3f5481.jpg","temp_path":"/tmp/vton_2874FH"}
+[2026-02-20 06:58:38] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_OSjNYt","avatar_image_path":"/tmp/vton_oXeOIN.jpg","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-20 06:58:52] [INFO] API response {"status_code":200,"has_image":true}
+[2026-02-20 06:58:52] [INFO] Result image saved {"path":"/home/u218702675/domains/tryon.digifyce.com/public_html/results/tryon_result_20260220_065852_354fdd.jpg"}
+[2026-02-20 06:58:52] [INFO] Request completed {"execution_time_sec":14.386,"status":200}
+[2026-02-20 07:03:46] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771571025_302895.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771571026_1bfade.jpg"}}
+[2026-02-20 07:03:46] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771571025_302895.jpg","temp_path":"/tmp/vton_iYjxdo"}
+[2026-02-20 07:03:46] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771571026_1bfade.jpg","temp_path":"/tmp/vton_QqDLeA"}
+[2026-02-20 07:03:46] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_iYjxdo","avatar_image_path":"/tmp/vton_DMWcsc.jpg","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-20 09:05:07] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771578307_f3d6b4.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771578307_6cd2ee.jpg"}}
+[2026-02-20 09:05:07] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771578307_f3d6b4.jpg","temp_path":"/tmp/vton_7Hxztw"}
+[2026-02-20 09:05:07] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771578307_6cd2ee.jpg","temp_path":"/tmp/vton_astJVl"}
+[2026-02-20 09:05:07] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_7Hxztw","avatar_image_path":"/tmp/vton_astJVl","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-20 09:06:10] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771578370_57315a.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771578370_bc2f95.jpg"}}
+[2026-02-20 09:06:10] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771578370_57315a.jpg","temp_path":"/tmp/vton_6oXcUf"}
+[2026-02-20 09:06:10] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771578370_bc2f95.jpg","temp_path":"/tmp/vton_Qvwl2i"}
+[2026-02-20 09:06:10] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_6oXcUf","avatar_image_path":"/tmp/vton_Qvwl2i","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-20 09:06:47] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771578407_7e53c1.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771578407_ffdb09.jpg"}}
+[2026-02-20 09:06:47] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771578407_7e53c1.jpg","temp_path":"/tmp/vton_LhhWSZ"}
+[2026-02-20 09:06:47] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771578407_ffdb09.jpg","temp_path":"/tmp/vton_FdYcUt"}
+[2026-02-20 09:06:47] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_LhhWSZ","avatar_image_path":"/tmp/vton_FdYcUt","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-20 09:07:15] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771578435_49ed86.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771578435_b59917.jpg"}}
+[2026-02-20 09:07:15] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771578435_49ed86.jpg","temp_path":"/tmp/vton_3Pqrb9"}
+[2026-02-20 09:07:15] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771578435_b59917.jpg","temp_path":"/tmp/vton_SMUKjs"}
+[2026-02-20 09:07:15] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_3Pqrb9","avatar_image_path":"/tmp/vton_SMUKjs","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-20 13:35:58] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771594557_0a5a1c.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771594557_be4f24.jpg"}}
+[2026-02-20 13:35:58] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771594557_0a5a1c.jpg","temp_path":"/tmp/vton_c69R14"}
+[2026-02-20 13:35:58] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771594557_be4f24.jpg","temp_path":"/tmp/vton_HZXgYh"}
+[2026-02-20 13:35:58] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_c69R14","avatar_image_path":"/tmp/vton_HZXgYh","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-20 13:36:11] [INFO] API response {"status_code":200,"has_image":true}
+[2026-02-20 13:36:11] [INFO] Result image saved {"path":"/home/u218702675/domains/tryon.digifyce.com/public_html/results/tryon_result_20260220_133611_82bed7.jpg"}
+[2026-02-20 13:36:11] [INFO] Request completed {"execution_time_sec":13.393,"status":200}
+[2026-02-20 14:37:33] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771598253_4c574d.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771598253_862b56.jpg"}}
+[2026-02-20 14:37:33] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771598253_4c574d.jpg","temp_path":"/tmp/vton_ZMpGiM"}
+[2026-02-20 14:37:33] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771598253_862b56.jpg","temp_path":"/tmp/vton_AzqGHc"}
+[2026-02-20 14:37:33] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_ZMpGiM","avatar_image_path":"/tmp/vton_AzqGHc","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-20 14:37:47] [INFO] API response {"status_code":200,"has_image":true}
+[2026-02-20 14:37:47] [INFO] Result image saved {"path":"/home/u218702675/domains/tryon.digifyce.com/public_html/results/tryon_result_20260220_143747_e217fa.jpg"}
+[2026-02-20 14:37:47] [INFO] Request completed {"execution_time_sec":14.015,"status":200}
+[2026-02-20 14:39:18] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771598358_8d60a9.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771598358_e32596.jpg"}}
+[2026-02-20 14:39:18] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771598358_8d60a9.jpg","temp_path":"/tmp/vton_stD6H7"}
+[2026-02-20 14:39:19] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771598358_e32596.jpg","temp_path":"/tmp/vton_NDMDeB"}
+[2026-02-20 14:39:19] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_stD6H7","avatar_image_path":"/tmp/vton_NDMDeB","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-20 14:39:35] [INFO] API response {"status_code":200,"has_image":true}
+[2026-02-20 14:39:35] [INFO] Result image saved {"path":"/home/u218702675/domains/tryon.digifyce.com/public_html/results/tryon_result_20260220_143935_b71f7c.jpg"}
+[2026-02-20 14:39:35] [INFO] Request completed {"execution_time_sec":16.284,"status":200}
+[2026-02-20 15:08:02] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771600082_375baf.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771600082_1c7e6e.jpg"}}
+[2026-02-20 15:08:02] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771600082_375baf.jpg","temp_path":"/tmp/vton_Pmf24P"}
+[2026-02-20 15:08:02] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771600082_1c7e6e.jpg","temp_path":"/tmp/vton_dZNrYV"}
+[2026-02-20 15:08:02] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_Pmf24P","avatar_image_path":"/tmp/vton_dZNrYV","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-20 15:08:16] [INFO] API response {"status_code":200,"has_image":true}
+[2026-02-20 15:08:16] [INFO] Result image saved {"path":"/home/u218702675/domains/tryon.digifyce.com/public_html/results/tryon_result_20260220_150816_d5884a.jpg"}
+[2026-02-20 15:08:16] [INFO] Request completed {"execution_time_sec":14.054,"status":200}
+[2026-02-21 06:07:02] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771654022_964037.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771654022_878ba4.jpg"}}
+[2026-02-21 06:07:02] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771654022_964037.jpg","temp_path":"/tmp/vton_KXa8qh"}
+[2026-02-21 06:07:02] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771654022_878ba4.jpg","temp_path":"/tmp/vton_Ncf3bg"}
+[2026-02-21 06:07:02] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_KXa8qh","avatar_image_path":"/tmp/vton_Ncf3bg","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-21 06:07:14] [INFO] API response {"status_code":200,"has_image":true}
+[2026-02-21 06:07:14] [INFO] Result image saved {"path":"/home/u218702675/domains/tryon.digifyce.com/public_html/results/tryon_result_20260221_060714_1794fa.jpg"}
+[2026-02-21 06:07:14] [INFO] Request completed {"execution_time_sec":12.045,"status":200}
+[2026-02-21 06:07:34] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771654054_c2cf98.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771654054_5dc1fe.jpg"}}
+[2026-02-21 06:07:34] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771654054_c2cf98.jpg","temp_path":"/tmp/vton_CKK5df"}
+[2026-02-21 06:07:35] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771654054_5dc1fe.jpg","temp_path":"/tmp/vton_mXcH56"}
+[2026-02-21 06:07:35] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_CKK5df","avatar_image_path":"/tmp/vton_mXcH56","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-21 06:07:46] [INFO] API response {"status_code":200,"has_image":true}
+[2026-02-21 06:07:46] [INFO] Result image saved {"path":"/home/u218702675/domains/tryon.digifyce.com/public_html/results/tryon_result_20260221_060746_c874c0.jpg"}
+[2026-02-21 06:07:46] [INFO] Request completed {"execution_time_sec":11.508,"status":200}
+[2026-02-21 09:30:15] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771666214_7566b8.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771666215_e5d6bc.jpg"}}
+[2026-02-21 09:30:15] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771666214_7566b8.jpg","temp_path":"/tmp/vton_NS5NI2"}
+[2026-02-21 09:30:15] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771666215_e5d6bc.jpg","temp_path":"/tmp/vton_gk3gXs"}
+[2026-02-21 09:30:15] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_NS5NI2","avatar_image_path":"/tmp/vton_gk3gXs","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-21 09:30:29] [INFO] API response {"status_code":200,"has_image":true}
+[2026-02-21 09:30:29] [INFO] Result image saved {"path":"/home/u218702675/domains/tryon.digifyce.com/public_html/results/tryon_result_20260221_093029_b8cac3.jpg"}
+[2026-02-21 09:30:29] [INFO] Request completed {"execution_time_sec":14.298,"status":200}
+[2026-02-21 09:31:05] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771666265_61ef21.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771666265_5436ff.jpg"}}
+[2026-02-21 09:31:05] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771666265_61ef21.jpg","temp_path":"/tmp/vton_nAkLx1"}
+[2026-02-21 09:31:05] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771666265_5436ff.jpg","temp_path":"/tmp/vton_5UfXH3"}
+[2026-02-21 09:31:05] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_nAkLx1","avatar_image_path":"/tmp/vton_5UfXH3","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-21 09:31:20] [INFO] API response {"status_code":200,"has_image":true}
+[2026-02-21 09:31:20] [INFO] Result image saved {"path":"/home/u218702675/domains/tryon.digifyce.com/public_html/results/tryon_result_20260221_093120_aedef2.jpg"}
+[2026-02-21 09:31:20] [INFO] Request completed {"execution_time_sec":15.051,"status":200}
+[2026-02-21 10:58:19] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771671499_09da23.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771671499_82d5ca.jpg"}}
+[2026-02-21 10:58:19] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771671499_09da23.jpg","temp_path":"/tmp/vton_a7m7GY"}
+[2026-02-21 10:58:19] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771671499_82d5ca.jpg","temp_path":"/tmp/vton_wvr3Dh"}
+[2026-02-21 10:58:19] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_a7m7GY","avatar_image_path":"/tmp/vton_wvr3Dh","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-21 10:58:35] [INFO] API response {"status_code":200,"has_image":true}
+[2026-02-21 10:58:35] [INFO] Result image saved {"path":"/home/u218702675/domains/tryon.digifyce.com/public_html/results/tryon_result_20260221_105835_b86c52.jpg"}
+[2026-02-21 10:58:35] [INFO] Request completed {"execution_time_sec":15.729,"status":200}
+[2026-02-22 01:56:48] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771725408_13a94b.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771725408_f42177.jpg"}}
+[2026-02-22 01:56:48] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771725408_13a94b.jpg","temp_path":"/tmp/vton_e7s64z"}
+[2026-02-22 01:56:49] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771725408_f42177.jpg","temp_path":"/tmp/vton_J3Tu1K"}
+[2026-02-22 01:56:49] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_e7s64z","avatar_image_path":"/tmp/vton_J3Tu1K","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-22 01:57:02] [INFO] API response {"status_code":200,"has_image":true}
+[2026-02-22 01:57:02] [INFO] Result image saved {"path":"/home/u218702675/domains/tryon.digifyce.com/public_html/results/tryon_result_20260222_015702_6e473f.jpg"}
+[2026-02-22 01:57:02] [INFO] Request completed {"execution_time_sec":13.499,"status":200}
+[2026-02-22 02:00:47] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771725646_60ee78.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771725647_5b0fc4.jpg"}}
+[2026-02-22 02:00:47] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771725646_60ee78.jpg","temp_path":"/tmp/vton_lruEHz"}
+[2026-02-22 02:00:47] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771725647_5b0fc4.jpg","temp_path":"/tmp/vton_ypicAX"}
+[2026-02-22 02:00:47] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_lruEHz","avatar_image_path":"/tmp/vton_ypicAX","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-22 02:01:00] [INFO] API response {"status_code":200,"has_image":true}
+[2026-02-22 02:01:00] [INFO] Result image saved {"path":"/home/u218702675/domains/tryon.digifyce.com/public_html/results/tryon_result_20260222_020100_9ef157.jpg"}
+[2026-02-22 02:01:00] [INFO] Request completed {"execution_time_sec":13.535,"status":200}
+[2026-02-22 02:02:55] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771725774_6721ca.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771725774_da6236.jpg"}}
+[2026-02-22 02:02:55] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771725774_6721ca.jpg","temp_path":"/tmp/vton_MkL0Pj"}
+[2026-02-22 02:02:55] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771725774_da6236.jpg","temp_path":"/tmp/vton_mGVm21"}
+[2026-02-22 02:02:55] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_MkL0Pj","avatar_image_path":"/tmp/vton_mGVm21","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-22 02:03:07] [INFO] API response {"status_code":200,"has_image":true}
+[2026-02-22 02:03:07] [INFO] Result image saved {"path":"/home/u218702675/domains/tryon.digifyce.com/public_html/results/tryon_result_20260222_020307_49e2f1.jpg"}
+[2026-02-22 02:03:07] [INFO] Request completed {"execution_time_sec":12.53,"status":200}
+[2026-02-22 03:47:38] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771732058_886d93.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771732058_40f954.jpg"}}
+[2026-02-22 03:47:38] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771732058_886d93.jpg","temp_path":"/tmp/vton_l9ZglT"}
+[2026-02-22 03:47:38] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771732058_40f954.jpg","temp_path":"/tmp/vton_pT5Xt0"}
+[2026-02-22 03:47:38] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_l9ZglT","avatar_image_path":"/tmp/vton_pT5Xt0","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-22 03:47:51] [INFO] API response {"status_code":200,"has_image":true}
+[2026-02-22 03:47:51] [INFO] Result image saved {"path":"/home/u218702675/domains/tryon.digifyce.com/public_html/results/tryon_result_20260222_034751_01c972.jpg"}
+[2026-02-22 03:47:51] [INFO] Request completed {"execution_time_sec":13.008,"status":200}
+[2026-02-22 05:18:21] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771737499_4ecf12.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771737501_7a219d.jpg"}}
+[2026-02-22 05:18:21] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771737499_4ecf12.jpg","temp_path":"/tmp/vton_wZoE0R"}
+[2026-02-22 05:18:21] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771737501_7a219d.jpg","temp_path":"/tmp/vton_GxseC1"}
+[2026-02-22 05:18:21] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_wZoE0R","avatar_image_path":"/tmp/vton_GxseC1","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-22 05:18:33] [INFO] API response {"status_code":200,"has_image":true}
+[2026-02-22 05:18:33] [INFO] Result image saved {"path":"/home/u218702675/domains/tryon.digifyce.com/public_html/results/tryon_result_20260222_051833_05fd6a.jpg"}
+[2026-02-22 05:18:33] [INFO] Request completed {"execution_time_sec":12.224,"status":200}
+[2026-02-22 05:19:12] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771737552_b5ebd4.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771737552_e8c000.jpg"}}
+[2026-02-22 05:19:12] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771737552_b5ebd4.jpg","temp_path":"/tmp/vton_XuFLBp"}
+[2026-02-22 05:19:12] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771737552_e8c000.jpg","temp_path":"/tmp/vton_gBJgrA"}
+[2026-02-22 05:19:12] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_XuFLBp","avatar_image_path":"/tmp/vton_gBJgrA","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-22 05:19:25] [INFO] API response {"status_code":200,"has_image":true}
+[2026-02-22 05:19:25] [INFO] Result image saved {"path":"/home/u218702675/domains/tryon.digifyce.com/public_html/results/tryon_result_20260222_051925_a91d81.jpg"}
+[2026-02-22 05:19:25] [INFO] Request completed {"execution_time_sec":12.85,"status":200}
+[2026-02-22 06:16:17] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771740976_880fbd.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771740977_5af71c.jpg"}}
+[2026-02-22 06:16:17] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771740976_880fbd.jpg","temp_path":"/tmp/vton_uMEUCE"}
+[2026-02-22 06:16:17] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771740977_5af71c.jpg","temp_path":"/tmp/vton_tIPisg"}
+[2026-02-22 06:16:17] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_uMEUCE","avatar_image_path":"/tmp/vton_tIPisg","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-22 06:16:31] [INFO] API response {"status_code":200,"has_image":true}
+[2026-02-22 06:16:31] [INFO] Result image saved {"path":"/home/u218702675/domains/tryon.digifyce.com/public_html/results/tryon_result_20260222_061631_d29e86.jpg"}
+[2026-02-22 06:16:31] [INFO] Request completed {"execution_time_sec":14.137,"status":200}
+[2026-02-22 06:48:15] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771742895_97780f.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771742895_6c5efd.jpg"}}
+[2026-02-22 06:48:15] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771742895_97780f.jpg","temp_path":"/tmp/vton_grRtPb"}
+[2026-02-22 06:48:15] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771742895_6c5efd.jpg","temp_path":"/tmp/vton_BJxA7h"}
+[2026-02-22 06:48:15] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_grRtPb","avatar_image_path":"/tmp/vton_BJxA7h","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-22 06:48:21] [INFO] API response {"status_code":400,"has_image":false}
+[2026-02-22 06:48:21] [ERROR] TryOn API failed {"status_code":400,"error_details":"File size exceeds the limit: 12583262"}
+[2026-02-22 06:48:21] [INFO] Request completed {"execution_time_sec":6.261,"status":400}
+[2026-02-22 07:13:49] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771744429_d1b091.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771744429_5e61b7.jpg"}}
+[2026-02-22 07:13:49] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771744429_d1b091.jpg","temp_path":"/tmp/vton_GLOQfm"}
+[2026-02-22 07:13:50] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771744429_5e61b7.jpg","temp_path":"/tmp/vton_KuBwwM"}
+[2026-02-22 07:13:50] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_GLOQfm","avatar_image_path":"/tmp/vton_KuBwwM","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-22 07:14:02] [INFO] API response {"status_code":200,"has_image":true}
+[2026-02-22 07:14:02] [INFO] Result image saved {"path":"/home/u218702675/domains/tryon.digifyce.com/public_html/results/tryon_result_20260222_071402_0639dc.jpg"}
+[2026-02-22 07:14:02] [INFO] Request completed {"execution_time_sec":12.655,"status":200}
+[2026-02-22 07:17:09] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771744629_faecff.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771744629_98db6e.jpg"}}
+[2026-02-22 07:17:10] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771744629_faecff.jpg","temp_path":"/tmp/vton_PgSdvF"}
+[2026-02-22 07:17:10] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771744629_98db6e.jpg","temp_path":"/tmp/vton_WhG0le"}
+[2026-02-22 07:17:10] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_PgSdvF","avatar_image_path":"/tmp/vton_WhG0le","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-22 07:17:25] [INFO] API response {"status_code":200,"has_image":true}
+[2026-02-22 07:17:25] [INFO] Result image saved {"path":"/home/u218702675/domains/tryon.digifyce.com/public_html/results/tryon_result_20260222_071725_7770ef.jpg"}
+[2026-02-22 07:17:25] [INFO] Request completed {"execution_time_sec":15.234,"status":200}
+[2026-02-23 01:53:03] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771811581_0de9ab.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771811583_8f969b.jpg"}}
+[2026-02-23 01:53:03] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771811581_0de9ab.jpg","temp_path":"/tmp/vton_1KMZtO"}
+[2026-02-23 01:53:03] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771811583_8f969b.jpg","temp_path":"/tmp/vton_6SJCRh"}
+[2026-02-23 01:53:03] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_1KMZtO","avatar_image_path":"/tmp/vton_6SJCRh","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-23 01:53:16] [INFO] API response {"status_code":200,"has_image":true}
+[2026-02-23 01:53:16] [INFO] Result image saved {"path":"/home/u218702675/domains/tryon.digifyce.com/public_html/results/tryon_result_20260223_015316_18adb7.jpg"}
+[2026-02-23 01:53:16] [INFO] Request completed {"execution_time_sec":12.648,"status":200}
+[2026-02-23 04:51:48] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771822308_8b905d.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771822308_c638ba.jpg"}}
+[2026-02-23 04:51:48] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771822308_8b905d.jpg","temp_path":"/tmp/vton_23Y87t"}
+[2026-02-23 04:51:48] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771822308_c638ba.jpg","temp_path":"/tmp/vton_UsVKmp"}
+[2026-02-23 04:51:48] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_23Y87t","avatar_image_path":"/tmp/vton_UsVKmp","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-23 04:51:49] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-23 04:51:49] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-23 04:51:49] [INFO] Request completed {"execution_time_sec":0.577,"status":400}
+[2026-02-23 04:51:56] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771822316_64eb0d.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771822316_d0dd0f.jpg"}}
+[2026-02-23 04:51:56] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771822316_64eb0d.jpg","temp_path":"/tmp/vton_Sx0Dkx"}
+[2026-02-23 04:51:56] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771822316_d0dd0f.jpg","temp_path":"/tmp/vton_zidq1V"}
+[2026-02-23 04:51:56] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_Sx0Dkx","avatar_image_path":"/tmp/vton_zidq1V","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-23 04:51:57] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-23 04:51:57] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-23 04:51:57] [INFO] Request completed {"execution_time_sec":0.611,"status":400}
+[2026-02-23 04:53:47] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771822426_8145ab.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771822427_6c975d.jpg"}}
+[2026-02-23 04:53:47] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771822426_8145ab.jpg","temp_path":"/tmp/vton_vpl3R6"}
+[2026-02-23 04:53:47] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771822427_6c975d.jpg","temp_path":"/tmp/vton_TLod3F"}
+[2026-02-23 04:53:47] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_vpl3R6","avatar_image_path":"/tmp/vton_TLod3F","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-23 04:53:48] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-23 04:53:48] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-23 04:53:48] [INFO] Request completed {"execution_time_sec":0.869,"status":400}
+[2026-02-23 06:43:08] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771828987_330ebd.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771828988_9530e5.jpg"}}
+[2026-02-23 06:43:08] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771828987_330ebd.jpg","temp_path":"/tmp/vton_00Yn8v"}
+[2026-02-23 06:43:08] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771828988_9530e5.jpg","temp_path":"/tmp/vton_sMj5rP"}
+[2026-02-23 06:43:08] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_00Yn8v","avatar_image_path":"/tmp/vton_AdqK9y.jpg","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-23 06:43:09] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-23 06:43:09] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-23 06:43:09] [INFO] Request completed {"execution_time_sec":0.798,"status":400}
+[2026-02-23 10:40:45] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771843245_43b4c5.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771843245_7e9e65.jpg"}}
+[2026-02-23 10:40:46] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771843245_43b4c5.jpg","temp_path":"/tmp/vton_UvnRT0"}
+[2026-02-23 10:40:46] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771843245_7e9e65.jpg","temp_path":"/tmp/vton_d1o2qH"}
+[2026-02-23 10:40:46] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_UvnRT0","avatar_image_path":"/tmp/vton_d1o2qH","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-23 10:40:47] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-23 10:40:47] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-23 10:40:47] [INFO] Request completed {"execution_time_sec":1.057,"status":400}
+[2026-02-24 09:49:24] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771926564_414b76.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771926564_4cccac.jpg"}}
+[2026-02-24 09:49:24] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771926564_414b76.jpg","temp_path":"/tmp/vton_5i9wWv"}
+[2026-02-24 09:49:25] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771926564_4cccac.jpg","temp_path":"/tmp/vton_dt7gVA"}
+[2026-02-24 09:49:25] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_5i9wWv","avatar_image_path":"/tmp/vton_dt7gVA","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-24 09:49:27] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-24 09:49:27] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-24 09:49:27] [INFO] Request completed {"execution_time_sec":3.054,"status":400}
+[2026-02-24 09:49:46] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771926586_be9180.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771926586_552845.jpg"}}
+[2026-02-24 09:49:46] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771926586_be9180.jpg","temp_path":"/tmp/vton_p7krbE"}
+[2026-02-24 09:49:46] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771926586_552845.jpg","temp_path":"/tmp/vton_Jb9s5s"}
+[2026-02-24 09:49:46] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_p7krbE","avatar_image_path":"/tmp/vton_Jb9s5s","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-24 09:49:48] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-24 09:49:48] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-24 09:49:48] [INFO] Request completed {"execution_time_sec":2.268,"status":400}
+[2026-02-24 09:49:58] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771926598_3bc9d0.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771926598_1852e3.jpg"}}
+[2026-02-24 09:49:58] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771926598_3bc9d0.jpg","temp_path":"/tmp/vton_g5MU5y"}
+[2026-02-24 09:49:58] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771926598_1852e3.jpg","temp_path":"/tmp/vton_vlJDZ3"}
+[2026-02-24 09:49:58] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_g5MU5y","avatar_image_path":"/tmp/vton_vlJDZ3","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-24 09:50:01] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-24 09:50:01] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-24 09:50:01] [INFO] Request completed {"execution_time_sec":2.661,"status":400}
+[2026-02-24 11:57:48] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771934268_b6a568.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771934268_9d9458.jpg"}}
+[2026-02-24 11:57:48] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771934268_b6a568.jpg","temp_path":"/tmp/vton_5D4mDi"}
+[2026-02-24 11:57:48] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771934268_9d9458.jpg","temp_path":"/tmp/vton_tpgTLI"}
+[2026-02-24 11:57:48] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_5D4mDi","avatar_image_path":"/tmp/vton_tpgTLI","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-24 11:57:49] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-24 11:57:49] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-24 11:57:49] [INFO] Request completed {"execution_time_sec":0.75,"status":400}
+[2026-02-24 11:57:57] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771934277_702c21.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771934277_16ac89.jpg"}}
+[2026-02-24 11:57:57] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771934277_702c21.jpg","temp_path":"/tmp/vton_MXcrMT"}
+[2026-02-24 11:57:57] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771934277_16ac89.jpg","temp_path":"/tmp/vton_uZdrKH"}
+[2026-02-24 11:57:57] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_MXcrMT","avatar_image_path":"/tmp/vton_uZdrKH","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-24 11:57:58] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-24 11:57:58] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-24 11:57:58] [INFO] Request completed {"execution_time_sec":0.625,"status":400}
+[2026-02-24 11:58:12] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771934291_1ebad3.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771934292_e9f966.jpg"}}
+[2026-02-24 11:58:12] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771934291_1ebad3.jpg","temp_path":"/tmp/vton_HaLjWW"}
+[2026-02-24 11:58:12] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771934292_e9f966.jpg","temp_path":"/tmp/vton_E4fCGB"}
+[2026-02-24 11:58:12] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_HaLjWW","avatar_image_path":"/tmp/vton_E4fCGB","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-24 11:58:12] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-24 11:58:12] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-24 11:58:12] [INFO] Request completed {"execution_time_sec":0.72,"status":400}
+[2026-02-24 11:58:59] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771934339_85b98f.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771934339_1c8a39.jpg"}}
+[2026-02-24 11:58:59] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771934339_85b98f.jpg","temp_path":"/tmp/vton_1XNwX1"}
+[2026-02-24 11:58:59] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771934339_1c8a39.jpg","temp_path":"/tmp/vton_jcGyx6"}
+[2026-02-24 11:58:59] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_1XNwX1","avatar_image_path":"/tmp/vton_jcGyx6","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-24 11:59:02] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-24 11:59:02] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-24 11:59:02] [INFO] Request completed {"execution_time_sec":2.586,"status":400}
+[2026-02-24 11:59:17] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771934357_17c780.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771934357_3dc6f1.jpg"}}
+[2026-02-24 11:59:17] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771934357_17c780.jpg","temp_path":"/tmp/vton_ZK87Fv"}
+[2026-02-24 11:59:17] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771934357_3dc6f1.jpg","temp_path":"/tmp/vton_D9gn40"}
+[2026-02-24 11:59:17] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_ZK87Fv","avatar_image_path":"/tmp/vton_D9gn40","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-24 11:59:20] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-24 11:59:20] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-24 11:59:20] [INFO] Request completed {"execution_time_sec":2.576,"status":400}
+[2026-02-24 11:59:30] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771934370_9d0306.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771934370_aec5d8.jpg"}}
+[2026-02-24 11:59:30] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771934370_9d0306.jpg","temp_path":"/tmp/vton_ZJmZVN"}
+[2026-02-24 11:59:30] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771934370_aec5d8.jpg","temp_path":"/tmp/vton_6tSOOX"}
+[2026-02-24 11:59:30] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_ZJmZVN","avatar_image_path":"/tmp/vton_6tSOOX","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-24 11:59:33] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-24 11:59:33] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-24 11:59:33] [INFO] Request completed {"execution_time_sec":2.648,"status":400}
+[2026-02-24 11:59:54] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771934394_3a8368.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771934394_e56872.jpg"}}
+[2026-02-24 11:59:54] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771934394_3a8368.jpg","temp_path":"/tmp/vton_CWDwx9"}
+[2026-02-24 11:59:54] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771934394_e56872.jpg","temp_path":"/tmp/vton_ogrnls"}
+[2026-02-24 11:59:54] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_CWDwx9","avatar_image_path":"/tmp/vton_ogrnls","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-24 11:59:57] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-24 11:59:57] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-24 11:59:57] [INFO] Request completed {"execution_time_sec":2.493,"status":400}
+[2026-02-24 12:00:17] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1771934416_324e26.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1771934417_7f5d3f.jpg"}}
+[2026-02-24 12:00:17] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1771934416_324e26.jpg","temp_path":"/tmp/vton_kvMOS4"}
+[2026-02-24 12:00:17] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1771934417_7f5d3f.jpg","temp_path":"/tmp/vton_Xvr59R"}
+[2026-02-24 12:00:17] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_kvMOS4","avatar_image_path":"/tmp/vton_Xvr59R","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-24 12:00:17] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-24 12:00:17] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-24 12:00:17] [INFO] Request completed {"execution_time_sec":0.555,"status":400}
+[2026-02-25 08:58:59] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772009939_fefb26.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772009939_d8414d.jpg"}}
+[2026-02-25 08:58:59] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772009939_fefb26.jpg","temp_path":"/tmp/vton_TRWjNd"}
+[2026-02-25 08:58:59] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772009939_d8414d.jpg","temp_path":"/tmp/vton_Y9RtUh"}
+[2026-02-25 08:58:59] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_TRWjNd","avatar_image_path":"/tmp/vton_Y9RtUh","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-25 08:59:00] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-25 08:59:00] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-25 08:59:00] [INFO] Request completed {"execution_time_sec":0.975,"status":400}
+[2026-02-25 08:59:13] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772009953_bf19e5.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772009953_e21cee.jpg"}}
+[2026-02-25 08:59:13] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772009953_bf19e5.jpg","temp_path":"/tmp/vton_JpDgvA"}
+[2026-02-25 08:59:13] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772009953_e21cee.jpg","temp_path":"/tmp/vton_bELAvM"}
+[2026-02-25 08:59:13] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_JpDgvA","avatar_image_path":"/tmp/vton_bELAvM","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-25 08:59:14] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-25 08:59:14] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-25 08:59:14] [INFO] Request completed {"execution_time_sec":0.825,"status":400}
+[2026-02-25 17:04:58] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772039098_6ed460.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772039098_5be5ea.jpg"}}
+[2026-02-25 17:04:58] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772039098_6ed460.jpg","temp_path":"/tmp/vton_tne3i3"}
+[2026-02-25 17:04:58] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772039098_5be5ea.jpg","temp_path":"/tmp/vton_19doNd"}
+[2026-02-25 17:04:58] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_tne3i3","avatar_image_path":"/tmp/vton_19doNd","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-25 17:04:59] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-25 17:04:59] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-25 17:04:59] [INFO] Request completed {"execution_time_sec":0.761,"status":400}
+[2026-02-25 17:06:27] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772039187_20d98a.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772039187_1db7f5.jpg"}}
+[2026-02-25 17:06:27] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772039187_20d98a.jpg","temp_path":"/tmp/vton_0YigFY"}
+[2026-02-25 17:06:27] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772039187_1db7f5.jpg","temp_path":"/tmp/vton_15leV1"}
+[2026-02-25 17:06:27] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_0YigFY","avatar_image_path":"/tmp/vton_15leV1","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-25 17:06:28] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-25 17:06:28] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-25 17:06:28] [INFO] Request completed {"execution_time_sec":1.068,"status":400}
+[2026-02-26 04:00:09] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772078409_a3253f.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772078409_bc827b.jpg"}}
+[2026-02-26 04:00:09] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772078409_a3253f.jpg","temp_path":"/tmp/vton_JHNu3r"}
+[2026-02-26 04:00:10] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772078409_bc827b.jpg","temp_path":"/tmp/vton_VVZLWa"}
+[2026-02-26 04:00:10] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_JHNu3r","avatar_image_path":"/tmp/vton_VVZLWa","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-26 04:00:10] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-26 04:00:10] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-26 04:00:10] [INFO] Request completed {"execution_time_sec":1.097,"status":400}
+[2026-02-27 00:41:41] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772152901_054c49.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772152901_69c3dc.jpg"}}
+[2026-02-27 00:41:41] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772152901_054c49.jpg","temp_path":"/tmp/vton_iY49Nz"}
+[2026-02-27 00:41:41] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772152901_69c3dc.jpg","temp_path":"/tmp/vton_9aWt8M"}
+[2026-02-27 00:41:41] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_iY49Nz","avatar_image_path":"/tmp/vton_9aWt8M","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-27 00:41:42] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-27 00:41:42] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-27 00:41:42] [INFO] Request completed {"execution_time_sec":0.758,"status":400}
+[2026-02-27 00:41:46] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772152905_424915.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772152905_76ff37.jpg"}}
+[2026-02-27 00:41:46] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772152905_424915.jpg","temp_path":"/tmp/vton_GlXRAl"}
+[2026-02-27 00:41:46] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772152905_76ff37.jpg","temp_path":"/tmp/vton_oKe9t3"}
+[2026-02-27 00:41:46] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_GlXRAl","avatar_image_path":"/tmp/vton_oKe9t3","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-27 00:41:46] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-27 00:41:46] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-27 00:41:46] [INFO] Request completed {"execution_time_sec":0.634,"status":400}
+[2026-02-27 00:42:07] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772152926_7a9a19.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772152927_dc4d25.jpg"}}
+[2026-02-27 00:42:07] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772152926_7a9a19.jpg","temp_path":"/tmp/vton_QBTBxx"}
+[2026-02-27 00:42:07] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772152927_dc4d25.jpg","temp_path":"/tmp/vton_Iy1MJy"}
+[2026-02-27 00:42:07] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_QBTBxx","avatar_image_path":"/tmp/vton_Iy1MJy","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-27 00:42:07] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-27 00:42:07] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-27 00:42:07] [INFO] Request completed {"execution_time_sec":0.555,"status":400}
+[2026-02-27 00:42:14] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772152933_ebe2d9.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772152933_f4464f.jpg"}}
+[2026-02-27 00:42:14] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772152933_ebe2d9.jpg","temp_path":"/tmp/vton_04ILNL"}
+[2026-02-27 00:42:14] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772152933_f4464f.jpg","temp_path":"/tmp/vton_d6lySo"}
+[2026-02-27 00:42:14] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_04ILNL","avatar_image_path":"/tmp/vton_d6lySo","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-27 00:42:14] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-27 00:42:14] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-27 00:42:14] [INFO] Request completed {"execution_time_sec":0.55,"status":400}
+[2026-02-27 00:42:23] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772152943_e0b88c.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772152943_503c0b.jpg"}}
+[2026-02-27 00:42:23] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772152943_e0b88c.jpg","temp_path":"/tmp/vton_kuf1YT"}
+[2026-02-27 00:42:24] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772152943_503c0b.jpg","temp_path":"/tmp/vton_LDbNCs"}
+[2026-02-27 00:42:24] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_kuf1YT","avatar_image_path":"/tmp/vton_LDbNCs","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-27 00:42:24] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-27 00:42:24] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-27 00:42:24] [INFO] Request completed {"execution_time_sec":0.517,"status":400}
+[2026-02-27 00:45:40] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772153139_df3431.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772153140_1f3169.jpg"}}
+[2026-02-27 00:45:40] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772153139_df3431.jpg","temp_path":"/tmp/vton_kfMCNZ"}
+[2026-02-27 00:45:40] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772153140_1f3169.jpg","temp_path":"/tmp/vton_IqAP03"}
+[2026-02-27 00:45:40] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_kfMCNZ","avatar_image_path":"/tmp/vton_IqAP03","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-27 00:45:40] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-27 00:45:40] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-27 00:45:40] [INFO] Request completed {"execution_time_sec":0.549,"status":400}
+[2026-02-28 03:03:10] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772247788_a4ab8d.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772247790_cad0e0.jpg"}}
+[2026-02-28 03:03:10] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772247788_a4ab8d.jpg","temp_path":"/tmp/vton_JpQNdv"}
+[2026-02-28 03:03:10] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772247790_cad0e0.jpg","temp_path":"/tmp/vton_IagQTC"}
+[2026-02-28 03:03:10] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_JpQNdv","avatar_image_path":"/tmp/vton_IagQTC","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-28 03:03:10] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-28 03:03:10] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-28 03:03:10] [INFO] Request completed {"execution_time_sec":0.834,"status":400}
+[2026-02-28 03:03:19] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772247799_a43a40.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772247799_f015b2.jpg"}}
+[2026-02-28 03:03:19] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772247799_a43a40.jpg","temp_path":"/tmp/vton_zKAsWs"}
+[2026-02-28 03:03:19] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772247799_f015b2.jpg","temp_path":"/tmp/vton_R3vvtu"}
+[2026-02-28 03:03:19] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_zKAsWs","avatar_image_path":"/tmp/vton_R3vvtu","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-28 03:03:20] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-28 03:03:20] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-28 03:03:20] [INFO] Request completed {"execution_time_sec":0.832,"status":400}
+[2026-02-28 07:40:04] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772264404_c057d9.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772264404_751570.jpg"}}
+[2026-02-28 07:40:04] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772264404_c057d9.jpg","temp_path":"/tmp/vton_uYe30L"}
+[2026-02-28 07:40:04] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772264404_751570.jpg","temp_path":"/tmp/vton_jhB8S1"}
+[2026-02-28 07:40:04] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_uYe30L","avatar_image_path":"/tmp/vton_jhB8S1","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-28 07:40:05] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-28 07:40:05] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-28 07:40:05] [INFO] Request completed {"execution_time_sec":1.147,"status":400}
+[2026-02-28 11:50:56] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772279455_6d6e7a.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772279456_7a071d.jpg"}}
+[2026-02-28 11:50:56] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772279455_6d6e7a.jpg","temp_path":"/tmp/vton_p3pYig"}
+[2026-02-28 11:50:56] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772279456_7a071d.jpg","temp_path":"/tmp/vton_MSSoTj"}
+[2026-02-28 11:50:56] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_p3pYig","avatar_image_path":"/tmp/vton_MSSoTj","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-28 11:50:56] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-28 11:50:56] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-28 11:50:56] [INFO] Request completed {"execution_time_sec":0.848,"status":400}
+[2026-02-28 11:51:04] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772279463_217757.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772279464_5b4875.jpg"}}
+[2026-02-28 11:51:05] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772279463_217757.jpg","temp_path":"/tmp/vton_kLHXtN"}
+[2026-02-28 11:51:05] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772279464_5b4875.jpg","temp_path":"/tmp/vton_AKV1te"}
+[2026-02-28 11:51:05] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_kLHXtN","avatar_image_path":"/tmp/vton_AKV1te","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-28 11:51:05] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-28 11:51:05] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-28 11:51:05] [INFO] Request completed {"execution_time_sec":0.699,"status":400}
+[2026-02-28 11:51:52] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772279512_312049.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772279512_c4daed.jpg"}}
+[2026-02-28 11:51:53] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772279512_312049.jpg","temp_path":"/tmp/vton_9HsH7w"}
+[2026-02-28 11:51:53] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772279512_c4daed.jpg","temp_path":"/tmp/vton_CrJNQD"}
+[2026-02-28 11:51:53] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_9HsH7w","avatar_image_path":"/tmp/vton_bU6XHp.jpg","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-28 11:51:54] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-28 11:51:54] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-28 11:51:54] [INFO] Request completed {"execution_time_sec":1.062,"status":400}
+[2026-02-28 11:51:59] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772279519_dea83c.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772279519_fedd0e.jpg"}}
+[2026-02-28 11:51:59] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772279519_dea83c.jpg","temp_path":"/tmp/vton_VGGZGo"}
+[2026-02-28 11:51:59] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772279519_fedd0e.jpg","temp_path":"/tmp/vton_BlaOtZ"}
+[2026-02-28 11:52:00] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_VGGZGo","avatar_image_path":"/tmp/vton_AGGEK5.jpg","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-28 11:52:00] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-28 11:52:00] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-28 11:52:00] [INFO] Request completed {"execution_time_sec":0.973,"status":400}
+[2026-02-28 11:52:08] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772279528_2dbc47.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772279528_2f7fb3.jpg"}}
+[2026-02-28 11:52:09] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772279528_2dbc47.jpg","temp_path":"/tmp/vton_bbbdBM"}
+[2026-02-28 11:52:09] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772279528_2f7fb3.jpg","temp_path":"/tmp/vton_vqRfDc"}
+[2026-02-28 11:52:09] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_bbbdBM","avatar_image_path":"/tmp/vton_JHQCVU.jpg","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-28 11:52:10] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-28 11:52:10] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-28 11:52:10] [INFO] Request completed {"execution_time_sec":1.138,"status":400}
+[2026-02-28 11:52:12] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772279532_7a3b93.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772279532_025e1b.jpg"}}
+[2026-02-28 11:52:13] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772279532_7a3b93.jpg","temp_path":"/tmp/vton_EX1lhl"}
+[2026-02-28 11:52:13] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772279532_025e1b.jpg","temp_path":"/tmp/vton_5WzhfW"}
+[2026-02-28 11:52:13] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_EX1lhl","avatar_image_path":"/tmp/vton_lUoiFt.jpg","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-28 11:52:14] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-28 11:52:14] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-28 11:52:14] [INFO] Request completed {"execution_time_sec":1.135,"status":400}
+[2026-02-28 11:52:17] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772279536_17d92a.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772279537_b8a046.jpg"}}
+[2026-02-28 11:52:17] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772279536_17d92a.jpg","temp_path":"/tmp/vton_ZGgPlv"}
+[2026-02-28 11:52:17] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772279537_b8a046.jpg","temp_path":"/tmp/vton_jjPyh7"}
+[2026-02-28 11:52:17] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_ZGgPlv","avatar_image_path":"/tmp/vton_Lfs50Y.jpg","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-28 11:52:18] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-28 11:52:18] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-28 11:52:18] [INFO] Request completed {"execution_time_sec":0.959,"status":400}
+[2026-02-28 22:10:45] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772316644_986e87.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772316645_c1289a.jpg"}}
+[2026-02-28 22:10:45] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772316644_986e87.jpg","temp_path":"/tmp/vton_gUvFFJ"}
+[2026-02-28 22:10:45] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772316645_c1289a.jpg","temp_path":"/tmp/vton_rs6D22"}
+[2026-02-28 22:10:45] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_gUvFFJ","avatar_image_path":"/tmp/vton_rs6D22","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-28 22:10:46] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-28 22:10:46] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-28 22:10:46] [INFO] Request completed {"execution_time_sec":0.704,"status":400}
+[2026-02-28 22:10:53] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772316653_3f1088.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772316653_f780d7.jpg"}}
+[2026-02-28 22:10:53] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772316653_3f1088.jpg","temp_path":"/tmp/vton_LtvpEX"}
+[2026-02-28 22:10:53] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772316653_f780d7.jpg","temp_path":"/tmp/vton_gG19Qp"}
+[2026-02-28 22:10:53] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_LtvpEX","avatar_image_path":"/tmp/vton_gG19Qp","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-28 22:10:54] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-28 22:10:54] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-28 22:10:54] [INFO] Request completed {"execution_time_sec":0.708,"status":400}
+[2026-02-28 22:11:00] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772316660_afe1e8.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772316660_383cd5.jpg"}}
+[2026-02-28 22:11:00] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772316660_afe1e8.jpg","temp_path":"/tmp/vton_Mq81kZ"}
+[2026-02-28 22:11:00] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772316660_383cd5.jpg","temp_path":"/tmp/vton_JeX4N3"}
+[2026-02-28 22:11:00] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_Mq81kZ","avatar_image_path":"/tmp/vton_JeX4N3","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-28 22:11:01] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-28 22:11:01] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-28 22:11:01] [INFO] Request completed {"execution_time_sec":0.759,"status":400}
+[2026-02-28 22:11:44] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772316704_502ce2.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772316704_44ec8d.jpg"}}
+[2026-02-28 22:11:44] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772316704_502ce2.jpg","temp_path":"/tmp/vton_Hr57If"}
+[2026-02-28 22:11:44] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772316704_44ec8d.jpg","temp_path":"/tmp/vton_MnTdl4"}
+[2026-02-28 22:11:44] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_Hr57If","avatar_image_path":"/tmp/vton_MnTdl4","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-02-28 22:11:45] [INFO] API response {"status_code":429,"has_image":false}
+[2026-02-28 22:11:45] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-02-28 22:11:45] [INFO] Request completed {"execution_time_sec":0.649,"status":400}
+[2026-03-01 04:24:02] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772339041_dcc097.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772339042_c49173.jpg"}}
+[2026-03-01 04:24:02] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772339041_dcc097.jpg","temp_path":"/tmp/vton_Uuqom4"}
+[2026-03-01 04:24:02] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772339042_c49173.jpg","temp_path":"/tmp/vton_cUFRTF"}
+[2026-03-01 04:24:02] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_Uuqom4","avatar_image_path":"/tmp/vton_cUFRTF","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-03-01 04:24:02] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772339041_40e78f.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772339042_2ea982.jpg"}}
+[2026-03-01 04:24:02] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772339041_40e78f.jpg","temp_path":"/tmp/vton_OVvwW8"}
+[2026-03-01 04:24:02] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772339042_2ea982.jpg","temp_path":"/tmp/vton_MJUBvF"}
+[2026-03-01 04:24:02] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_OVvwW8","avatar_image_path":"/tmp/vton_MJUBvF","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-03-01 04:24:03] [INFO] API response {"status_code":429,"has_image":false}
+[2026-03-01 04:24:03] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-03-01 04:24:03] [INFO] Request completed {"execution_time_sec":0.994,"status":400}
+[2026-03-01 04:24:03] [INFO] API response {"status_code":429,"has_image":false}
+[2026-03-01 04:24:03] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-03-01 04:24:03] [INFO] Request completed {"execution_time_sec":0.792,"status":400}
+[2026-03-01 04:24:27] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772339067_a23b6b.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772339067_7f45d2.jpg"}}
+[2026-03-01 04:24:27] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772339067_a23b6b.jpg","temp_path":"/tmp/vton_bfcDNz"}
+[2026-03-01 04:24:27] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772339067_7f45d2.jpg","temp_path":"/tmp/vton_8GlUo0"}
+[2026-03-01 04:24:27] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_bfcDNz","avatar_image_path":"/tmp/vton_8GlUo0","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-03-01 04:24:28] [INFO] API response {"status_code":429,"has_image":false}
+[2026-03-01 04:24:28] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-03-01 04:24:28] [INFO] Request completed {"execution_time_sec":0.808,"status":400}
+[2026-03-01 04:25:41] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772339141_084f26.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772339141_cd4738.jpg"}}
+[2026-03-01 04:25:41] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772339141_084f26.jpg","temp_path":"/tmp/vton_dI1GkI"}
+[2026-03-01 04:25:41] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772339141_cd4738.jpg","temp_path":"/tmp/vton_J3HXeu"}
+[2026-03-01 04:25:41] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_dI1GkI","avatar_image_path":"/tmp/vton_J3HXeu","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-03-01 04:25:42] [INFO] API response {"status_code":429,"has_image":false}
+[2026-03-01 04:25:42] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-03-01 04:25:42] [INFO] Request completed {"execution_time_sec":0.794,"status":400}
+[2026-03-01 04:25:45] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772339144_5c4525.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772339145_3c6e65.jpg"}}
+[2026-03-01 04:25:45] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772339144_5c4525.jpg","temp_path":"/tmp/vton_YnCJWJ"}
+[2026-03-01 04:25:45] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772339145_3c6e65.jpg","temp_path":"/tmp/vton_C3ceVL"}
+[2026-03-01 04:25:45] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_YnCJWJ","avatar_image_path":"/tmp/vton_C3ceVL","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-03-01 04:25:45] [INFO] API response {"status_code":429,"has_image":false}
+[2026-03-01 04:25:45] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-03-01 04:25:45] [INFO] Request completed {"execution_time_sec":0.805,"status":400}
+[2026-03-01 04:54:08] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772340848_4fb992.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772340848_11f04b.jpg"}}
+[2026-03-01 04:54:08] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772340848_4fb992.jpg","temp_path":"/tmp/vton_zJzwIv"}
+[2026-03-01 04:54:08] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772340848_11f04b.jpg","temp_path":"/tmp/vton_HknN0G"}
+[2026-03-01 04:54:08] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_zJzwIv","avatar_image_path":"/tmp/vton_HknN0G","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-03-01 04:54:09] [INFO] API response {"status_code":429,"has_image":false}
+[2026-03-01 04:54:09] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-03-01 04:54:09] [INFO] Request completed {"execution_time_sec":1.058,"status":400}
+[2026-03-01 19:33:03] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772393581_61a089.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772393583_9f2a72.jpg"}}
+[2026-03-01 19:33:03] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772393581_61a089.jpg","temp_path":"/tmp/vton_UBmaU7"}
+[2026-03-01 19:33:03] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772393583_9f2a72.jpg","temp_path":"/tmp/vton_02akrQ"}
+[2026-03-01 19:33:03] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_UBmaU7","avatar_image_path":"/tmp/vton_02akrQ","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-03-01 19:33:04] [INFO] API response {"status_code":429,"has_image":false}
+[2026-03-01 19:33:04] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-03-01 19:33:04] [INFO] Request completed {"execution_time_sec":0.971,"status":400}
+[2026-03-01 19:33:09] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772393589_ba72cd.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772393589_a1edf9.jpg"}}
+[2026-03-01 19:33:09] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772393589_ba72cd.jpg","temp_path":"/tmp/vton_SJbEnV"}
+[2026-03-01 19:33:09] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772393589_a1edf9.jpg","temp_path":"/tmp/vton_J6wMVz"}
+[2026-03-01 19:33:09] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_SJbEnV","avatar_image_path":"/tmp/vton_J6wMVz","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-03-01 19:33:10] [INFO] API response {"status_code":429,"has_image":false}
+[2026-03-01 19:33:10] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-03-01 19:33:10] [INFO] Request completed {"execution_time_sec":0.887,"status":400}
+[2026-03-02 06:39:12] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772433552_9345dd.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772433552_14ad8b.jpg"}}
+[2026-03-02 06:39:13] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772433552_9345dd.jpg","temp_path":"/tmp/vton_c6Y4Yi"}
+[2026-03-02 06:39:13] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772433552_14ad8b.jpg","temp_path":"/tmp/vton_o5p5Oe"}
+[2026-03-02 06:39:13] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_c6Y4Yi","avatar_image_path":"/tmp/vton_o5p5Oe","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-03-02 06:39:14] [INFO] API response {"status_code":429,"has_image":false}
+[2026-03-02 06:39:14] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-03-02 06:39:14] [INFO] Request completed {"execution_time_sec":1.093,"status":400}
+[2026-03-02 06:39:22] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772433562_81e9a8.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772433562_0e5350.jpg"}}
+[2026-03-02 06:39:22] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772433562_81e9a8.jpg","temp_path":"/tmp/vton_lpjfnH"}
+[2026-03-02 06:39:22] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772433562_0e5350.jpg","temp_path":"/tmp/vton_vygLiQ"}
+[2026-03-02 06:39:22] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_lpjfnH","avatar_image_path":"/tmp/vton_vygLiQ","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-03-02 06:39:23] [INFO] API response {"status_code":429,"has_image":false}
+[2026-03-02 06:39:23] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-03-02 06:39:23] [INFO] Request completed {"execution_time_sec":1.366,"status":400}
+[2026-03-02 06:39:34] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772433574_4213cc.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772433574_df7bf8.jpg"}}
+[2026-03-02 06:39:34] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772433574_4213cc.jpg","temp_path":"/tmp/vton_SqAjOW"}
+[2026-03-02 06:39:34] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772433574_df7bf8.jpg","temp_path":"/tmp/vton_KtoSvu"}
+[2026-03-02 06:39:34] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_SqAjOW","avatar_image_path":"/tmp/vton_KtoSvu","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-03-02 06:39:35] [INFO] API response {"status_code":429,"has_image":false}
+[2026-03-02 06:39:35] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-03-02 06:39:35] [INFO] Request completed {"execution_time_sec":1.079,"status":400}
+[2026-03-02 06:39:43] [INFO] Incoming request {"ip":"2a02:4780:11:1508:0:d09:2353:1","payload":{"clothing_image":"https://tryon.digifyce.com/uploads/cloth_1772433583_7846a4.jpg","avatar_image":"https://tryon.digifyce.com/uploads/avatar_1772433583_1d9cc5.jpg"}}
+[2026-03-02 06:39:43] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/cloth_1772433583_7846a4.jpg","temp_path":"/tmp/vton_8HOPUc"}
+[2026-03-02 06:39:43] [INFO] Image downloaded {"url":"https://tryon.digifyce.com/uploads/avatar_1772433583_1d9cc5.jpg","temp_path":"/tmp/vton_fPacaJ"}
+[2026-03-02 06:39:43] [INFO] Calling TryOn API {"params":{"clothing_image_path":"/tmp/vton_8HOPUc","avatar_image_path":"/tmp/vton_fPacaJ","background_image_path":null,"clothing_prompt":null,"avatar_prompt":null,"avatar_sex":null,"background_prompt":null,"seed":-1}}
+[2026-03-02 06:39:44] [INFO] API response {"status_code":429,"has_image":false}
+[2026-03-02 06:39:44] [ERROR] TryOn API failed {"status_code":429,"error_details":"{\"message\":\"You have exceeded the MONTHLY quota for Requests on your current plan, BASIC. Upgrade your plan at https:\\/\\/rapidapi.com\\/texelmoda-texelmoda-apis\\/api\\/try-on-diffusion\"}"}
+[2026-03-02 06:39:44] [INFO] Request completed {"execution_time_sec":1.011,"status":400}

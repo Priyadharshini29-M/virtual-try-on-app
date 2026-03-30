@@ -1,0 +1,60 @@
+{%- if product.metafields.tryfit.tryon_enabled == 'true' -%}
+  <div id="tryfit-btn-wrap" class="tryfit-btn-container tryfit-app-block">
+    <button
+      id="tryfit-open-btn"
+      class="tryfit-open-btn"
+      data-product-id="{{ product.id }}"
+      data-variants="{{ product.variants | json | escape }}"
+      data-clothing-images="{{ product.metafields.tryfit.variant_mappings }}"
+      data-featured-image="{{ product.featured_image | image_url: width: 1024 }}"
+      data-proxy-url="{{ shop.secure_url }}/apps/tryfit"
+      style="
+        background: {{ block.settings.button_color }};
+        color: {{ block.settings.button_text_color }};
+        border: none;
+        padding: 12px 24px;
+        font-size: 16px;
+        font-weight: 600;
+        border-radius: 4px;
+        cursor: pointer;
+        width: 100%;
+        display: block;
+        margin: 10px 0;
+      "
+    >
+      {{ block.settings.button_text }}
+    </button>
+  </div>
+{%- endif -%}
+
+{%- render 'tryon-modal' -%}
+
+{{ 'tryon-widget.js' | asset_url | script_tag }}
+{{ 'tryon-modal.css' | asset_url | stylesheet_tag }}
+
+{% schema %}
+{
+  "name": "TryFit Try-On Button",
+  "target": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button text",
+      "default": "Try On This Look"
+    },
+    {
+      "type": "color",
+      "id": "button_color",
+      "label": "Button background color",
+      "default": "#1B3A6B"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Button text color",
+      "default": "#FFFFFF"
+    }
+  ]
+}
+{% endschema %}

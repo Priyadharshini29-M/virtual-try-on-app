@@ -1,0 +1,278 @@
+/* TryFit Modal Styles
+   Uses CSS custom properties so it adapts to the merchant's theme */
+
+:root {
+  --tryfit-primary:    #1B3A6B;
+  --tryfit-primary-fg: #FFFFFF;
+  --tryfit-radius:     8px;
+  --tryfit-shadow:     0 8px 40px rgba(0,0,0,0.32);
+  --tryfit-overlay-bg: rgba(0,0,0,0.65);
+  --tryfit-font:       -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* ── Overlay ────────────────────────────────────────────────── */
+.tryfit-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--tryfit-overlay-bg);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--tryfit-font);
+}
+
+/* ── Modal card ─────────────────────────────────────────────── */
+.tryfit-modal {
+  background: #fff;
+  border-radius: var(--tryfit-radius);
+  box-shadow: var(--tryfit-shadow);
+  width: min(480px, calc(100vw - 24px));
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  padding: 24px 24px 32px;
+}
+
+/* Mobile: full-screen */
+@media (max-width: 767px) {
+  .tryfit-modal {
+    width: 100vw;
+    max-height: 100vh;
+    height: 100vh;
+    border-radius: 0;
+    padding: 20px 16px 32px;
+    margin: 0;
+  }
+  .tryfit-overlay {
+    align-items: flex-end;
+  }
+}
+
+/* ── Close button ───────────────────────────────────────────── */
+.tryfit-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  color: #666;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+.tryfit-close:hover { background: #f0f0f0; }
+
+/* ── Step layout ────────────────────────────────────────────── */
+.tryfit-step-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tryfit-result-inner {
+  align-items: center;
+}
+
+/* ── Heading ────────────────────────────────────────────────── */
+.tryfit-heading {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  color: #111;
+}
+
+/* ── Privacy notice ─────────────────────────────────────────── */
+.tryfit-privacy-notice {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── Upload label ───────────────────────────────────────────── */
+.tryfit-upload-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 2px dashed #ccc;
+  border-radius: var(--tryfit-radius);
+  padding: 32px 24px;
+  cursor: pointer;
+  font-size: 15px;
+  color: #444;
+  transition: border-color 0.2s, background 0.2s;
+}
+.tryfit-upload-label:hover {
+  border-color: var(--tryfit-primary);
+  background: #f5f8ff;
+}
+.tryfit-upload-icon { font-size: 36px; }
+
+.tryfit-hint {
+  font-size: 12px;
+  color: #999;
+  text-align: center;
+  margin: 0;
+}
+
+/* ── Variant selector ───────────────────────────────────────── */
+.tryfit-variant-selector select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 15px;
+  background: #fff;
+}
+
+/* ── Progress bar ───────────────────────────────────────────── */
+.tryfit-progress-bar-wrap {
+  background: #e8edf5;
+  border-radius: 100px;
+  height: 8px;
+  overflow: hidden;
+}
+
+.tryfit-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--tryfit-primary), #4a7fc1);
+  border-radius: 100px;
+  transition: width 0.4s ease;
+}
+
+.tryfit-progress-msg {
+  font-size: 14px;
+  color: #555;
+  text-align: center;
+  margin: 0;
+}
+
+/* ── Result image ───────────────────────────────────────────── */
+.tryfit-result-img {
+  width: 100%;
+  max-width: 360px;
+  border-radius: var(--tryfit-radius);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  object-fit: cover;
+}
+
+/* ── Buttons ────────────────────────────────────────────────── */
+.tryfit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: var(--tryfit-radius);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+  flex: 1;
+  min-width: 120px;
+}
+.tryfit-btn:active { transform: scale(0.97); }
+
+.tryfit-btn--primary {
+  background: var(--tryfit-primary);
+  color: var(--tryfit-primary-fg);
+}
+.tryfit-btn--primary:hover { opacity: 0.88; }
+
+.tryfit-btn--secondary {
+  background: #f0f0f0;
+  color: #111;
+}
+.tryfit-btn--secondary:hover { background: #e0e0e0; }
+
+.tryfit-btn--ghost {
+  background: transparent;
+  border: 1.5px solid #ddd;
+  color: #444;
+  font-weight: 500;
+}
+.tryfit-btn--ghost:hover { background: #f5f5f5; }
+
+.tryfit-btn--whatsapp { color: #25D366; border-color: #25D366; }
+.tryfit-btn--whatsapp:hover { background: #f0fff4; }
+
+/* ── CTA row ────────────────────────────────────────────────── */
+.tryfit-cta-row,
+.tryfit-share-row {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  max-width: 380px;
+}
+
+/* Mobile stack */
+@media (max-width: 767px) {
+  .tryfit-cta-row,
+  .tryfit-share-row {
+    flex-direction: column;
+  }
+  .tryfit-btn {
+    flex: unset;
+    width: 100%;
+  }
+}
+
+/* ── Links ──────────────────────────────────────────────────── */
+.tryfit-link {
+  background: none;
+  border: none;
+  color: var(--tryfit-primary);
+  text-decoration: underline;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+}
+.tryfit-link:hover { opacity: 0.7; }
+
+/* ── Watermark ──────────────────────────────────────────────── */
+.tryfit-watermark {
+  font-size: 11px;
+  color: #bbb;
+  text-align: center;
+  margin: 0;
+}
+
+/* ── Error state ────────────────────────────────────────────── */
+.tryfit-error-icon {
+  font-size: 40px;
+  text-align: center;
+  display: block;
+}
+.tryfit-error-msg {
+  font-size: 15px;
+  color: #c0392b;
+  text-align: center;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ── Toast ──────────────────────────────────────────────────── */
+.tryfit-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #222;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 14px;
+  z-index: 100001;
+  animation: tryfit-fadein 0.2s ease;
+}
+
+@keyframes tryfit-fadein {
+  from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}

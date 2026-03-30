@@ -1,0 +1,148 @@
+:root {
+  --bg: #0b1220;
+  --card: #0f1b33;
+  --accent: #4f9cff;
+  --accent-2: #8a5cff;
+  --text: #e6edf7;
+  --muted: #9fb0c7;
+  --border: #1f2b45;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  color: var(--text);
+  background: radial-gradient(1200px 600px at 10% -10%, #1c2a4a 0%, var(--bg) 55%) fixed;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 32px auto 60px;
+  padding: 0 20px;
+}
+
+.header {
+  background: linear-gradient(135deg, #001a4d 0%, #0b2f6f 100%);
+  border: 1px solid #1b3b7a;
+  border-radius: 16px;
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+}
+
+.header img {
+  height: 64px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 24px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+  margin-top: 22px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.card h2 {
+  margin: 0 0 12px;
+  font-size: 18px;
+}
+
+.label {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+input[type="file"],
+input[type="text"],
+input[type="number"],
+select,
+textarea {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  background: #0b162e;
+  color: var(--text);
+  outline: none;
+}
+
+textarea {
+  min-height: 92px;
+  resize: vertical;
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+}
+
+.row > * {
+  flex: 1;
+}
+
+.button {
+  margin-top: 10px;
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-weight: 600;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(79, 156, 255, 0.35);
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.result {
+  margin-top: 18px;
+  text-align: center;
+}
+
+.result img {
+  max-width: 100%;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.alert {
+  border: 1px solid #ff6b6b;
+  color: #ffb3b3;
+  background: rgba(255, 107, 107, 0.1);
+  padding: 10px 12px;
+  border-radius: 12px;
+  margin-top: 12px;
+}
+
+.footer {
+  text-align: center;
+  color: var(--muted);
+  margin-top: 20px;
+  font-size: 12px;
+}

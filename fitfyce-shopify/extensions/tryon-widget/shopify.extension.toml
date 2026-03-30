@@ -1,0 +1,7 @@
+api_version = "2026-04"
+
+[[extensions]]
+uid = "fab79224-defc-313f-e050-ff995f41040b91922f9b"
+type = "theme"
+name = "TryFit Try-On Widget"
+handle = "tryon-widget"
