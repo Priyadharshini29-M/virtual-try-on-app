@@ -85,5 +85,17 @@ export default function phpApiClient(apiKey, baseUrl) {
 
     recordConversion: (data) =>
       request('POST', '/conversion', data),
+
+    getShopInfo: () =>
+      request('GET', '/shop'),
+
+    getShopProducts: () =>
+      request('GET', '/shop/products'),
+
+    getWidgetSettings: () =>
+      request('GET', '/widget/settings'),
+
+    patchWidgetSettings: (data) =>
+      request('PATCH', '/widget/settings', data),
   };
 }

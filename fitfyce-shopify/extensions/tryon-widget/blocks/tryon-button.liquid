@@ -1,4 +1,5 @@
-{%- if product.metafields.tryfit.tryon_enabled == 'true' -%}
+{%- assign app_enabled = shop.metafields.fitfyce.app_enabled | default: 'true' -%}
+{%- if block.settings.enabled and app_enabled == 'true' and product.metafields.tryfit.tryon_enabled == 'true' -%}
   <div id="tryfit-btn-wrap" class="tryfit-btn-container tryfit-app-block">
     <button
       id="tryfit-open-btn"
@@ -8,6 +9,7 @@
       data-clothing-images="{{ product.metafields.tryfit.variant_mappings }}"
       data-featured-image="{{ product.featured_image | image_url: width: 1024 }}"
       data-proxy-url="{{ shop.secure_url }}/apps/tryfit"
+      data-shop="{{ shop.permanent_domain }}"
       style="
         background: {{ block.settings.button_color }};
         color: {{ block.settings.button_text_color }};
@@ -18,11 +20,19 @@
         border-radius: 4px;
         cursor: pointer;
         width: 100%;
-        display: block;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
         margin: 10px 0;
+        box-sizing: border-box;
+        transition: opacity 0.15s;
+        gap: 2px;
       "
     >
-      {{ block.settings.button_text }}
+      <span class="tryfit-btn-icon" style="display:none;align-items:center;justify-content:center;flex-shrink:0;"></span>
+      <span class="tryfit-btn-title" style="line-height:1.2;">{{ block.settings.button_text }}</span>
+      <span class="tryfit-btn-subtitle" style="display:none;opacity:0.8;line-height:1.2;"></span>
     </button>
   </div>
 {%- endif -%}
@@ -34,25 +44,31 @@
 
 {% schema %}
 {
-  "name": "TryFit Try-On Button",
+  "name": "FitFyce Try-On Button",
   "target": "section",
   "settings": [
     {
+      "type": "checkbox",
+      "id": "enabled",
+      "label": "Enable Button",
+      "default": true
+    },
+    {
       "type": "text",
       "id": "button_text",
-      "label": "Button text",
+      "label": "Button text (used before settings load)",
       "default": "Try On This Look"
     },
     {
       "type": "color",
       "id": "button_color",
-      "label": "Button background color",
-      "default": "#1B3A6B"
+      "label": "Button background color (fallback)",
+      "default": "#111827"
     },
     {
       "type": "color",
       "id": "button_text_color",
-      "label": "Button text color",
+      "label": "Button text color (fallback)",
       "default": "#FFFFFF"
     }
   ]

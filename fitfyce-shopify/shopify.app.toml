@@ -2,7 +2,7 @@
 
 client_id = "876421af61b2135a56534b6b182909bd"
 name = "FitFyce"
-application_url = "https://prefixal-turbanlike-britt.ngrok-free.dev"
+application_url = "https://unrivaled-unheated-unstable.ngrok-free.dev"
 embedded = true
 
 [build]
@@ -31,7 +31,7 @@ uri    = "/app/webhook"
 scopes = "read_products,write_products"
 
 [auth]
-redirect_urls = [ "https://prefixal-turbanlike-britt.ngrok-free.dev/api/auth" ]
+redirect_urls = [ "https://unrivaled-unheated-unstable.ngrok-free.dev/api/auth" ]
 [app_proxy]
 url = "https://tryonapp.digifyce.com"
 prefix = "apps"

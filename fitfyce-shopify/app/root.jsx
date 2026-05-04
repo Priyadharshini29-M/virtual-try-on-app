@@ -1,4 +1,7 @@
 import "@shopify/polaris/build/esm/styles.css";
+import "./tailwind.css";
+import "./vto-design.css";
+
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
 
 export default function App() {

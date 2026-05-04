@@ -27,12 +27,14 @@ ALTER TABLE merchant_settings
     ADD COLUMN subtitle_font_family  VARCHAR(100)   NOT NULL DEFAULT 'Inter, sans-serif' AFTER title_font_family,
     ADD COLUMN button_icon           VARCHAR(30)    NOT NULL DEFAULT 'eye'       AFTER subtitle_font_family,
     ADD COLUMN icon_color            VARCHAR(7)     NOT NULL DEFAULT '#FFFFFF'   AFTER button_icon,
-    ADD COLUMN main_icon_bg_color    VARCHAR(50)    NOT NULL DEFAULT 'transparent' AFTER icon_color,
-    ADD COLUMN coll_icon_bg_color    VARCHAR(50)    NOT NULL DEFAULT 'transparent' AFTER main_icon_bg_color,
+    ADD COLUMN main_icon_bg_color    VARCHAR(20)    NOT NULL DEFAULT 'transparent' AFTER icon_color,
+    ADD COLUMN coll_icon_bg_color    VARCHAR(20)    NOT NULL DEFAULT 'transparent' AFTER main_icon_bg_color,
     ADD COLUMN icon_size             INT UNSIGNED   NOT NULL DEFAULT 16          AFTER coll_icon_bg_color,
     ADD COLUMN icon_radius           INT UNSIGNED   NOT NULL DEFAULT 4           AFTER icon_size,
     ADD COLUMN icon_shape            VARCHAR(20)    NOT NULL DEFAULT 'square'    AFTER icon_radius,
     ADD COLUMN icon_opacity          INT UNSIGNED   NOT NULL DEFAULT 100         AFTER icon_shape,
     ADD COLUMN show_on_collection    TINYINT(1)     NOT NULL DEFAULT 1           AFTER icon_opacity,
     ADD COLUMN collection_position   ENUM('top_left','top_right','bottom_left','bottom_right')
-                                                    NOT NULL DEFAULT 'top_right' AFTER show_on_collection;
+                                                    NOT NULL DEFAULT 'top_right' AFTER show_on_collection,
+    ADD COLUMN created_at            DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ADD COLUMN updated_at            DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;

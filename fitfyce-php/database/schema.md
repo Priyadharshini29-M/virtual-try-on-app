@@ -93,8 +93,8 @@ CREATE TABLE merchant_settings (
   -- Collection icon
   button_icon              VARCHAR(30)    NOT NULL DEFAULT 'eye',
   icon_color               VARCHAR(7)     NOT NULL DEFAULT '#FFFFFF',
-  main_icon_bg_color       VARCHAR(50)    NOT NULL DEFAULT 'transparent',
-  coll_icon_bg_color       VARCHAR(50)    NOT NULL DEFAULT 'transparent',
+  main_icon_bg_color       VARCHAR(20)    NOT NULL DEFAULT 'transparent',
+  coll_icon_bg_color       VARCHAR(20)    NOT NULL DEFAULT 'transparent',
   icon_size                INT UNSIGNED   NOT NULL DEFAULT 16,
   icon_radius              INT UNSIGNED   NOT NULL DEFAULT 4,
   icon_shape               VARCHAR(20)    NOT NULL DEFAULT 'square',
@@ -106,6 +106,9 @@ CREATE TABLE merchant_settings (
   share_whatsapp_enabled   TINYINT(1)     NOT NULL DEFAULT 1,
   save_image_enabled       TINYINT(1)     NOT NULL DEFAULT 1,
   privacy_notice_shown     TINYINT(1)     NOT NULL DEFAULT 1,
+  -- Timestamps
+  created_at               DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at               DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT fk_ms_merchant FOREIGN KEY (merchant_id)
     REFERENCES merchants(id) ON DELETE CASCADE,
   UNIQUE KEY uq_merchant_settings (merchant_id)
