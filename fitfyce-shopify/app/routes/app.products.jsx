@@ -58,7 +58,7 @@ export async function loader({ request }) {
   ]);
 
   const collectionsData = await collectionsRes.json();
-  const phpList = phpRes.ok ? phpRes.data ?? [] : [];
+  const phpList = phpRes.ok && Array.isArray(phpRes.data) ? phpRes.data : [];
 
   const phpMap = {};
   for (const p of phpList) {
@@ -93,7 +93,7 @@ export async function loader({ request }) {
             tags: p.tags ?? [],
             featuredImage: p.featuredImage,
             numericId,
-            isTryonEnabled: phpRow ? Boolean(phpRow.is_tryon_enabled) : false,
+            isTryonEnabled: phpRow ? phpRow.is_tryon_enabled == 1 : false,
             price: priceDisplay,
             currency,
           };
