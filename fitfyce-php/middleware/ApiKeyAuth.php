@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace TryFit\Middleware;
 
+use TryFit\AppConfig;
 use TryFit\Db\MerchantRepo;
 
 class ApiKeyAuth
@@ -16,9 +17,7 @@ class ApiKeyAuth
             respondJson(['error' => 'Unauthorized'], 401);
         }
 
-        // Master key — allows privileged operations (register, by-domain, etc.)
-        // before any merchant rows exist in the DB.
-        $masterKey = trim((string)(getenv('MASTER_API_KEY') ?: ''));
+        $masterKey = AppConfig::masterApiKey();
         if ($masterKey !== '' && $key === $masterKey) {
             return ['id' => 0, 'is_active' => 1, 'plan' => 'master', 'api_key' => $key];
         }

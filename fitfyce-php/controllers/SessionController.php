@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace TryFit\Controllers;
 
+use TryFit\AppConfig;
 use TryFit\Db\AnalyticsRepo;
 use TryFit\Db\MerchantRepo;
 use TryFit\Db\SessionRepo;
@@ -19,9 +20,9 @@ class SessionController
 
         $body = (array)(json_decode((string)file_get_contents('php://input'), true) ?? []);
 
-        $productId  = isset($body['product_id'])  ? (int)$body['product_id']  : null;
-        $variantId  = isset($body['variant_id'])  ? (int)$body['variant_id']  : null;
-        $deviceType = $body['device_type']  ?? null;
+        $productId   = isset($body['product_id'])  ? (int)$body['product_id']  : null;
+        $variantId   = isset($body['variant_id'])  ? (int)$body['variant_id']  : null;
+        $deviceType  = $body['device_type']  ?? null;
         $countryCode = $body['country_code'] ?? null;
 
         if ($productId === null) {
@@ -38,11 +39,7 @@ class SessionController
         ]);
 
         $analyticsRepo = new AnalyticsRepo();
-        $analyticsRepo->upsertDaily(
-            (int)$merchant['id'],
-            date('Y-m-d'),
-            ['tryon_initiated' => 1]
-        );
+        $analyticsRepo->upsertDaily((int)$merchant['id'], date('Y-m-d'), ['tryon_initiated' => 1]);
 
         $merchantRepo = new MerchantRepo();
         $merchantRepo->incrementTryonCount((int)$merchant['id']);
@@ -58,13 +55,12 @@ class SessionController
         $sessId = trim((string)($body['session_id'] ?? ''));
         $action = trim((string)($body['action'] ?? ''));
 
-        $validActions = ['add_to_cart', 'buy_now', 'save_image', 'share_wa'];
-        if ($sessId === '' || !in_array($action, $validActions, true)) {
+        if ($sessId === '' || !in_array($action, AppConfig::SESSION_ACTIONS, true)) {
             respondJson(['error' => 'Invalid session_id or action'], 400);
         }
 
         $sessionRepo = new SessionRepo();
-        $session = $sessionRepo->findById($sessId);
+        $session     = $sessionRepo->findById($sessId);
 
         if ($session === null || (int)$session['merchant_id'] !== (int)$merchant['id']) {
             respondJson(['error' => 'Session not found'], 404);
@@ -72,19 +68,11 @@ class SessionController
 
         $sessionRepo->trackAction($sessId, $action);
 
-        // Map action name to analytics column
-        $analyticsMap = [
-            'add_to_cart' => 'add_to_cart_count',
-            'buy_now'     => 'buy_now_count',
-            'save_image'  => 'save_count',
-            'share_wa'    => 'share_wa_count',
-        ];
-
         $analyticsRepo = new AnalyticsRepo();
         $analyticsRepo->upsertDaily(
             (int)$merchant['id'],
             date('Y-m-d'),
-            [$analyticsMap[$action] => 1]
+            [AppConfig::ACTION_ANALYTICS_MAP[$action] => 1]
         );
 
         respondJson(['ok' => true]);
@@ -99,7 +87,7 @@ class SessionController
 
         $shop = trim((string)($_GET['shop'] ?? ''));
         if ($shop !== '') {
-            $repo = new MerchantRepo();
+            $repo     = new MerchantRepo();
             $merchant = $repo->findByDomain($shop);
             if ($merchant && (int)$merchant['is_active'] === 1) {
                 return $merchant;

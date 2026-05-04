@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/shared/helpers.php';
+require_once __DIR__ . '/config/AppConfig.php';
 
 // Load .env if available (simple key=value parser, no extra library needed)
 $envFile = __DIR__ . '/.env';
@@ -31,6 +32,9 @@ require_once __DIR__ . '/db/MerchantRepo.php';
 require_once __DIR__ . '/db/SessionRepo.php';
 require_once __DIR__ . '/db/ProductRepo.php';
 require_once __DIR__ . '/db/AnalyticsRepo.php';
+require_once __DIR__ . '/db/ShopRepo.php';
+require_once __DIR__ . '/db/ProductSummaryRepo.php';
+require_once __DIR__ . '/db/WidgetSettingsRepo.php';
 
 // Autoload middleware
 require_once __DIR__ . '/middleware/CorsMiddleware.php';
@@ -52,15 +56,21 @@ require_once __DIR__ . '/controllers/PlanController.php';
 require_once __DIR__ . '/controllers/UploadController.php';
 require_once __DIR__ . '/controllers/MerchantController.php';
 require_once __DIR__ . '/controllers/TryOnController.php';
+require_once __DIR__ . '/controllers/ShopController.php';
+require_once __DIR__ . '/controllers/ProductDashboardController.php';
+require_once __DIR__ . '/controllers/WidgetController.php';
 
 use TryFit\Controllers\AnalyticsController;
 use TryFit\Controllers\ConversionController;
 use TryFit\Controllers\MerchantController;
 use TryFit\Controllers\PlanController;
 use TryFit\Controllers\ProductController;
+use TryFit\Controllers\ProductDashboardController;
 use TryFit\Controllers\SessionController;
 use TryFit\Controllers\SettingsController;
+use TryFit\Controllers\ShopController;
 use TryFit\Controllers\UploadController;
+use TryFit\Controllers\WidgetController;
 use TryFit\Middleware\CorsMiddleware;
 
 $path     = (string)parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
@@ -93,9 +103,13 @@ $routes = [
     'POST /plan/update'          => [PlanController::class,     'updatePlan'],
     'POST /upload-temp'          => [UploadController::class,   'uploadTemp'],
     'POST /tryon'                => [\TryFit\Controllers\TryOnController::class, 'handle'],
-    'GET /merchant/by-domain'    => [MerchantController::class, 'byDomain'],
-    'POST /merchant/register'    => [MerchantController::class, 'register'],
-    'POST /merchant/deactivate'  => [MerchantController::class, 'deactivate'],
+    'GET /merchant/by-domain'    => [MerchantController::class,        'byDomain'],
+    'POST /merchant/register'    => [MerchantController::class,        'register'],
+    'POST /merchant/deactivate'  => [MerchantController::class,        'deactivate'],
+    'GET /shop'                  => [ShopController::class,            'get'],
+    'GET /shop/products'         => [ProductDashboardController::class, 'get'],
+    'GET /widget/settings'       => [WidgetController::class,          'get'],
+    'PATCH /widget/settings'     => [WidgetController::class,          'patch'],
 ];
 
 $key = "{$method} {$route}";

@@ -57,15 +57,15 @@ class ProductRepo
     }
 
     /**
-     * Upsert by shopify_variant_id
+     * Upsert by shopify_variant_id. merchant_id stored directly for O(1) shop lookup.
      */
-    public function saveVariantMapping(int $productId, array $mapping): void
+    public function saveVariantMapping(int $merchantId, int $productId, array $mapping): void
     {
         $stmt = $this->db->prepare(
             'INSERT INTO variant_image_mappings
-             (product_id, shopify_variant_id, shopify_variant_gid, variant_title,
+             (merchant_id, product_id, shopify_variant_id, shopify_variant_gid, variant_title,
               tryon_image_url, image_type, avatar_sex, clothing_prompt, is_approved)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
              ON DUPLICATE KEY UPDATE
                shopify_variant_gid = VALUES(shopify_variant_gid),
                variant_title       = VALUES(variant_title),
@@ -77,6 +77,7 @@ class ProductRepo
                updated_at          = CURRENT_TIMESTAMP'
         );
         $stmt->execute([
+            $merchantId,
             $productId,
             $mapping['shopify_variant_id'],
             $mapping['shopify_variant_gid'],

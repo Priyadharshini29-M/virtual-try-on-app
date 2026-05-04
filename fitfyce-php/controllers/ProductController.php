@@ -61,7 +61,7 @@ class ProductController
         }
 
         $repo = new ProductRepo();
-        $repo->saveVariantMapping((int)$body['product_id'], $body);
+        $repo->saveVariantMapping((int)$merchant['id'], (int)$body['product_id'], $body);
         respondJson(['ok' => true]);
     }
 }

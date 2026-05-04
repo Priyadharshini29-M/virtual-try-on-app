@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace TryFit\Middleware;
 
+use TryFit\AppConfig;
 use TryFit\Db\Database;
 
 class PlanLimitCheck
@@ -16,7 +17,7 @@ class PlanLimitCheck
         $planRow = $stmt->fetch();
 
         if ($planRow === false) {
-            return; // Unknown plan — let it pass
+            return;
         }
 
         $limit = (int)$planRow['monthly_tryon_limit'];
@@ -28,7 +29,7 @@ class PlanLimitCheck
                 'plan'        => $merchant['plan'],
                 'limit'       => $limit,
                 'used'        => $used,
-                'upgrade_url' => 'https://apps.shopify.com/tryfit',
+                'upgrade_url' => AppConfig::SHOPIFY_APP_URL,
             ], 429);
         }
     }

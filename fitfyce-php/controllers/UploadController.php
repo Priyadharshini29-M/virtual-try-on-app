@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace TryFit\Controllers;
 
+use TryFit\AppConfig;
+
 class UploadController
 {
     public function uploadTemp(): void
     {
-        // No auth — called from browser via Remix proxy
-
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             respondJson(['error' => 'Method not allowed'], 405);
         }
@@ -21,7 +21,6 @@ class UploadController
 
         $file = $_FILES['photo'];
 
-        // Validate MIME type
         $finfo    = new \finfo(FILEINFO_MIME_TYPE);
         $mimeType = $finfo->file($file['tmp_name']);
 
@@ -29,14 +28,14 @@ class UploadController
             respondJson(['error' => 'Only image files are allowed'], 400);
         }
 
-        // Max 5 MB
-        if ($file['size'] > 5 * 1024 * 1024) {
-            respondJson(['error' => 'File exceeds 5MB limit'], 400);
+        if ($file['size'] > AppConfig::UPLOAD_MAX_BYTES) {
+            $mb = AppConfig::UPLOAD_MAX_BYTES / 1024 / 1024;
+            respondJson(['error' => "File exceeds {$mb}MB limit"], 400);
         }
 
         $uuid    = $this->generateUuidV4();
-        $tempDir = __DIR__ . '/../temp';
-        $metaDir = $tempDir . '/.meta';
+        $tempDir = AppConfig::tempDir();
+        $metaDir = $tempDir . DIRECTORY_SEPARATOR . '.meta';
 
         if (!is_dir($tempDir)) {
             @mkdir($tempDir, 0755, true);
@@ -46,12 +45,11 @@ class UploadController
         }
 
         $filename = $uuid . '.jpg';
-        $destPath = $tempDir . '/' . $filename;
+        $destPath = $tempDir . DIRECTORY_SEPARATOR . $filename;
 
-        // Convert to JPEG if needed
         $image = @imagecreatefromstring((string)file_get_contents($file['tmp_name']));
         if ($image !== false) {
-            imagejpeg($image, $destPath, 90);
+            imagejpeg($image, $destPath, AppConfig::JPEG_QUALITY);
             imagedestroy($image);
         } else {
             if (!move_uploaded_file($file['tmp_name'], $destPath)) {
@@ -59,13 +57,12 @@ class UploadController
             }
         }
 
-        // Write expiry metadata
         $meta = [
             'uuid'       => $uuid,
-            'expires_at' => time() + 600,
+            'expires_at' => time() + AppConfig::UPLOAD_TTL_SECONDS,
             'created_at' => time(),
         ];
-        file_put_contents($metaDir . '/' . $uuid . '.json', json_encode($meta));
+        file_put_contents($metaDir . DIRECTORY_SEPARATOR . $uuid . '.json', json_encode($meta));
 
         $tempUrl = baseUrl() . basePath() . '/temp/' . $filename;
         respondJson(['tempUrl' => $tempUrl]);

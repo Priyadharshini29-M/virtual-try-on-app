@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace TryFit\Controllers;
 
+use TryFit\AppConfig;
 use TryFit\Db\Database;
+use TryFit\Db\MerchantRepo;
 use TryFit\Middleware\ApiKeyAuth;
 
 class PlanController
@@ -38,12 +40,11 @@ class PlanController
         $body    = (array)(json_decode((string)file_get_contents('php://input'), true) ?? []);
         $newPlan = trim((string)($body['plan'] ?? ''));
 
-        $allowed = ['basic', 'pro', 'premium'];
-        if (!in_array($newPlan, $allowed, true)) {
+        if (!in_array($newPlan, AppConfig::PLANS, true)) {
             respondJson(['ok' => false, 'error' => 'Invalid plan'], 400);
         }
 
-        $repo = new \TryFit\Db\MerchantRepo();
+        $repo = new MerchantRepo();
         $repo->updatePlan((int)$merchant['id'], $newPlan);
 
         respondJson(['ok' => true, 'plan' => $newPlan]);
@@ -51,15 +52,12 @@ class PlanController
 
     public function listPlans(): void
     {
-        ApiKeyAuth::handle(); // Require authentication
+        ApiKeyAuth::handle();
 
-        $db   = Database::getInstance();
-        $stmt = $db->query('SELECT * FROM plan_limits ORDER BY price_inr_monthly ASC');
+        $db    = Database::getInstance();
+        $stmt  = $db->query('SELECT * FROM plan_limits ORDER BY price_inr_monthly ASC');
         $plans = $stmt->fetchAll();
 
-        respondJson([
-            'ok'    => true,
-            'plans' => $plans
-        ]);
+        respondJson(['ok' => true, 'plans' => $plans]);
     }
 }
