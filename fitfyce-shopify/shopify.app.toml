@@ -1,38 +1,33 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "876421af61b2135a56534b6b182909bd"
-name = "FitFyce"
-application_url = "https://unrivaled-unheated-unstable.ngrok-free.dev"
+name = "The Fit Snap"
+application_url = "https://thefitsnap.fly.dev"
 embedded = true
 
 [build]
-automatically_update_urls_on_dev = false
+automatically_update_urls_on_dev = true
 
 [webhooks]
 api_version = "2026-04"
 
-[[webhooks.subscriptions]]
-topics = ["app/uninstalled"]
-uri    = "/app/webhook"
-
-# orders/paid requires Protected Customer Data approval in the Partner Dashboard.
-# To enable conversion tracking:
-#   1. Go to partners.shopify.com → Your App → API access → Protected customer data
-#   2. Request access and get approved
-#   3. Uncomment the block below and re-run: shopify app deploy
-#
-# [[webhooks.subscriptions]]
-# topics = ["orders/paid"]
-# uri    = "/app/webhook"
+  [[webhooks.subscriptions]]
+  topics = [ "orders/paid", "app/uninstalled" ]
+  uri = "/api/webhook"
+  compliance_topics = [ "customers/data_request", "customers/redact", "shop/redact" ]
 
 [access_scopes]
-# read_orders requires Protected Customer Data approval — add back after approval.
-# Metafield access is included in read_products/write_products — no separate scope needed.
-scopes = "read_products,write_products"
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_orders,read_products,write_products"
 
 [auth]
-redirect_urls = [ "https://unrivaled-unheated-unstable.ngrok-free.dev/api/auth" ]
+redirect_urls = [
+  "https://thefitsnap.fly.dev/auth/callback",
+  "https://thefitsnap.fly.dev/auth/shopify/callback",
+  "https://thefitsnap.fly.dev/api/auth/callback"
+]
+
 [app_proxy]
 url = "https://tryonapp.digifyce.com"
-prefix = "apps"
 subpath = "tryfit"
+prefix = "apps"

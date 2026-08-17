@@ -1,0 +1,141 @@
+{
+  "categories": {
+    "fmcg": {
+      "display_name": "FMCG — Supplements, Skincare, Wellness",
+      "detection_hint": "a supplement/wellness bottle, jar, tub, sachet, gummy pack, skincare tube/jar, or similar packaged consumer good",
+      "extraction_fields": [
+        "product_name", "product_type", "primary_benefit", "secondary_benefits",
+        "hero_ingredients", "supporting_ingredients", "functional_features",
+        "natural_claims", "quality_claims", "usage", "quantity", "pack_size",
+        "formulation", "target_use", "unique_selling_points"
+      ],
+      "priority_tiers": {
+        "1": ["primary_benefit", "hero_ingredient", "unique_selling_proposition", "core_product_feature"],
+        "2": ["secondary_ingredients", "secondary_benefits", "formulation", "natural_or_organic_attributes", "pack_size"],
+        "3": ["long_descriptions", "detailed_instructions", "full_ingredient_lists", "marketing_paragraphs", "legal_information", "long_claims"]
+      },
+      "layouts": {
+        "A": {
+          "name": "Hero Product + Ingredient Orbit",
+          "description": "The product stands large and centered in the frame. Benefit and ingredient callouts orbit it on all sides — upper corners for the strongest benefit claims, lower corners for hero ingredients — with pack information sitting quietly near the bottom. Generous negative space keeps the product dominant.",
+          "good_for": ["supplements", "skincare", "food", "beverages", "wellness products"]
+        },
+        "B": {
+          "name": "Editorial Product",
+          "description": "A single vertical reading flow: key benefit at the top, one ingredient callout, the product itself centered, another ingredient callout, pack size at the bottom. Minimal, restrained, premium — the callouts read top-to-bottom like an editorial column rather than scattering around the frame.",
+          "good_for": ["luxury/premium FMCG", "minimalist skincare", "premium supplements"]
+        },
+        "C": {
+          "name": "Ingredient Story",
+          "description": "A narrative vertical chain: an ingredient flows down into the product flanked on both sides by its two hero ingredients, which flows down into the primary benefit, which flows down into the pack size — visually telling the story of what real ingredients went into the product and what they do.",
+          "good_for": ["Ayurvedic products", "herbal products", "natural products", "food products"]
+        }
+      },
+      "typography": {
+        "scale": "small_to_medium",
+        "density": "low",
+        "rotation_range_deg": [-15, 15],
+        "max_callouts": 4,
+        "notes": "Compact, elegant, secondary to the product. Clear hierarchy: primary callout at medium emphasis, secondary callout small, pack information smallest as metadata. Short phrases, never sentences. Text should occupy less visual area than the product. Rotation must be intentional, never applied randomly to every text element."
+      },
+      "visual_rules": [
+        "Product/package must remain visually dominant",
+        "Ingredients should visually support the product, not compete with it",
+        "Ingredients should be placed naturally around the product",
+        "Use real-looking ingredient representation rather than generic icons whenever possible",
+        "Avoid excessive ingredient duplication",
+        "Use negative space around the product",
+        "Keep text short",
+        "Use 3-6 major information groups",
+        "Use thin leader lines when connecting information to ingredients",
+        "Use subtle typography",
+        "Do not cover important packaging information",
+        "Avoid placing text over visually busy ingredients",
+        "Use natural surfaces/backgrounds when appropriate to the product",
+        "Background should support the product story, not distract from it",
+        "Do not create a crowded scientific diagram unless explicitly requested"
+      ],
+      "copy_pattern": "Benefit-led, not feature-led: a short noun phrase naming the claim or ingredient (e.g. 'Natural Energy Support', 'Himalayan Shilajit'), never a full sentence. Prefer specific, verifiable facts over generic praise."
+    },
+    "clothing": {
+      "display_name": "Clothing — Apparel & Fashion",
+      "detection_hint": "an adult or children's garment (shirt, hoodie, dress, jacket, saree, denim, etc.), worn, hung, or laid flat",
+      "extraction_fields": [
+        "garment_type", "gender", "silhouette", "fit", "fabric", "fabric_composition",
+        "texture", "pattern", "color", "neckline", "sleeve_style", "waist_style",
+        "hemline", "closure", "embroidery", "print", "embellishment",
+        "construction_details", "lining", "drape", "stretch", "occasion", "season",
+        "styling", "care", "unique_design_features"
+      ],
+      "priority_tiers": {
+        "1": ["garment_type", "silhouette", "fabric", "key_design_feature"],
+        "2": ["neckline", "sleeves", "closure", "pleats", "embroidery", "print", "hem", "drape"],
+        "3": ["occasion", "styling", "season", "care", "fit_information"]
+      },
+      "layouts": {
+        "A": {
+          "name": "Garment Hero + Callouts",
+          "description": "The garment sits centered and dominant. Fabric, neckline, sleeve, and silhouette callouts fan out around it, each connected by a thin leader line — a catalog/product-image feel that stays editorial rather than technical.",
+          "good_for": ["catalog/product images", "e-commerce listings"]
+        },
+        "B": {
+          "name": "Editorial Annotation",
+          "description": "A single elegant vertical column: fabric, garment, neckline, sleeve, fit/silhouette — refined, well-spaced, minimal, reading top-to-bottom like a fashion editorial caption rather than a spec sheet.",
+          "good_for": ["premium/minimalist apparel", "brand-story pieces"]
+        },
+        "C": {
+          "name": "Fabric + Detail Story",
+          "description": "Opens on the fabric texture itself, flows into the garment shot, then branches into close-up detail zooms (buttons, stitching, embroidery, cuffs, print) on either side, with fit/silhouette captioned at the bottom — built to show off fabric quality and construction detail.",
+          "good_for": ["fabric-forward pieces", "denim/heritage/craftsmanship stories"]
+        }
+      },
+      "typography": {
+        "scale": "small",
+        "density": "very_low",
+        "rotation_range_deg": [-15, 15],
+        "max_callouts": 4,
+        "notes": "Editorial fashion aesthetic: small, clean, refined, well-spaced, minimal. Avoid oversized promotional typography. Typography reads as annotation, not headline content. Each annotation stays visually separated from the garment. Text may sit at different angles for an editorial composition, but readability must stay high."
+      },
+      "visual_rules": [
+        "The garment must remain the dominant visual subject",
+        "Never make a clothing infographic look like a technical engineering diagram unless a technical spec style is explicitly requested",
+        "Communicate visual identity, material characteristics, construction details, silhouette and styling through minimal editorial annotations",
+        "The visual language should resemble premium fashion editorial/product communication",
+        "Show fabric through actual texture representation, not just a text label (see material_visual_map)",
+        "Use thin leader lines where necessary",
+        "Keep each annotation visually separated from the garment and from other annotations"
+      ],
+      "copy_pattern": "Short noun phrases naming a construction detail or material spec (e.g. 'LIGHTWEIGHT SATIN', 'SWEETHEART NECKLINE'), read as annotation rather than headline copy."
+    },
+    "cosmetics":   { "display_name": "Cosmetics & Beauty",        "detection_hint": "a cosmetics/makeup/beauty product — compact, tube, bottle, or palette", "layout_bucket": "fmcg" },
+    "food":        { "display_name": "Food",                     "detection_hint": "a packaged food product — box, pouch, jar, or wrapped item", "layout_bucket": "fmcg" },
+    "beverage":    { "display_name": "Beverage",                 "detection_hint": "a bottled or canned drink", "layout_bucket": "fmcg" },
+    "electronics": { "display_name": "Electronics",               "detection_hint": "an electronic device or gadget", "layout_bucket": "fmcg" },
+    "home":        { "display_name": "Home Goods",                "detection_hint": "a home/kitchen/decor product", "layout_bucket": "fmcg" },
+    "jewellery":   { "display_name": "Jewellery",                 "detection_hint": "a ring, necklace, earring, bracelet, or other jewellery piece", "layout_bucket": "clothing" },
+    "footwear":    { "display_name": "Footwear",                  "detection_hint": "a shoe, sandal, boot, or other footwear item", "layout_bucket": "clothing" },
+    "accessories": { "display_name": "Accessories",               "detection_hint": "a bag, watch, belt, scarf, sunglasses, or other fashion accessory", "layout_bucket": "clothing" },
+    "other":       { "display_name": "Other",                     "detection_hint": "any product that doesn't clearly fit the categories above" }
+  },
+  "material_visual_map": {
+    "linen":        "visible woven texture, natural fibers, slightly irregular surface",
+    "satin":        "smooth reflective surface, soft sheen, flowing drape",
+    "denim":        "visible twill texture, structured appearance",
+    "velvet":       "dense soft pile, light-dependent surface variation",
+    "cotton":       "soft woven texture, matte/natural appearance",
+    "chiffon":      "lightweight, translucent, flowing drape",
+    "silk":         "smooth lustrous surface with a subtle natural sheen, fluid drape",
+    "wool":         "soft dense fibers with visible natural texture, warm matte finish",
+    "leather":      "supple grained surface with natural variation, soft sheen where light hits",
+    "shilajit":     "dark resin/mineral-like ingredient, glossy near-black surface",
+    "ashwagandha":  "dried, pale tan-brown root pieces with a rough natural texture",
+    "turmeric":     "vivid golden-orange powder or fresh root with a matte, earthy surface",
+    "ginger":       "pale tan, knobby fresh root with a fibrous natural texture",
+    "black pepper": "small dark, wrinkled round peppercorns",
+    "moringa":      "fine vivid-green powder or fresh green leaf sprigs",
+    "ghee":         "translucent golden liquid or soft semi-solid with a warm glossy sheen",
+    "collagen":     "fine white to pale powder, or a clear/lightly tinted liquid",
+    "aloe vera":    "thick translucent gel with a cool, glossy, slightly green-tinted surface",
+    "green tea":    "small dried dark-green leaves or pale green infused liquid"
+  }
+}

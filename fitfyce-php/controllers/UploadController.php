@@ -49,11 +49,14 @@ class UploadController
 
         $image = @imagecreatefromstring((string)file_get_contents($file['tmp_name']));
         if ($image !== false) {
-            imagejpeg($image, $destPath, AppConfig::JPEG_QUALITY);
+            $saved = @imagejpeg($image, $destPath, AppConfig::JPEG_QUALITY);
             imagedestroy($image);
+            if (!$saved) {
+                respondJson(['error' => "Failed to write file to {$tempDir} — check the directory is writable"], 500);
+            }
         } else {
             if (!move_uploaded_file($file['tmp_name'], $destPath)) {
-                respondJson(['error' => 'Failed to save file'], 500);
+                respondJson(['error' => "Failed to save file to {$tempDir} — check the directory is writable"], 500);
             }
         }
 

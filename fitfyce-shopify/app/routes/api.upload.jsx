@@ -1,3 +1,5 @@
+import { PHP_API_URL, R2_ACCOUNT_ID, R2_ACCESS_KEY, R2_SECRET_KEY, R2_BUCKET, R2_PUBLIC_URL } from "../lib/env.server";
+
 /**
  * Server-side only upload proxy.
  * Tries Cloudflare R2 first; falls back to PHP temp upload.
@@ -33,11 +35,11 @@ export const action = async ({ request }) => {
   const uuid = crypto.randomUUID();
 
   // ── R2 upload ──────────────────────────────────────────────────
-  const r2AccountId = process.env.R2_ACCOUNT_ID;
-  const r2AccessKey = process.env.R2_ACCESS_KEY;
-  const r2SecretKey = process.env.R2_SECRET_KEY;
-  const r2Bucket    = process.env.R2_BUCKET ?? "tryfit-uploads";
-  const r2PublicUrl = process.env.R2_PUBLIC_URL;
+  const r2AccountId = R2_ACCOUNT_ID;
+  const r2AccessKey = R2_ACCESS_KEY;
+  const r2SecretKey = R2_SECRET_KEY;
+  const r2Bucket    = R2_BUCKET;
+  const r2PublicUrl = R2_PUBLIC_URL;
 
   if (r2AccountId && r2AccessKey && r2SecretKey && r2PublicUrl) {
     try {
@@ -73,7 +75,7 @@ export const action = async ({ request }) => {
   }
 
   // ── PHP fallback ───────────────────────────────────────────────
-  const phpApiUrl = process.env.PHP_API_URL;
+  const phpApiUrl = PHP_API_URL;
   if (!phpApiUrl) {
     return Response.json({ error: "Upload service unavailable" }, { status: 500 });
   }
@@ -97,12 +99,15 @@ export const action = async ({ request }) => {
     const data = await phpRes.json().catch(() => ({}));
     if (!phpRes.ok || !data.tempUrl) {
       console.error("PHP upload-temp failed:", phpRes.status, data);
-      return Response.json({ error: "Upload failed" }, { status: 500 });
+      return Response.json(
+        { error: data.error || `Upload failed (HTTP ${phpRes.status})` },
+        { status: 500 }
+      );
     }
     return Response.json({ tempUrl: data.tempUrl });
   } catch (err) {
     console.error("PHP upload failed:", err);
-    return Response.json({ error: "Upload failed" }, { status: 500 });
+    return Response.json({ error: `Upload failed: ${err.message || err}` }, { status: 500 });
   }
 };
 

@@ -1,0 +1,434 @@
+<!--
+  FitFyce virtual try-on injection for Tilda product popups
+  ────────────────────────────────────────────────────────
+  Paste this whole block into Tilda's code-injection:
+    - Per-page:  Page settings → "Before </body>" code, OR
+    - Site-wide: Site settings → More → "Additional code" → "Before </body>"
+
+  What it does:
+    1. Watches for `.t-catalog__prod-popup__btn-wrapper` (the "Оформить
+       заказ" button row) appearing inside any product popup and inserts a
+       "Виртуальная примерка" button directly under it.
+    2. On click, opens a modal where the shopper uploads their own photo.
+    3. Uses the popup's FIRST slider image (data-slide-index="0") as the
+       garment photo automatically — no extra input needed from the shopper.
+    4. Submits both images to the standalone try-on endpoint
+       (fitfyce-php/standalone-tryon.php, deployed at tryonapp.digifyce.com)
+       and shows the generated result inside the same modal.
+
+  Config: edit the CONFIG object below to change wording or the API host.
+-->
+<style>
+  .fitfyce-tryon-btn-wrap { margin-top: 10px; }
+
+  .fitfyce-tryon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px 20px;
+    background: #111827;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: opacity 0.15s;
+  }
+  .fitfyce-tryon-btn:hover { opacity: 0.9; }
+  .fitfyce-tryon-btn:disabled { opacity: 0.6; cursor: default; }
+
+  .fitfyce-tryon-overlay {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 2147483647 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+    background: rgba(17, 17, 17, 0.66);
+    backdrop-filter: blur(4px);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  .fitfyce-tryon-overlay[hidden] { display: none !important; }
+
+  .fitfyce-tryon-modal {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+    width: min(100%, 420px);
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    position: relative;
+    box-sizing: border-box;
+    padding: 28px 24px 24px;
+  }
+
+  .fitfyce-tryon-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid #e5e7eb;
+    background: #f9fafb;
+    color: #374151;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .fitfyce-tryon-title { font-size: 19px; font-weight: 700; margin: 0 0 4px; color: #111827; }
+  .fitfyce-tryon-subtitle { font-size: 13px; color: #6b7280; margin: 0 0 18px; }
+
+  .fitfyce-tryon-preview-row { display: flex; gap: 12px; margin-bottom: 16px; }
+  .fitfyce-tryon-preview-box {
+    flex: 1;
+    text-align: center;
+  }
+  .fitfyce-tryon-preview-label { font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+  .fitfyce-tryon-preview-img,
+  .fitfyce-tryon-upload-label {
+    width: 100%;
+    aspect-ratio: 3/4;
+    border-radius: 10px;
+    object-fit: cover;
+    background: #f3f4f6;
+    display: block;
+  }
+  .fitfyce-tryon-upload-label {
+    border: 2px dashed #d1d5db;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #9ca3af;
+    font-size: 12px;
+    text-align: center;
+    padding: 8px;
+    box-sizing: border-box;
+  }
+  .fitfyce-tryon-upload-label:hover { border-color: #111827; color: #111827; }
+  .fitfyce-tryon-file-input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+
+  .fitfyce-tryon-submit {
+    width: 100%;
+    padding: 13px 20px;
+    background: #111827;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .fitfyce-tryon-submit:disabled { opacity: 0.5; cursor: default; }
+
+  .fitfyce-tryon-status { text-align: center; padding: 30px 10px; }
+  .fitfyce-tryon-spinner {
+    width: 40px; height: 40px; margin: 0 auto 16px;
+    border: 3px solid #e5e7eb; border-top-color: #111827; border-radius: 50%;
+    animation: fitfyce-tryon-spin 0.8s linear infinite;
+  }
+  @keyframes fitfyce-tryon-spin { to { transform: rotate(360deg); } }
+  .fitfyce-tryon-status-text { font-size: 14px; color: #374151; margin: 0; }
+
+  .fitfyce-tryon-result-img {
+    width: 100%;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .fitfyce-tryon-error { text-align: center; padding: 20px 10px; }
+  .fitfyce-tryon-error-text { font-size: 14px; color: #b91c1c; margin: 0 0 16px; }
+
+  .fitfyce-tryon-retry {
+    width: 100%;
+    padding: 11px 20px;
+    background: #f3f4f6;
+    color: #111827;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+</style>
+
+<script>
+(function () {
+  "use strict";
+
+  var CONFIG = {
+    apiUrl: "https://tryonapp.digifyce.com/standalone-tryon.php",
+    btnText: "Виртуальная примерка",
+    modalTitle: "Виртуальная примерка",
+    modalSubtitle: "Загрузите своё фото — мы примерим на вас эту вещь",
+    garmentLabel: "Вещь",
+    userLabel: "Ваше фото",
+    uploadHint: "Нажмите, чтобы загрузить",
+    submitText: "Примерить",
+    loadingText: "Создаём примерку... это может занять до минуты",
+    errorFallback: "Не удалось создать примерку. Попробуйте ещё раз.",
+    downloadText: "Скачать",
+    retryText: "Попробовать снова",
+  };
+
+  function qs(sel, root) { return (root || document).querySelector(sel); }
+  function qsa(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+
+  // ── Locate the popup's first slider image (garment photo) ────────────────
+  function getGarmentImageUrl(popupRoot) {
+    var slider = qs(".t-catalog__prod-popup__slider", popupRoot) || qs(".t-catalog__prod-popup__slider");
+    if (!slider) return null;
+    var firstSlide = qs('[data-slide-index="0"]', slider);
+    if (!firstSlide) return null;
+    var meta = qs('meta[itemprop="image"]', firstSlide);
+    return meta ? meta.getAttribute("content") : null;
+  }
+
+  // ── Button injection ───────────────────────────────────────────────────
+  function injectButtons() {
+    qsa(".t-catalog__prod-popup__btn-wrapper").forEach(function (wrap) {
+      if (wrap.dataset.fitfyceInjected === "1") return;
+      wrap.dataset.fitfyceInjected = "1";
+
+      var popupRoot =
+        wrap.closest('[class*="prod-popup"]') || wrap.parentElement || document;
+
+      var btnWrap = document.createElement("div");
+      btnWrap.className = "fitfyce-tryon-btn-wrap";
+
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "fitfyce-tryon-btn";
+      btn.textContent = CONFIG.btnText;
+      btn.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        openModal(popupRoot);
+      });
+
+      btnWrap.appendChild(btn);
+      wrap.insertAdjacentElement("afterend", btnWrap);
+    });
+  }
+
+  // Tilda renders popup markup dynamically — keep watching for new ones.
+  var observer = new MutationObserver(injectButtons);
+  observer.observe(document.body, { childList: true, subtree: true });
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", injectButtons);
+  } else {
+    injectButtons();
+  }
+
+  // ── Modal ──────────────────────────────────────────────────────────────
+  var overlay = null;
+  var selectedFile = null;
+  var currentGarmentUrl = null;
+  var lastPopupRoot = null;
+
+  function ensureOverlay() {
+    if (overlay) return overlay;
+
+    overlay = document.createElement("div");
+    overlay.className = "fitfyce-tryon-overlay";
+    overlay.hidden = true;
+    overlay.addEventListener("click", function (e) {
+      if (e.target === overlay) closeModal();
+    });
+
+    document.body.appendChild(overlay);
+    return overlay;
+  }
+
+  function openModal(popupRoot) {
+    selectedFile = null;
+    lastPopupRoot = popupRoot;
+    currentGarmentUrl = getGarmentImageUrl(popupRoot);
+
+    var ov = ensureOverlay();
+    ov.innerHTML = buildUploadStepHtml(currentGarmentUrl);
+    ov.hidden = false;
+    document.body.style.overflow = "hidden";
+
+    wireUploadStep(ov);
+  }
+
+  function closeModal() {
+    if (!overlay) return;
+    overlay.hidden = true;
+    overlay.innerHTML = "";
+    document.body.style.overflow = "";
+  }
+
+  document.addEventListener("keydown", function (e) {
+    if ((e.key === "Escape" || e.keyCode === 27) && overlay && !overlay.hidden) {
+      closeModal();
+    }
+  });
+
+  function buildUploadStepHtml(garmentUrl) {
+    return (
+      '<div class="fitfyce-tryon-modal">' +
+      '<button type="button" class="fitfyce-tryon-close" data-action="close">&times;</button>' +
+      '<h3 class="fitfyce-tryon-title">' + CONFIG.modalTitle + "</h3>" +
+      '<p class="fitfyce-tryon-subtitle">' + CONFIG.modalSubtitle + "</p>" +
+      '<div class="fitfyce-tryon-preview-row">' +
+      '<div class="fitfyce-tryon-preview-box">' +
+      '<div class="fitfyce-tryon-preview-label">' + CONFIG.garmentLabel + "</div>" +
+      (garmentUrl
+        ? '<img class="fitfyce-tryon-preview-img" src="' + garmentUrl + '" alt="">'
+        : '<div class="fitfyce-tryon-upload-label">—</div>') +
+      "</div>" +
+      '<div class="fitfyce-tryon-preview-box">' +
+      '<div class="fitfyce-tryon-preview-label">' + CONFIG.userLabel + "</div>" +
+      '<label class="fitfyce-tryon-upload-label" id="fitfyce-upload-label">' +
+      CONFIG.uploadHint +
+      '<input type="file" accept="image/*" class="fitfyce-tryon-file-input" id="fitfyce-file-input">' +
+      "</label>" +
+      "</div>" +
+      "</div>" +
+      '<button type="button" class="fitfyce-tryon-submit" id="fitfyce-submit-btn" disabled>' +
+      CONFIG.submitText +
+      "</button>" +
+      "</div>"
+    );
+  }
+
+  function buildStatusHtml() {
+    return (
+      '<div class="fitfyce-tryon-modal">' +
+      '<button type="button" class="fitfyce-tryon-close" data-action="close">&times;</button>' +
+      '<div class="fitfyce-tryon-status">' +
+      '<div class="fitfyce-tryon-spinner"></div>' +
+      '<p class="fitfyce-tryon-status-text">' + CONFIG.loadingText + "</p>" +
+      "</div>" +
+      "</div>"
+    );
+  }
+
+  function buildResultHtml(imageDataUri) {
+    return (
+      '<div class="fitfyce-tryon-modal">' +
+      '<button type="button" class="fitfyce-tryon-close" data-action="close">&times;</button>' +
+      '<h3 class="fitfyce-tryon-title">' + CONFIG.modalTitle + "</h3>" +
+      '<img class="fitfyce-tryon-result-img" src="' + imageDataUri + '" alt="">' +
+      '<a class="fitfyce-tryon-submit" style="display:block;text-decoration:none;box-sizing:border-box;text-align:center;" ' +
+      'href="' + imageDataUri + '" download="tryon-result.jpg">' + CONFIG.downloadText + "</a>" +
+      "</div>"
+    );
+  }
+
+  function buildErrorHtml(message) {
+    return (
+      '<div class="fitfyce-tryon-modal">' +
+      '<button type="button" class="fitfyce-tryon-close" data-action="close">&times;</button>' +
+      '<div class="fitfyce-tryon-error">' +
+      '<p class="fitfyce-tryon-error-text">' + (message || CONFIG.errorFallback) + "</p>" +
+      '<button type="button" class="fitfyce-tryon-retry" data-action="retry">' + CONFIG.retryText + "</button>" +
+      "</div>" +
+      "</div>"
+    );
+  }
+
+  function wireUploadStep(ov) {
+    ov.querySelectorAll('[data-action="close"]').forEach(function (b) {
+      b.addEventListener("click", closeModal);
+    });
+
+    var fileInput = qs("#fitfyce-file-input", ov);
+    var uploadLabel = qs("#fitfyce-upload-label", ov);
+    var submitBtn = qs("#fitfyce-submit-btn", ov);
+
+    fileInput.addEventListener("change", function () {
+      var file = fileInput.files && fileInput.files[0];
+      if (!file) return;
+      selectedFile = file;
+      submitBtn.disabled = false;
+
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        uploadLabel.style.backgroundImage = "url('" + e.target.result + "')";
+        uploadLabel.style.backgroundSize = "cover";
+        uploadLabel.style.backgroundPosition = "center";
+        uploadLabel.textContent = "";
+        uploadLabel.appendChild(fileInput);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    submitBtn.addEventListener("click", function () {
+      if (!selectedFile || !currentGarmentUrl) return;
+      submitTryOn(selectedFile, currentGarmentUrl);
+    });
+  }
+
+  function wireErrorStep(ov, popupRoot) {
+    ov.querySelectorAll('[data-action="close"]').forEach(function (b) {
+      b.addEventListener("click", closeModal);
+    });
+    var retryBtn = qs('[data-action="retry"]', ov);
+    if (retryBtn) {
+      retryBtn.addEventListener("click", function () {
+        openModal(popupRoot);
+      });
+    }
+  }
+
+  function submitTryOn(userFile, garmentUrl) {
+    var ov = ensureOverlay();
+    ov.innerHTML = buildStatusHtml();
+    ov.querySelectorAll('[data-action="close"]').forEach(function (b) {
+      b.addEventListener("click", closeModal);
+    });
+
+    fetch(garmentUrl)
+      .then(function (r) {
+        if (!r.ok) throw new Error("garment-fetch-" + r.status);
+        return r.blob();
+      })
+      .then(function (garmentBlob) {
+        var fd = new FormData();
+        fd.append("model_image", userFile, userFile.name || "photo.jpg");
+        fd.append("garment_image", garmentBlob, "garment.jpg");
+        fd.append("category", "auto");
+
+        return fetch(CONFIG.apiUrl, { method: "POST", body: fd });
+      })
+      .then(function (r) {
+        return r.json().then(function (data) {
+          if (!r.ok || data.error) {
+            throw new Error(data.error || "request-failed");
+          }
+          return data;
+        });
+      })
+      .then(function (data) {
+        var ov2 = ensureOverlay();
+        ov2.innerHTML = buildResultHtml(data.result_image);
+        ov2.querySelectorAll('[data-action="close"]').forEach(function (b) {
+          b.addEventListener("click", closeModal);
+        });
+      })
+      .catch(function (err) {
+        var ov2 = ensureOverlay();
+        ov2.innerHTML = buildErrorHtml(CONFIG.errorFallback);
+        wireErrorStep(ov2, lastPopupRoot);
+        console.error("[FitFyce TryOn]", err);
+      });
+  }
+})();
+</script>

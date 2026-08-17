@@ -8,12 +8,22 @@ use TryFit\AppConfig;
 use TryFit\Db\Database;
 use TryFit\Db\MerchantRepo;
 use TryFit\Middleware\ApiKeyAuth;
+use TryFit\Middleware\PlanLimitCheck;
 
 class PlanController
 {
     public function checkLimit(): void
     {
         $merchant = ApiKeyAuth::handle();
+
+        // Auto-reset monthly count when the 30-day billing window has elapsed
+        $billingStart = $merchant['billing_cycle_start'] ?? null;
+        if ($billingStart !== null && strtotime('+30 days', (int)strtotime($billingStart)) <= time()) {
+            $mRepo = new MerchantRepo();
+            $mRepo->resetMonthlyCount((int)$merchant['id']);
+            $merchant['tryon_count_month']   = 0;
+            $merchant['billing_cycle_start'] = date('Y-m-d');
+        }
 
         $db   = Database::getInstance();
         $stmt = $db->prepare('SELECT * FROM plan_limits WHERE plan = ? LIMIT 1');

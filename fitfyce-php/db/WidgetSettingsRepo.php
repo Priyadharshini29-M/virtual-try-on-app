@@ -17,38 +17,62 @@ class WidgetSettingsRepo
     }
 
     /**
-     * Returns the merchant_settings row for the merchant.
+     * Returns the widget_config JSON for the merchant.
      * Inserts a default row if none exists yet.
-     * Adds a synthetic 'shop_id' key (= merchant_id) that WidgetController reads.
      */
     public function getButtonConfig(int $merchantId): array
     {
         $row = $this->fetchRow($merchantId);
-
         if ($row === null) {
             $this->insertDefaults($merchantId);
             $row = $this->fetchRow($merchantId);
         }
-
-        $row['shop_id'] = $merchantId;
-        return $row;
+        $config = isset($row['widget_config']) && $row['widget_config'] ? json_decode($row['widget_config'], true) : [];
+        $config['shop_id'] = $merchantId;
+        return $config;
     }
 
     /**
-     * Patches only the supplied fields and returns the updated row.
+     * Returns products_json and enabled_products for the merchant.
+     */
+    public function getProductsData(int $merchantId): array
+    {
+        $row = $this->fetchRow($merchantId);
+        // Return null (not []) when the enabled_products column is absent or NULL.
+        // Callers must distinguish "no data available" (null) from "zero products enabled" ([]).
+        $rawEnabled = $row['enabled_products'] ?? null;
+        $decoded    = $rawEnabled !== null ? json_decode($rawEnabled, true) : null;
+        return [
+            'products'         => json_decode($row['products_json'] ?? 'null', true) ?? [],
+            'enabled_products' => $decoded,
+        ];
+    }
+
+    /**
+     * Merges $fields into the existing widget_config (partial update).
+     * Uses a simple single-table UPDATE — no JOIN required.
      */
     public function patchButtonConfig(int $merchantId, array $fields): array
     {
-        // Ensure a row exists
-        $this->getButtonConfig($merchantId);
+        // Read existing config (creates default row if absent)
+        $existing = $this->getButtonConfig($merchantId);
+        unset($existing['shop_id']); // strip internal key before storing
 
-        if (!empty($fields)) {
-            $set  = implode(', ', array_map(fn($col) => "{$col} = ?", array_keys($fields)));
-            $stmt = $this->db->prepare(
-                "UPDATE merchant_settings SET {$set} WHERE merchant_id = ?"
-            );
-            $stmt->execute(array_merge(array_values($fields), [$merchantId]));
-        }
+        // Merge: incoming fields overwrite matching keys, existing keys are kept
+        $merged = array_merge($existing, $fields);
+
+        $json = json_encode(
+            $merged,
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR
+        );
+
+        // UPSERT — handles the rare case where insertDefaults was skipped
+        $stmt = $this->db->prepare(
+            "INSERT INTO merchant_settings (merchant_id, widget_config)
+             VALUES (?, ?)
+             ON DUPLICATE KEY UPDATE widget_config = VALUES(widget_config)"
+        );
+        $stmt->execute([$merchantId, $json]);
 
         return $this->getButtonConfig($merchantId);
     }
@@ -68,26 +92,24 @@ class WidgetSettingsRepo
     private function insertDefaults(int $merchantId): void
     {
         $d = AppConfig::WIDGET_DEFAULTS;
+
+        // Store widget_title alongside button_text so both read paths work immediately
+        $defaults = array_merge($d, ['widget_title' => $d['button_text']]);
+
+        // Look up domain from merchants table to populate the columns
+        $merchant = $this->db->prepare('SELECT shopify_domain, shopify_store_id FROM merchants WHERE id = ? LIMIT 1');
+        $merchant->execute([$merchantId]);
+        $m = $merchant->fetch() ?: [];
+
         $this->db->prepare(
             'INSERT IGNORE INTO merchant_settings
-             (merchant_id, button_text, widget_subtitle,
-              button_color, button_text_color, hover_bg_color,
-              button_border_radius, button_icon, icon_color,
-              show_on_collection, collection_position, widget_language)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+             (merchant_id, shopify_domain, shopify_store_id, widget_config)
+             VALUES (?, ?, ?, ?)'
         )->execute([
             $merchantId,
-            $d['button_text'],
-            $d['widget_subtitle'],
-            $d['button_color'],
-            $d['button_text_color'],
-            $d['hover_bg_color'],
-            $d['button_border_radius'],
-            $d['button_icon'],
-            $d['icon_color'],
-            $d['show_on_collection'] ? 1 : 0,
-            $d['collection_position'],
-            $d['widget_language'],
+            $m['shopify_domain'] ?? null,
+            $m['shopify_store_id'] ?? null,
+            json_encode($defaults, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
         ]);
     }
 }

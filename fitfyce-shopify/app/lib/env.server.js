@@ -1,0 +1,11 @@
+export const PHP_API_URL        = process.env.PHP_API_URL        ?? "";
+export const PHP_API_SECRET     = process.env.PHP_API_SECRET     ?? "";
+export const SHOPIFY_API_KEY    = process.env.SHOPIFY_API_KEY    ?? "";
+export const SHOPIFY_API_SECRET = process.env.SHOPIFY_API_SECRET ?? "";
+export const SHOPIFY_APP_URL    = process.env.SHOPIFY_APP_URL    ?? "";
+export const NODE_ENV           = process.env.NODE_ENV           ?? "development";
+export const R2_ACCOUNT_ID      = process.env.R2_ACCOUNT_ID      ?? "";
+export const R2_ACCESS_KEY      = process.env.R2_ACCESS_KEY      ?? "";
+export const R2_SECRET_KEY      = process.env.R2_SECRET_KEY      ?? "";
+export const R2_BUCKET          = process.env.R2_BUCKET          ?? "tryfit-uploads";
+export const R2_PUBLIC_URL      = process.env.R2_PUBLIC_URL      ?? "";

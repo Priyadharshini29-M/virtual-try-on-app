@@ -46,7 +46,11 @@ $cutoffTs   = time() - ($ttlHours * 3600);
 $deleted    = 0;
 
 if (is_dir($resultsDir)) {
-    foreach (glob($resultsDir . '/*.jpg') ?: [] as $file) {
+    // Matches .jpg/.jpeg/.png — permanent assets (saved models, generations,
+    // infographics) live in separate library/ and generations/ directories
+    // that this glob never touches, so no saved_to_gallery-style flag check
+    // is needed here; only this ephemeral results/ directory is in scope.
+    foreach (glob($resultsDir . '/*.{jpg,jpeg,png}', GLOB_BRACE) ?: [] as $file) {
         if (is_file($file) && filemtime($file) < $cutoffTs) {
             @unlink($file);
             $deleted++;

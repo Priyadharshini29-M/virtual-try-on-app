@@ -1,4 +1,5 @@
 import { authenticate } from "../shopify.server";
+import { PHP_API_URL, PHP_API_SECRET } from "../lib/env.server";
 
 /**
  * After Shopify OAuth completes, register (or reactivate) the merchant
@@ -7,7 +8,7 @@ import { authenticate } from "../shopify.server";
 export async function loader({ request }) {
   const { session, redirect } = await authenticate.admin(request);
 
-  const base = (process.env.PHP_API_URL ?? "").replace(/\/$/, "");
+  const base = (PHP_API_URL).replace(/\/$/, "");
 
   if (base) {
     try {
@@ -15,7 +16,7 @@ export async function loader({ request }) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-Api-Key": process.env.PHP_API_SECRET ?? "",
+          "X-Api-Key": PHP_API_SECRET,
         },
         body: JSON.stringify({
           shopify_domain:   session.shop,
@@ -29,5 +30,6 @@ export async function loader({ request }) {
     }
   }
 
-  return redirect("/app");
+  // Include shop so App Bridge has context when re-embedding after OAuth
+  return redirect(`/app?shop=${session.shop}`);
 }

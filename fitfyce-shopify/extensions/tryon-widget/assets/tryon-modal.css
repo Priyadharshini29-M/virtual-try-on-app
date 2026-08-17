@@ -1,278 +1,1824 @@
-/* TryFit Modal Styles
-   Uses CSS custom properties so it adapts to the merchant's theme */
+/* ═══════════════════════════════════════════════════════════════════════════
+   TryFit Modal · Premium UI System v3.0
+   ─────────────────────────────────────────────────────────────────────────
+   Design language: Minimal luxury — clean whites, deep typographic hierarchy,
+   indigo accent system (merchant-overridable via JS), micro-animations.
 
+   Architecture:
+   • All layout-critical rules use !important to prevent theme interference.
+   • pointer-events: auto on every interactive element.
+   • isolation: isolate on overlay creates an independent stacking context.
+   • CSS variables are overridden at runtime by JS with merchant settings.
+   • All class names namespaced with "tryfit-" to prevent collisions.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Design tokens ───────────────────────────────────────────────────────── */
 :root {
-  --tryfit-primary:    #1B3A6B;
-  --tryfit-primary-fg: #FFFFFF;
-  --tryfit-radius:     8px;
-  --tryfit-shadow:     0 8px 40px rgba(0,0,0,0.32);
-  --tryfit-overlay-bg: rgba(0,0,0,0.65);
-  --tryfit-font:       -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  /* Brand accent — JS overrides these at runtime with per-merchant settings */
+  --tryfit-primary:        #111827;
+  --tryfit-primary-fg:     #ffffff;
+  --tryfit-primary-hover:  #1f2937;
+  --tryfit-primary-tint:   rgba(17,24,39,0.08);
+  --tryfit-primary-border: rgba(17,24,39,0.20);
+
+  /* Surface & layout — neutral whites/greys, never merchant-tinted */
+  --tryfit-surface:        #ffffff;
+  --tryfit-surface-2:      #f9fafb;
+  --tryfit-border:         #e5e7eb;
+  --tryfit-border-hover:   #d1d5db;
+
+  /* Typography */
+  --tryfit-text-1:         #111827;
+  --tryfit-text-2:         #667085;
+  --tryfit-text-3:         #98a2b3;
+
+  /* Shape */
+  --tryfit-radius:         20px;    /* modal card corners */
+  --tryfit-border-radius:  12px;    /* buttons (merchant-overridable) */
+  --tryfit-radius-sm:      10px;
+  --tryfit-radius-xs:      8px;
+
+  /* Shadow system — neutral dark shadows, no merchant color bleed */
+  --tryfit-shadow-modal:   0 24px 64px rgba(0,0,0,0.16), 0 0 0 1px rgba(0,0,0,0.05);
+  --tryfit-shadow-img:     0 8px 32px rgba(0,0,0,0.12);
+  --tryfit-shadow-btn:     0 4px 16px rgba(17,24,39,0.25);
+
+  /* Interaction */
+  --tryfit-focus-ring:     0 0 0 3px rgba(17,24,39,0.20);
+  --tryfit-transition:     0.18s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Overlay */
+  --tryfit-overlay-bg:     rgba(17, 17, 17, 0.66);
+
+  /* Font */
+  --tryfit-font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
 }
 
-/* ── Overlay ────────────────────────────────────────────────── */
+/* ════════════════════════════════════════════════════════════════════════════
+   OVERLAY BACKDROP
+   ════════════════════════════════════════════════════════════════════════════ */
 .tryfit-overlay {
-  position: fixed;
-  inset: 0;
-  background: var(--tryfit-overlay-bg);
-  z-index: 99999;
-  display: flex;
-  align-items: center;
+  /* Layout — all !important to beat theme specificity */
+  position:        fixed !important;
+  inset:           0 !important;
+  width:           100vw !important;
+  height:          100vh !important;
+  min-height:      100vh !important;
+  z-index:         2147483647 !important;
+  pointer-events:  auto !important;
+
+  /* Stacking isolation: ancestor transform/will-change can't displace us */
+  isolation:       isolate;
+
+  display:         flex;
+  align-items:     center;
   justify-content: center;
-  font-family: var(--tryfit-font);
+  padding:         20px;
+  box-sizing:      border-box;
+  overflow-y:      auto;
+  overscroll-behavior: contain;
+
+  background:      var(--tryfit-overlay-bg);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  font-family:     var(--tryfit-font);
 }
 
-/* ── Modal card ─────────────────────────────────────────────── */
+/* ════════════════════════════════════════════════════════════════════════════
+   MODAL CARD
+   ════════════════════════════════════════════════════════════════════════════ */
 .tryfit-modal {
-  background: #fff;
-  border-radius: var(--tryfit-radius);
-  box-shadow: var(--tryfit-shadow);
-  width: min(480px, calc(100vw - 24px));
-  max-height: 90vh;
-  overflow-y: auto;
-  position: relative;
-  padding: 24px 24px 32px;
+  background:     var(--tryfit-surface);
+  border-radius:  var(--tryfit-radius);
+  box-shadow:     var(--tryfit-shadow-modal);
+  width:          min(100%, 460px);
+  max-width:      460px;
+  max-height:     calc(100svh - 40px);
+  overflow-y:     auto;
+  overflow-x:     hidden;
+  position:       relative;
+  z-index:        1;
+  box-sizing:     border-box;
+  margin:         auto;
+  pointer-events: auto !important;
+
+  /* Smooth entrance */
+  animation: tryfit-modal-in var(--tryfit-transition) both;
 }
 
-/* Mobile: full-screen */
-@media (max-width: 767px) {
+@media (max-width: 520px) {
   .tryfit-modal {
-    width: 100vw;
-    max-height: 100vh;
-    height: 100vh;
-    border-radius: 0;
-    padding: 20px 16px 32px;
-    margin: 0;
-  }
-  .tryfit-overlay {
-    align-items: flex-end;
+    width:      calc(100vw - 24px);
+    max-width:  100%;
+    max-height: calc(100svh - 24px);
+    border-radius: 18px;
   }
 }
 
-/* ── Close button ───────────────────────────────────────────── */
+/* ════════════════════════════════════════════════════════════════════════════
+   CLOSE BUTTON
+   ════════════════════════════════════════════════════════════════════════════ */
 .tryfit-close {
-  position: absolute;
-  top: 12px;
-  right: 14px;
-  background: none;
-  border: none;
-  font-size: 24px;
-  line-height: 1;
-  cursor: pointer;
-  color: #666;
-  padding: 4px 8px;
-  border-radius: 4px;
-}
-.tryfit-close:hover { background: #f0f0f0; }
-
-/* ── Step layout ────────────────────────────────────────────── */
-.tryfit-step-inner {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.tryfit-result-inner {
-  align-items: center;
-}
-
-/* ── Heading ────────────────────────────────────────────────── */
-.tryfit-heading {
-  font-size: 20px;
-  font-weight: 700;
-  margin: 0;
-  color: #111;
-}
-
-/* ── Privacy notice ─────────────────────────────────────────── */
-.tryfit-privacy-notice {
-  font-size: 14px;
-  color: #555;
-  line-height: 1.6;
-  margin: 0;
-}
-
-/* ── Upload label ───────────────────────────────────────────── */
-.tryfit-upload-label {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  position:        absolute;
+  top:             16px;
+  right:           16px;
+  width:           34px;
+  height:          34px;
+  display:         flex;
+  align-items:     center;
   justify-content: center;
-  gap: 10px;
-  border: 2px dashed #ccc;
-  border-radius: var(--tryfit-radius);
-  padding: 32px 24px;
-  cursor: pointer;
-  font-size: 15px;
-  color: #444;
-  transition: border-color 0.2s, background 0.2s;
+  background:      var(--tryfit-surface-2);
+  border:          1px solid var(--tryfit-border);
+  border-radius:   50%;
+  color:           var(--tryfit-text-2);
+  cursor:          pointer;
+  pointer-events:  auto !important;
+  transition:      background var(--tryfit-transition),
+                   color var(--tryfit-transition),
+                   border-color var(--tryfit-transition),
+                   transform var(--tryfit-transition);
+  z-index:         10;
+  flex-shrink:     0;
 }
+
+.tryfit-close:hover {
+  background:    var(--tryfit-border);
+  color:         var(--tryfit-text-1);
+  transform:     scale(1.05);
+}
+
+.tryfit-close:focus-visible {
+  outline:       none;
+  box-shadow:    var(--tryfit-focus-ring);
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   STEP SYSTEM
+   ════════════════════════════════════════════════════════════════════════════ */
+.tryfit-step { display: block; }
+
+.tryfit-step-inner {
+  display:        flex;
+  flex-direction: column;
+  gap:            0;
+  padding:        36px 32px 32px;
+  box-sizing:     border-box;
+}
+
+@media (max-width: 520px) {
+  .tryfit-step-inner { padding: 28px 20px 24px; }
+}
+
+/* Step header block (upload step) */
+.tryfit-step-header { margin-bottom: 20px; }
+
+/* ════════════════════════════════════════════════════════════════════════════
+   TYPOGRAPHY
+   ════════════════════════════════════════════════════════════════════════════ */
+.tryfit-heading {
+  font-size:   22px;
+  font-weight: 800;
+  color:       var(--tryfit-text-1);
+  margin:      0 0 6px;
+  line-height: 1.2;
+  letter-spacing: -0.3px;
+}
+
+.tryfit-subheading {
+  font-size:   14px;
+  font-weight: 400;
+  color:       var(--tryfit-text-2);
+  margin:      0;
+  line-height: 1.55;
+}
+
+.tryfit-subheading em { font-style: normal; font-weight: 600; color: var(--tryfit-text-1); }
+
+/* ════════════════════════════════════════════════════════════════════════════
+   STEP 1 · PRIVACY
+   ════════════════════════════════════════════════════════════════════════════ */
+.tryfit-privacy-inner {
+  align-items: center;
+  text-align:  center;
+  gap:         0;
+  padding-top: 40px;
+}
+
+/* Animated icon hero */
+.tryfit-privacy-hero {
+  position:        relative;
+  width:           80px;
+  height:          80px;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  margin:          0 auto 24px;
+  flex-shrink:     0;
+}
+
+.tryfit-privacy-icon-bg {
+  width:           64px;
+  height:          64px;
+  border-radius:   50%;
+  background:      var(--tryfit-primary-tint);
+  border:          1.5px solid var(--tryfit-primary-border);
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  color:           var(--tryfit-primary);
+  position:        relative;
+  z-index:         2;
+}
+
+.tryfit-privacy-rings {
+  position:        absolute;
+  inset:           0;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+}
+
+.tryfit-privacy-ring {
+  position:      absolute;
+  border-radius: 50%;
+  border:        1px solid var(--tryfit-primary-border);
+  animation:     tryfit-ring-expand 2.8s ease-out infinite;
+}
+
+.tryfit-privacy-ring--1 {
+  width:  80px; height: 80px;
+  animation-delay: 0s;
+}
+.tryfit-privacy-ring--2 {
+  width:  100px; height: 100px;
+  animation-delay: 0.7s;
+}
+
+.tryfit-privacy-copy {
+  margin-bottom: 20px;
+  max-width:     320px;
+}
+
+/* Privacy assurance pill */
+.tryfit-privacy-pill {
+  display:        inline-flex;
+  align-items:    center;
+  gap:            6px;
+  background:     var(--tryfit-primary-tint);
+  border:         1px solid var(--tryfit-primary-border);
+  border-radius:  100px;
+  padding:        7px 14px;
+  font-size:      13px;
+  font-weight:    500;
+  color:          var(--tryfit-text-2);
+  margin-bottom:  24px;
+  line-height:    1;
+  max-width:      100%;
+  text-align:     center;
+}
+
+.tryfit-privacy-pill strong { color: var(--tryfit-text-1); font-weight: 700; }
+
+.tryfit-privacy-pill__icon {
+  color:       var(--tryfit-primary);
+  display:     flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   STEP 2 · UPLOAD
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* Variant selector */
+.tryfit-variant-selector { margin-bottom: 16px; }
+
+.tryfit-variant-selector:empty { display: none; margin-bottom: 0; }
+
+.tryfit-variant-selector select {
+  width:          100%;
+  padding:        11px 14px;
+  border:         1.5px solid var(--tryfit-border);
+  border-radius:  var(--tryfit-radius-sm);
+  font-size:      14px;
+  font-weight:    500;
+  color:          var(--tryfit-text-1);
+  background:     var(--tryfit-surface);
+  cursor:         pointer;
+  pointer-events: auto !important;
+  appearance:     none;
+  -webkit-appearance: none;
+  background-image:   url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat:   no-repeat;
+  background-position: right 14px center;
+  padding-right:  40px;
+  transition:     border-color var(--tryfit-transition), box-shadow var(--tryfit-transition);
+}
+
+.tryfit-variant-selector select:focus {
+  outline:       none;
+  border-color:  var(--tryfit-primary);
+  box-shadow:    var(--tryfit-focus-ring);
+}
+
+/* Upload zone */
+.tryfit-upload-label {
+  position:        relative;
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  justify-content: center;
+  gap:             12px;
+  border:          2px dashed var(--tryfit-border);
+  border-radius:   var(--tryfit-radius);
+  padding:         40px 28px;
+  cursor:          pointer;
+  pointer-events:  auto !important;
+  text-align:      center;
+  user-select:     none;
+  transition:      border-color var(--tryfit-transition),
+                   background   var(--tryfit-transition),
+                   box-shadow   var(--tryfit-transition),
+                   transform    var(--tryfit-transition);
+  box-sizing:      border-box;
+}
+
 .tryfit-upload-label:hover {
   border-color: var(--tryfit-primary);
-  background: #f5f8ff;
+  background:   var(--tryfit-primary-tint);
 }
-.tryfit-upload-icon { font-size: 36px; }
 
+.tryfit-upload-label.tryfit-drag-over {
+  border-color: var(--tryfit-primary);
+  background:   var(--tryfit-primary-tint);
+  box-shadow:   0 0 0 4px var(--tryfit-primary-border);
+  transform:    scale(1.008);
+}
+
+/* Icon wrap — circle background */
+.tryfit-upload-icon-wrap {
+  width:           52px;
+  height:          52px;
+  border-radius:   50%;
+  background:      var(--tryfit-primary-tint);
+  border:          1.5px solid var(--tryfit-primary-border);
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  color:           var(--tryfit-primary);
+  flex-shrink:     0;
+  pointer-events:  none;
+  transition:      transform var(--tryfit-transition), background var(--tryfit-transition);
+}
+
+.tryfit-upload-label:hover .tryfit-upload-icon-wrap,
+.tryfit-upload-label.tryfit-drag-over .tryfit-upload-icon-wrap {
+  transform:  scale(1.08);
+  background: var(--tryfit-primary);
+  color:      var(--tryfit-primary-fg);
+}
+
+.tryfit-upload-body {
+  display:        flex;
+  flex-direction: column;
+  gap:            4px;
+  pointer-events: none;
+}
+
+.tryfit-upload-primary {
+  font-size:   15px;
+  font-weight: 600;
+  color:       var(--tryfit-text-1);
+  line-height: 1.3;
+}
+
+.tryfit-upload-secondary {
+  font-size:  13px;
+  color:      var(--tryfit-text-3);
+  font-weight:400;
+  line-height:1.4;
+}
+
+/* Drop-over hint text */
+.tryfit-drop-hint {
+  display:     none;
+  position:    absolute;
+  inset:       0;
+  background:  var(--tryfit-primary-tint);
+  border-radius: inherit;
+  align-items: center;
+  justify-content:center;
+  font-size:   15px;
+  font-weight: 700;
+  color:       var(--tryfit-primary);
+  pointer-events: none;
+}
+
+.tryfit-upload-label.tryfit-drag-over .tryfit-drop-hint { display: flex; }
+.tryfit-upload-label.tryfit-drag-over .tryfit-upload-icon-wrap,
+.tryfit-upload-label.tryfit-drag-over .tryfit-upload-body { opacity: 0; }
+
+/* Responsive text toggles */
+.tryfit-upload-text-desktop { display: block; }
+.tryfit-upload-text-mobile  { display: none;  }
+
+@media (hover: none) and (pointer: coarse) {
+  .tryfit-upload-text-desktop { display: none;  }
+  .tryfit-upload-text-mobile  { display: block; }
+}
+
+/* Hint below upload zone */
 .tryfit-hint {
-  font-size: 12px;
-  color: #999;
+  font-size:  12px;
+  color:      var(--tryfit-text-3);
   text-align: center;
-  margin: 0;
+  margin:     10px 0 0;
 }
 
-/* ── Variant selector ───────────────────────────────────────── */
-.tryfit-variant-selector select {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 15px;
-  background: #fff;
+/* ════════════════════════════════════════════════════════════════════════════
+   STEP 3 · PROCESSING
+   ════════════════════════════════════════════════════════════════════════════ */
+.tryfit-processing-inner {
+  align-items: center;
+  text-align:  center;
+  padding:     48px 32px 40px;
 }
 
-/* ── Progress bar ───────────────────────────────────────────── */
-.tryfit-progress-bar-wrap {
-  background: #e8edf5;
-  border-radius: 100px;
-  height: 8px;
-  overflow: hidden;
+/* Animated AI pulse rings */
+.tryfit-ai-anim {
+  position:        relative;
+  width:           88px;
+  height:          88px;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  margin-bottom:   28px;
+  flex-shrink:     0;
 }
 
-.tryfit-progress-bar {
-  height: 100%;
-  background: linear-gradient(90deg, var(--tryfit-primary), #4a7fc1);
-  border-radius: 100px;
-  transition: width 0.4s ease;
+.tryfit-ai-ring {
+  position:      absolute;
+  border-radius: 50%;
+  border:        1.5px solid var(--tryfit-primary-border);
+  animation:     tryfit-ai-pulse 2.4s ease-out infinite;
 }
+
+.tryfit-ai-ring--1 {
+  width:  56px; height: 56px;
+  border-color: var(--tryfit-primary);
+  opacity:      0.5;
+  animation-delay: 0s;
+}
+.tryfit-ai-ring--2 {
+  width:  74px; height: 74px;
+  animation-delay: 0.4s;
+}
+.tryfit-ai-ring--3 {
+  width:  90px; height: 90px;
+  animation-delay: 0.8s;
+}
+
+.tryfit-ai-core {
+  width:           44px;
+  height:          44px;
+  border-radius:   50%;
+  background:      var(--tryfit-primary);
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  color:           var(--tryfit-primary-fg);
+  position:        relative;
+  z-index:         2;
+  box-shadow:      var(--tryfit-shadow-btn);
+  animation:       tryfit-ai-glow 2.4s ease-in-out infinite;
+}
+
+.tryfit-processing-copy { margin-bottom: 24px; }
+
+.tryfit-processing-copy .tryfit-heading { font-size: 20px; margin-bottom: 6px; }
 
 .tryfit-progress-msg {
-  font-size: 14px;
-  color: #555;
-  text-align: center;
-  margin: 0;
+  font-size:  13px;
+  color:      var(--tryfit-text-2);
+  margin:     0;
+  font-style: italic;
 }
 
-/* ── Result image ───────────────────────────────────────────── */
+
+.tryfit-processing-note {
+  font-size:  12px;
+  color:      var(--tryfit-text-3);
+  margin:     0;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   STEP 4 · RESULT
+   ════════════════════════════════════════════════════════════════════════════ */
+.tryfit-result-inner {
+  align-items: stretch;
+  padding:     0;
+}
+
+/* Right panel on desktop — scrolls independently when content overflows */
+.tryfit-result-panel {
+  display:        flex;
+  flex-direction: column;
+  flex:           1;
+  min-width:      0;
+}
+
+/* Hero image frame */
+.tryfit-result-frame {
+  position:      relative;
+  width:         100%;
+  margin-bottom: 0;
+  border-radius: 0;
+  overflow:      hidden;
+  flex-shrink:   0;
+  /* Neutral bg shows while image loads and fills letterbox gaps */
+  background:    #f1f5f9;
+  /* Portrait aspect ratio — consistent height for all results */
+  aspect-ratio:  3 / 4;
+  max-height:    52vh;
+}
+
 .tryfit-result-img {
-  width: 100%;
-  max-width: 360px;
-  border-radius: var(--tryfit-radius);
-  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
-  object-fit: cover;
+  width:         100%;
+  height:        100%;
+  display:       block;
+  /* contain = full body visible; no cropping of the try-on result */
+  object-fit:    contain;
+  object-position: center top;
+  border-radius: 0;
 }
 
-/* ── Buttons ────────────────────────────────────────────────── */
-.tryfit-btn {
-  display: inline-flex;
+/* Product title header */
+.tryfit-result-product-header {
+  padding:      10px 28px 0;
+  width:        100%;
+  box-sizing:   border-box;
+  flex-shrink:  0;
+}
+
+.tryfit-result-product-title {
+  font-size:    12px;
+  font-weight:  600;
+  color:        var(--tryfit-text-2);
+  text-align:   left;
+  margin:       0;
+  white-space:  nowrap;
+  overflow:     hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Zoom button — sits bottom-right inside the image frame */
+.tryfit-zoom-btn {
+  position:        absolute;
+  bottom:          10px;
+  right:           10px;
+  width:           32px;
+  height:          32px;
+  border-radius:   50%;
+  background:      rgba(255,255,255,0.90);
+  border:          1px solid rgba(0,0,0,0.10);
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  color:           var(--tryfit-text-1);
+  cursor:          pointer;
+  pointer-events:  auto !important;
+  box-shadow:      0 2px 8px rgba(0,0,0,0.14);
+  transition:      background var(--tryfit-transition), transform var(--tryfit-transition);
+  z-index:         2;
+  flex-shrink:     0;
+}
+
+.tryfit-zoom-btn:hover:not(:disabled) { background: #fff; transform: scale(1.08); }
+.tryfit-zoom-btn:focus-visible        { outline: none; box-shadow: var(--tryfit-focus-ring); }
+
+/* Countdown urgency banner — full-bleed purple gradient */
+.tryfit-countdown-banner {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             6px;
+  width:           100%;
+  padding:         9px 20px;
+  background:      linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%);
+  color:           #fff;
+  font-size:       12px;
+  font-weight:     600;
+  letter-spacing:  0.02em;
+  box-sizing:      border-box;
+  flex-shrink:     0;
+}
+
+.tryfit-countdown-icon {
+  display:     flex;
+  align-items: center;
+  flex-shrink: 0;
+  opacity:     0.9;
+}
+
+.tryfit-countdown-text strong {
+  font-weight:    700;
+  letter-spacing: 0.04em;
+}
+
+/* Padded content wrapper — replaces the old > :not(.tryfit-result-frame) rule */
+.tryfit-result-content {
+  padding:    0 28px 4px;
+  width:      100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 520px) {
+  .tryfit-result-product-header { padding: 8px 20px 0; }
+  .tryfit-result-content        { padding: 0 20px 4px; }
+}
+
+.tryfit-result-caption { display: none; }
+
+/* Coupon card */
+.tryfit-coupon-card {
+  background:    #faf5ff;
+  border:        1.5px dashed #a78bfa;
+  border-radius: var(--tryfit-radius-sm);
+  padding:       12px 14px;
+  margin-bottom: 14px;
+}
+
+.tryfit-coupon-label {
+  font-size:     11px;
+  font-weight:   600;
+  color:         #7c3aed;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 7px;
+}
+
+.tryfit-coupon-row {
+  display:     flex;
+  align-items: center;
+  gap:         10px;
+}
+
+.tryfit-coupon-code {
+  flex:          1;
+  font-size:     18px;
+  font-weight:   800;
+  color:         #5b21b6;
+  letter-spacing: 0.12em;
+  font-variant-numeric: tabular-nums;
+}
+
+.tryfit-coupon-copy {
+  padding:         7px 14px;
+  border-radius:   var(--tryfit-radius-xs);
+  background:      #6d28d9;
+  color:           #fff;
+  font-size:       12px;
+  font-weight:     700;
+  border:          none;
+  cursor:          pointer;
+  pointer-events:  auto !important;
+  transition:      background var(--tryfit-transition);
+  white-space:     nowrap;
+  flex-shrink:     0;
+}
+
+.tryfit-coupon-copy:hover:not(:disabled)  { background: #5b21b6; }
+.tryfit-coupon-copy:focus-visible         { outline: none; box-shadow: 0 0 0 3px rgba(109,40,217,0.3); }
+
+/* Result variant list — vertical stack of cards */
+.tryfit-result-variant-selector {
+  display:        flex;
+  flex-direction: column;
+  gap:            10px;
+  margin-bottom:  14px;
+}
+
+.tryfit-option-groups {
+  display:        flex;
+  flex-direction: column;
+  gap:            14px;
+  margin-bottom: 14px;
+}
+
+.tryfit-option-group {
+  display:        flex;
+  flex-direction: column;
+  gap:            8px;
+}
+
+.tryfit-option-group__label {
+  font-size:      12px;
+  font-weight:    700;
+  color:          var(--tryfit-text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tryfit-option-values {
+  display:        flex;
+  flex-wrap:      wrap;
+  gap:            8px;
+}
+
+.tryfit-option-value {
+  display:        inline-flex;
+  align-items:    center;
+  justify-content:center;
+  padding:        10px 14px;
+  border:         1.5px solid var(--tryfit-border);
+  border-radius:  999px;
+  background:     var(--tryfit-surface-2);
+  color:          var(--tryfit-text-1);
+  font-size:      13px;
+  font-weight:    700;
+  cursor:         pointer;
+  transition:     background var(--tryfit-transition), border-color var(--tryfit-transition), color var(--tryfit-transition);
+}
+
+.tryfit-option-value:hover:not(:disabled) {
+  border-color: var(--tryfit-primary-border);
+  background:   var(--tryfit-surface);
+}
+
+.tryfit-option-value.active {
+  border-color: var(--tryfit-primary);
+  background:   var(--tryfit-primary);
+  color:        #fff;
+}
+
+.tryfit-variant-select {
+  display: none !important;
+}
+
+.tryfit-result-variant-selector:empty { display: none; margin-bottom: 0; }
+
+/* Per-variant card */
+.tryfit-variant-row {
+  display:        flex;
+  flex-direction: column;
+  gap:            10px;
+  padding:        12px 14px;
+  border:         1.5px solid var(--tryfit-border);
+  border-radius:  var(--tryfit-radius-sm);
+  background:     var(--tryfit-surface-2);
+  box-sizing:     border-box;
+  transition:     border-color var(--tryfit-transition), background var(--tryfit-transition);
+}
+
+.tryfit-variant-row:hover {
+  border-color: var(--tryfit-primary-border);
+  background:   var(--tryfit-surface);
+}
+
+/* Name + price header inside each row */
+.tryfit-variant-row__info {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  gap:             8px;
+}
+
+.tryfit-variant-row__name {
+  font-size:     14px;
+  font-weight:   600;
+  color:         var(--tryfit-text-1);
+  line-height:   1.3;
+  flex:          1;
+  min-width:     0;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+  white-space:   nowrap;
+}
+
+.tryfit-variant-row__price {
+  font-size:    14px;
+  font-weight:  800;
+  color:        var(--tryfit-text-1);
+  white-space:  nowrap;
+  flex-shrink:  0;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* CTA pair inside each row */
+.tryfit-variant-row__btns {
+  display: flex;
+  gap:     8px;
+}
+
+.tryfit-variant-atc-btn,
+.tryfit-variant-buy-btn {
+  flex:       1;
+  font-size:  13px !important;
+  padding:    10px 10px !important;
+  min-height: 40px !important;
+  white-space: nowrap;
+}
+
+/* Quantity + price row */
+.tryfit-qty-price-row {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  gap:             12px;
+  padding:         12px 0;
+  margin-bottom:   14px;
+  border-top:      1px solid var(--tryfit-border);
+  border-bottom:   1px solid var(--tryfit-border);
+}
+
+.tryfit-qty-control {
+  display:         inline-flex;
+  align-items:     center;
+  gap:             0;
+  border:          1.5px solid var(--tryfit-border);
+  border-radius:   var(--tryfit-radius-xs);
+  overflow:        hidden;
+  flex-shrink:     0;
+}
+
+.tryfit-qty-btn {
+  width:           36px;
+  height:          36px;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  background:      var(--tryfit-surface-2);
+  color:           var(--tryfit-text-1);
+  border:          none;
+  font-size:       18px;
+  font-weight:     500;
+  cursor:          pointer;
+  pointer-events:  auto !important;
+  transition:      background var(--tryfit-transition);
+  line-height:     1;
+  flex-shrink:     0;
+}
+
+.tryfit-qty-btn:hover:not(:disabled)  { background: var(--tryfit-border); }
+.tryfit-qty-btn:focus-visible         { outline: none; box-shadow: var(--tryfit-focus-ring); }
+
+.tryfit-qty-display {
+  min-width:  32px;
+  padding:    0 6px;
+  text-align: center;
+  font-size:  15px;
+  font-weight: 700;
+  color:      var(--tryfit-text-1);
+  background: #fff;
+  height:     36px;
+  display:    flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 12px 20px;
-  border: none;
-  border-radius: var(--tryfit-radius);
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.15s, transform 0.1s;
-  flex: 1;
-  min-width: 120px;
+  border-left:  1px solid var(--tryfit-border);
+  border-right: 1px solid var(--tryfit-border);
+  font-variant-numeric: tabular-nums;
 }
-.tryfit-btn:active { transform: scale(0.97); }
 
+.tryfit-price-display {
+  font-size:    20px;
+  font-weight:  800;
+  color:        var(--tryfit-text-1);
+  text-align:   right;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Re-upload row */
+.tryfit-reupload-row {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             4px;
+  margin-top:      10px;
+  margin-bottom:   10px;
+}
+
+.tryfit-reupload-btn {
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             5px;
+  padding:         6px 10px;
+  border:          none;
+  border-radius:   var(--tryfit-radius-xs);
+  background:      transparent;
+  color:           var(--tryfit-text-2);
+  font-size:       12px;
+  font-weight:     500;
+  cursor:          pointer;
+  pointer-events:  auto !important;
+  transition:      color var(--tryfit-transition);
+  white-space:     nowrap;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: transparent;
+}
+
+.tryfit-reupload-btn:hover:not(:disabled) {
+  color:                  var(--tryfit-text-1);
+  text-decoration-color:  var(--tryfit-border-hover);
+}
+
+.tryfit-reupload-btn:focus-visible { outline: none; box-shadow: var(--tryfit-focus-ring); }
+
+.tryfit-reupload-sep {
+  color:          var(--tryfit-text-3);
+  font-size:      14px;
+  line-height:    1;
+  pointer-events: none;
+  user-select:    none;
+}
+
+/* Primary CTA stack */
+.tryfit-result-ctas {
+  display:        flex;
+  flex-direction: column;
+  gap:            8px;
+  margin-bottom:  14px;
+}
+
+/* Tier divider between primary and tertiary actions */
+.tryfit-result-divider {
+  height:      1px;
+  background:  var(--tryfit-border);
+  margin:      2px 0 12px;
+  flex-shrink: 0;
+}
+
+/* Secondary action row — compact 2-column grid */
+.tryfit-result-secondary {
+  display:               grid;
+  grid-template-columns: 1fr 1fr;
+  gap:                   8px;
+  margin-bottom:         10px;
+}
+
+.tryfit-result-action {
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             5px;
+  font-size:       12px;
+  font-weight:     600;
+  color:           var(--tryfit-text-1) !important;
+  background:      var(--tryfit-surface-2) !important;
+  border:          1.5px solid var(--tryfit-border) !important;
+  cursor:          pointer;
+  pointer-events:  auto !important;
+  padding:         8px 12px;
+  border-radius:   var(--tryfit-radius-xs);
+  transition:      background var(--tryfit-transition), border-color var(--tryfit-transition),
+                   color var(--tryfit-transition), box-shadow var(--tryfit-transition);
+  min-height:      36px;
+  white-space:     nowrap;
+  box-sizing:      border-box;
+}
+
+.tryfit-result-action:hover:not(:disabled) {
+  background:   var(--tryfit-border) !important;
+  border-color: var(--tryfit-border-hover) !important;
+  color:        var(--tryfit-text-1) !important;
+}
+.tryfit-result-action:focus-visible { outline: none; box-shadow: var(--tryfit-focus-ring); }
+
+/* WhatsApp branded button */
+.tryfit-result-action--wa {
+  background:   #25D366 !important;
+  border-color: #25D366 !important;
+  color:        #fff !important;
+}
+.tryfit-result-action--wa:hover:not(:disabled) {
+  background:   #1ebe5d !important;
+  border-color: #1ebe5d !important;
+  color:        #fff !important;
+}
+
+.tryfit-result-action-divider { display: none; }
+
+/* ════════════════════════════════════════════════════════════════════════════
+   ERROR STATE
+   ════════════════════════════════════════════════════════════════════════════ */
+.tryfit-error-inner {
+  align-items: center;
+  text-align:  center;
+}
+
+.tryfit-error-icon-wrap {
+  width:           56px;
+  height:          56px;
+  border-radius:   50%;
+  background:      #fef2f2;
+  border:          1.5px solid #fecaca;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  color:           #ef4444;
+  margin-bottom:   20px;
+  flex-shrink:     0;
+}
+
+.tryfit-error-copy { margin-bottom: 24px; }
+
+.tryfit-error-msg {
+  font-size:   14px;
+  color:       var(--tryfit-text-2);
+  line-height: 1.55;
+  margin:      8px 0 0;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   BUTTON SYSTEM
+   ════════════════════════════════════════════════════════════════════════════ */
+.tryfit-btn {
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             8px;
+  padding:         14px 22px;
+  border:          none;
+  border-radius:   var(--tryfit-border-radius);
+  font-size:       15px;
+  font-weight:     700;
+  cursor:          pointer;
+  pointer-events:  auto !important;
+  user-select:     none;
+  line-height:     1;
+  text-align:      center;
+  box-sizing:      border-box;
+  transition:      background     var(--tryfit-transition),
+                   box-shadow     var(--tryfit-transition),
+                   transform      var(--tryfit-transition),
+                   border-color   var(--tryfit-transition),
+                   opacity        var(--tryfit-transition);
+  min-height:      48px;
+  white-space:     nowrap;
+}
+
+.tryfit-btn:active:not(:disabled)  { transform: scale(0.98); }
+.tryfit-btn:focus-visible          { outline: none; box-shadow: var(--tryfit-focus-ring); }
+
+.tryfit-btn--full {
+  width:   100%;
+  display: flex;
+}
+
+/* Primary — !important so Shopify themes cannot override with button resets */
 .tryfit-btn--primary {
-  background: var(--tryfit-primary);
-  color: var(--tryfit-primary-fg);
+  background: var(--tryfit-primary) !important;
+  color:      var(--tryfit-primary-fg) !important;
+  box-shadow: var(--tryfit-shadow-btn);
 }
-.tryfit-btn--primary:hover { opacity: 0.88; }
+.tryfit-btn--primary:hover:not(:disabled) {
+  background: var(--tryfit-primary-hover, var(--tryfit-primary)) !important;
+  box-shadow: 0 6px 20px rgba(99,102,241,0.4);
+  transform:  translateY(-1px);
+}
 
+/* Secondary */
 .tryfit-btn--secondary {
-  background: #f0f0f0;
-  color: #111;
+  background:  var(--tryfit-surface-2) !important;
+  color:       var(--tryfit-text-1) !important;
+  border:      1.5px solid var(--tryfit-border) !important;
+  box-shadow:  none;
 }
-.tryfit-btn--secondary:hover { background: #e0e0e0; }
+.tryfit-btn--secondary:hover:not(:disabled) {
+  background:   var(--tryfit-border) !important;
+  border-color: var(--tryfit-border-hover) !important;
+}
 
+/* Ghost */
 .tryfit-btn--ghost {
-  background: transparent;
-  border: 1.5px solid #ddd;
-  color: #444;
+  background:  transparent !important;
+  color:       var(--tryfit-text-2) !important;
+  border:      1.5px solid var(--tryfit-border) !important;
+  box-shadow:  none;
   font-weight: 500;
 }
-.tryfit-btn--ghost:hover { background: #f5f5f5; }
+.tryfit-btn--ghost:hover:not(:disabled) { background: var(--tryfit-surface-2) !important; color: var(--tryfit-text-1) !important; }
 
-.tryfit-btn--whatsapp { color: #25D366; border-color: #25D366; }
-.tryfit-btn--whatsapp:hover { background: #f0fff4; }
-
-/* ── CTA row ────────────────────────────────────────────────── */
-.tryfit-cta-row,
-.tryfit-share-row {
-  display: flex;
-  gap: 10px;
-  width: 100%;
-  max-width: 380px;
+/* Disabled / loading */
+.tryfit-btn:disabled,
+.tryfit-btn--loading {
+  opacity:   0.55;
+  cursor:    wait;
+  transform: none !important;
+  box-shadow:none !important;
 }
 
-/* Mobile stack */
-@media (max-width: 767px) {
-  .tryfit-cta-row,
-  .tryfit-share-row {
-    flex-direction: column;
-  }
-  .tryfit-btn {
-    flex: unset;
-    width: 100%;
-  }
-}
-
-/* ── Links ──────────────────────────────────────────────────── */
+/* ── Link button (Change Photo) ──────────────────────────────────────────── */
 .tryfit-link {
-  background: none;
-  border: none;
-  color: var(--tryfit-primary);
-  text-decoration: underline;
-  font-size: 13px;
-  cursor: pointer;
-  padding: 0;
+  display:         block;
+  width:           fit-content;
+  max-width:       180px;
+  margin:          0 auto 6px;
+  background:      transparent !important;
+  border:          1.5px solid var(--tryfit-border) !important;
+  border-radius:   var(--tryfit-border-radius);
+  color:           var(--tryfit-text-2) !important;
+  font-size:       13px;
+  font-weight:     500;
+  cursor:          pointer;
+  padding:         9px 20px;
+  text-align:      center;
+  pointer-events:  auto !important;
+  transition:      background var(--tryfit-transition), border-color var(--tryfit-transition),
+                   color var(--tryfit-transition);
+  min-height:      38px;
+  box-sizing:      border-box;
+  line-height:     1.2;
+  white-space:     nowrap;
 }
-.tryfit-link:hover { opacity: 0.7; }
+.tryfit-link:hover:not(:disabled) {
+  background:   var(--tryfit-surface-2) !important;
+  border-color: var(--tryfit-border-hover) !important;
+  color:        var(--tryfit-text-1) !important;
+}
+.tryfit-link:focus-visible { outline: none; box-shadow: var(--tryfit-focus-ring); }
 
-/* ── Watermark ──────────────────────────────────────────────── */
+/* ── Watermark ───────────────────────────────────────────────────────────── */
 .tryfit-watermark {
-  font-size: 11px;
-  color: #bbb;
-  text-align: center;
-  margin: 0;
+  position:       absolute !important;
+  bottom:         8px !important;
+  right:          12px !important;
+  left:           auto !important;
+  transform:      none;
+  font-size:      10px;
+  color:          var(--tryfit-text-3);
+  letter-spacing: 0.2px;
+  white-space:    nowrap;
+  pointer-events: auto;
+  z-index:        2;
+  margin:         0;
+}
+.tryfit-watermark-link {
+  color:           inherit;
+  text-decoration: none;
+  font-weight:     500;
+}
+.tryfit-watermark-link:hover {
+  text-decoration: underline;
 }
 
-/* ── Error state ────────────────────────────────────────────── */
-.tryfit-error-icon {
-  font-size: 40px;
-  text-align: center;
-  display: block;
-}
-.tryfit-error-msg {
-  font-size: 15px;
-  color: #c0392b;
-  text-align: center;
-  margin: 0;
-  line-height: 1.5;
-}
-
-/* ── Toast ──────────────────────────────────────────────────── */
+/* ════════════════════════════════════════════════════════════════════════════
+   TOAST NOTIFICATION
+   ════════════════════════════════════════════════════════════════════════════ */
 .tryfit-toast {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #222;
-  color: #fff;
-  padding: 10px 20px;
-  border-radius: 20px;
-  font-size: 14px;
-  z-index: 100001;
-  animation: tryfit-fadein 0.2s ease;
+  position:       fixed;
+  bottom:         28px;
+  left:           50%;
+  transform:      translateX(-50%);
+  background:     var(--tryfit-text-1);
+  color:          #fff;
+  padding:        10px 20px;
+  border-radius:  100px;
+  font-size:      14px;
+  font-weight:    500;
+  font-family:    var(--tryfit-font);
+  z-index:        2147483647;
+  pointer-events: none;
+  white-space:    nowrap;
+  max-width:      calc(100vw - 32px);
+  text-align:     center;
+  box-shadow:     0 4px 24px rgba(15,23,42,0.25);
+  animation:      tryfit-toast-in 0.22s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
-@keyframes tryfit-fadein {
+/* ════════════════════════════════════════════════════════════════════════════
+   ANIMATIONS
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* Modal entrance */
+@keyframes tryfit-modal-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+
+/* Toast entrance */
+@keyframes tryfit-toast-in {
   from { opacity: 0; transform: translateX(-50%) translateY(8px); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0);   }
+}
+
+/* Privacy rings expand */
+@keyframes tryfit-ring-expand {
+  0%   { transform: scale(0.85); opacity: 0.7; }
+  50%  { transform: scale(1);    opacity: 0.4; }
+  100% { transform: scale(0.85); opacity: 0.7; }
+}
+
+/* AI processing pulse */
+@keyframes tryfit-ai-pulse {
+  0%   { transform: scale(0.9);  opacity: 0.6; }
+  50%  { transform: scale(1.05); opacity: 0.2; }
+  100% { transform: scale(0.9);  opacity: 0.6; }
+}
+
+/* AI core glow */
+@keyframes tryfit-ai-glow {
+  0%, 100% { box-shadow: var(--tryfit-shadow-btn); }
+  50%       { box-shadow: 0 0 0 8px var(--tryfit-primary-border), var(--tryfit-shadow-btn); }
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .tryfit-privacy-ring,
+  .tryfit-ai-ring,
+  .tryfit-ai-core,
+  .tryfit-modal { animation: none !important; }
+  .tryfit-btn,
+  .tryfit-upload-label,
+  .tryfit-close { transition: none !important; }
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   CAMERA TRIGGER BUTTON  (upload step — "Take Photo with Camera")
+   ════════════════════════════════════════════════════════════════════════════ */
+.tryfit-camera-trigger-btn {
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             7px;
+  width:           100%;
+  margin-top:      12px;
+  padding:         12px 20px;
+  border:          1.5px solid var(--tryfit-border);
+  border-radius:   var(--tryfit-radius-sm);
+  background:      var(--tryfit-surface-2);
+  color:           var(--tryfit-text-2);
+  font-size:       14px;
+  font-weight:     600;
+  cursor:          pointer;
+  pointer-events:  auto !important;
+  transition:      border-color var(--tryfit-transition),
+                   background   var(--tryfit-transition),
+                   color        var(--tryfit-transition);
+  box-sizing:      border-box;
+  min-height:      44px;
+}
+
+.tryfit-camera-trigger-btn:hover:not(:disabled) {
+  border-color: var(--tryfit-primary-border);
+  background:   var(--tryfit-primary-tint);
+  color:        var(--tryfit-primary);
+}
+
+.tryfit-camera-trigger-btn:focus-visible {
+  outline:    none;
+  box-shadow: var(--tryfit-focus-ring);
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   STEP 2B · CAMERA VIEWFINDER
+   ════════════════════════════════════════════════════════════════════════════ */
+.tryfit-camera-inner {
+  display:        flex;
+  flex-direction: column;
+  padding:        0;
+  gap:            0;
+}
+
+/* Viewfinder — portrait 3:4, capped so it never overflows the modal */
+.tryfit-camera-frame {
+  position:     relative;
+  width:        100%;
+  aspect-ratio: 3 / 4;
+  max-height:   52vh;
+  background:   #000;
+  overflow:     hidden;
+  flex-shrink:  0;
+}
+
+.tryfit-camera-video {
+  width:      100%;
+  height:     100%;
+  object-fit: cover;
+  display:    block;
+}
+
+/* Mirror live preview for front camera — applied by JS */
+.tryfit-camera-video--mirror {
+  transform: scaleX(-1);
+}
+
+/* Gradient overlay with positioning hint at bottom of frame */
+.tryfit-camera-guide {
+  position:        absolute;
+  inset:           0;
+  pointer-events:  none;
+  background:      linear-gradient(to bottom, transparent 55%, rgba(0,0,0,0.55) 100%);
+  display:         flex;
+  align-items:     flex-end;
+  justify-content: center;
+  padding-bottom:  14px;
+}
+
+.tryfit-camera-guide-text {
+  color:          rgba(255,255,255,0.78);
+  font-size:      11px;
+  font-weight:    500;
+  letter-spacing: 0.02em;
+  text-shadow:    0 1px 4px rgba(0,0,0,0.55);
+  text-align:     center;
+  padding:        0 12px;
+}
+
+/* Controls bar — dark strip below the viewfinder */
+.tryfit-camera-controls {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  padding:         16px 28px 12px;
+  background:      #0f172a;
+  gap:             0;
+  flex-shrink:     0;
+}
+
+/* Side buttons: flip + close */
+.tryfit-camera-ctrl-btn {
+  width:           48px;
+  height:          48px;
+  border-radius:   50%;
+  background:      rgba(255,255,255,0.12);
+  border:          1px solid rgba(255,255,255,0.16);
+  color:           #fff;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  cursor:          pointer;
+  pointer-events:  auto !important;
+  transition:      background 0.15s;
+  flex-shrink:     0;
+}
+
+.tryfit-camera-ctrl-btn:hover:not(:disabled) {
+  background: rgba(255,255,255,0.22);
+}
+
+.tryfit-camera-ctrl-btn:focus-visible {
+  outline:    none;
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.35);
+}
+
+.tryfit-camera-ctrl-btn:disabled {
+  opacity: 0.35;
+  cursor:  not-allowed;
+}
+
+/* Shutter button — outer ring + inner white disc */
+.tryfit-camera-shutter {
+  width:           68px;
+  height:          68px;
+  border-radius:   50%;
+  background:      transparent;
+  border:          3px solid rgba(255,255,255,0.80);
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  cursor:          pointer;
+  pointer-events:  auto !important;
+  flex-shrink:     0;
+  padding:         0;
+  transition:      transform 0.1s, opacity 0.15s;
+}
+
+.tryfit-camera-shutter:hover:not(:disabled) { opacity: 0.88; }
+
+.tryfit-camera-shutter:active:not(:disabled) { transform: scale(0.92); }
+
+.tryfit-camera-shutter:focus-visible {
+  outline:    none;
+  box-shadow: 0 0 0 4px rgba(255,255,255,0.4);
+}
+
+.tryfit-camera-shutter:disabled {
+  opacity: 0.38;
+  cursor:  not-allowed;
+}
+
+.tryfit-camera-shutter-dot {
+  width:         52px;
+  height:        52px;
+  border-radius: 50%;
+  background:    #fff;
+  display:       block;
+  flex-shrink:   0;
+}
+
+/* Hint text below controls bar */
+.tryfit-camera-hint {
+  text-align:   center;
+  font-size:    11px;
+  font-weight:  400;
+  color:        rgba(255,255,255,0.42);
+  padding:      9px 16px 16px;
+  margin:       0;
+  background:   #0f172a;
+  letter-spacing: 0.01em;
+  flex-shrink:  0;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   PROCESSING STEP — PHOTO PREVIEW THUMBNAIL
+   ════════════════════════════════════════════════════════════════════════════ */
+.tryfit-processing-preview {
+  width:         56px;
+  height:        56px;
+  border-radius: var(--tryfit-radius-sm);
+  overflow:      hidden;
+  border:        2px solid var(--tryfit-primary-border);
+  margin-bottom: 14px;
+  flex-shrink:   0;
+  box-shadow:    0 2px 8px rgba(99,102,241,0.18);
+}
+
+.tryfit-processing-preview-img {
+  width:      100%;
+  height:     100%;
+  object-fit: cover;
+  display:    block;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SAVE BUTTON SPINNER
+   ════════════════════════════════════════════════════════════════════════════ */
+@keyframes tryfit-spin {
+  to { transform: rotate(360deg); }
+}
+
+.tryfit-spin {
+  animation:   tryfit-spin 0.72s linear infinite;
+  flex-shrink: 0;
+}
+
+/* Reduced-motion: disable spinner */
+@media (prefers-reduced-motion: reduce) {
+  .tryfit-spin { animation: none !important; }
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   CAMERA PERMISSION PANEL
+   ════════════════════════════════════════════════════════════════════════════ */
+.tryfit-camera-perm-panel {
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  justify-content: center;
+  gap:             16px;
+  padding:         40px 24px 32px;
+  text-align:      center;
+  flex:            1;
+}
+
+.tryfit-camera-perm-icon {
+  width:           72px;
+  height:          72px;
+  border-radius:   50%;
+  background:      #f1f5f9;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  color:           #475569;
+}
+
+.tryfit-camera-perm-title {
+  margin:      0;
+  font-size:   18px;
+  font-weight: 600;
+  color:       #111827;
+  line-height: 1.3;
+}
+
+.tryfit-camera-perm-desc {
+  margin:      0;
+  font-size:   14px;
+  color:       #6b7280;
+  line-height: 1.6;
+  max-width:   260px;
+}
+
+.tryfit-camera-perm-allow {
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             8px;
+  min-width:       180px;
+  margin-top:      4px;
+}
+
+.tryfit-camera-perm-back {
+  background:  none;
+  border:      none;
+  padding:     4px 0;
+  font-size:   13px;
+  color:       #6b7280;
+  cursor:      pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.tryfit-camera-perm-back:hover {
+  color: #111827;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   RESPONSIVE — SM  (≤ 480px)
+   Standard mobile phones — reduce gaps and section spacing
+   ════════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+  /* Section gaps */
+  .tryfit-option-groups          { gap: 10px; margin-bottom: 10px; }
+  .tryfit-option-group           { gap: 6px; }
+  .tryfit-option-values          { gap: 6px; }
+  .tryfit-result-variant-selector { gap: 8px;  margin-bottom: 10px; }
+  .tryfit-result-ctas            { gap: 7px; }
+  .tryfit-result-secondary       { gap: 6px; }
+
+  /* Section margins */
+  .tryfit-qty-price-row    { margin-bottom: 10px; padding: 10px 0; }
+  .tryfit-coupon-card      { margin-bottom: 10px; padding: 10px 12px; }
+  .tryfit-reupload-row     { margin-top: 8px; margin-bottom: 8px; }
+  .tryfit-step-header      { margin-bottom: 14px; }
+  .tryfit-watermark        { bottom: 6px !important; right: 10px !important; }
+
+  /* Font sizes */
+  .tryfit-heading    { font-size: 19px; }
+  .tryfit-subheading { font-size: 13px; }
+  .tryfit-result-caption { font-size: 13px; }
+  .tryfit-option-group__label { font-size: 11px; letter-spacing: 0.06em; }
+  .tryfit-result-product-title { font-size: 12px; }
+  .tryfit-price-display { font-size: 18px; }
+  .tryfit-countdown-banner { font-size: 11px; padding: 8px 16px; }
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   RESPONSIVE — XS  (≤ 375px)
+   Ultra-compact phones (Galaxy S, iPhone SE) — tighten spacing & font sizes
+   ════════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 375px) {
+  .tryfit-overlay {
+    padding: 8px;
+  }
+
+  .tryfit-modal {
+    width:         calc(100vw - 16px);
+    max-width:     100%;
+    max-height:    calc(100svh - 16px);
+    border-radius: 16px;
+  }
+
+  .tryfit-step-inner {
+    padding: 24px 16px 20px;
+  }
+
+  .tryfit-heading     { font-size: 18px; }
+  .tryfit-subheading  { font-size: 13px; }
+
+  .tryfit-result-product-header { padding: 6px 14px 0; }
+  .tryfit-result-content        { padding: 0 14px 4px; }
+
+  .tryfit-result-caption {
+    font-size: 13px;
+    margin:    8px 0 10px;
+  }
+
+  .tryfit-option-group__label { font-size: 11px; }
+
+  .tryfit-option-value {
+    padding:    7px 11px;
+    font-size:  12px;
+    min-height: 40px;
+    min-width:  40px;
+  }
+
+  .tryfit-qty-btn     { width: 40px; height: 40px; }
+  .tryfit-qty-display { height: 40px; font-size: 14px; }
+
+  .tryfit-price-display { font-size: 17px; }
+
+  .tryfit-btn {
+    padding:    12px 14px;
+    font-size:  14px;
+    min-height: 44px;
+  }
+
+  .tryfit-result-action {
+    padding:    7px 10px;
+    font-size:  12px;
+    min-height: 34px;
+  }
+
+  .tryfit-result-ctas      { gap: 6px; }
+  .tryfit-result-secondary { gap: 6px; }
+
+  .tryfit-reupload-btn {
+    font-size: 12px;
+    padding:   5px 8px;
+  }
+
+  .tryfit-watermark {
+    font-size: 9px;
+    bottom:    6px !important;
+    right:     8px !important;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   RESPONSIVE — MD  (≥ 481px)
+   Large phones + tablets — widen modal + two-column result layout
+   ════════════════════════════════════════════════════════════════════════════ */
+@media (min-width: 481px) {
+  .tryfit-overlay {
+    padding: 24px;
+  }
+
+  /* ── Expand modal to 700 px for two-column result layout ── */
+  .tryfit-modal {
+    width:      min(100%, 700px);
+    max-width:  700px;
+    max-height: min(90vh, 640px);
+  }
+
+  .tryfit-step-inner {
+    padding: 40px 36px 36px;
+  }
+
+  /* ── Fluid typography ── */
+  .tryfit-heading         { font-size: clamp(22px, 3vw, 26px); }
+  .tryfit-subheading      { font-size: 15px; }
+
+  .tryfit-result-product-title {
+    font-size:  12px;
+    text-align: left;
+  }
+
+  .tryfit-option-group__label {
+    font-size:      clamp(11px, 1.8vw, 13px);
+    letter-spacing: 0.08em;
+  }
+
+  /* ── Touch targets ── */
+  .tryfit-option-value {
+    padding:    10px 18px;
+    font-size:  13px;
+    min-height: 44px;
+    min-width:  44px;
+  }
+
+  .tryfit-qty-btn {
+    width:  44px;
+    height: 44px;
+  }
+  .tryfit-qty-display {
+    height:    44px;
+    font-size: 16px;
+  }
+
+  .tryfit-price-display {
+    font-size: clamp(18px, 3vw, 22px);
+  }
+
+  .tryfit-btn {
+    padding:    15px 24px;
+    font-size:  15px;
+    min-height: 48px;
+  }
+
+  .tryfit-result-ctas { gap: 8px; }
+
+  /* ── Two-column result layout ── */
+  .tryfit-result-inner {
+    flex-direction: row;
+    padding:        0;
+  }
+
+  /* Image — left column, stretches to fill panel height */
+  .tryfit-result-frame {
+    width:         42%;
+    flex-shrink:   0;
+    aspect-ratio:  unset;
+    height:        auto;
+    min-height:    380px;
+    max-height:    unset;
+    align-self:    stretch;
+    border-radius: var(--tryfit-radius) 0 0 var(--tryfit-radius);
+    margin-bottom: 0;
+  }
+
+  /* Image — center vertically within the stretched frame */
+  .tryfit-result-img {
+    object-position: center center;
+  }
+
+  /* Right panel — fills remaining width, scrolls if needed */
+  .tryfit-result-panel {
+    overflow-y: auto;
+  }
+
+  /* Right column — header */
+  .tryfit-result-product-header {
+    padding: 20px 24px 6px;
+  }
+
+  /* Right column — all controls */
+  .tryfit-result-content {
+    padding: 8px 24px 20px;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   RESPONSIVE — LG / XL  (≥ 769px)
+   iPad-sized tablets + desktop — expand to 860 px, upsize spacing
+   ════════════════════════════════════════════════════════════════════════════ */
+@media (min-width: 769px) {
+  .tryfit-overlay {
+    padding: 32px;
+  }
+
+  /* ── Desktop modal: wider for two-column result layout ── */
+  .tryfit-modal {
+    width:      min(100%, 720px);
+    max-width:  720px;
+    max-height: min(85vh, 660px);
+  }
+
+  .tryfit-step-inner {
+    padding: 36px 32px 32px;
+  }
+
+  .tryfit-heading { font-size: clamp(22px, 2.8vw, 26px); }
+
+  /* Larger close button for mouse accuracy */
+  .tryfit-close {
+    width:  38px;
+    height: 38px;
+  }
+
+  .tryfit-option-value {
+    padding:    10px 20px;
+    min-height: 44px;
+    min-width:  48px;
+  }
+
+  .tryfit-btn {
+    padding:    14px 24px;
+    font-size:  15px;
+    min-height: 48px;
+  }
+
+  .tryfit-result-action {
+    padding:    8px 12px;
+    font-size:  12px;
+    min-height: 36px;
+  }
+
+  .tryfit-reupload-btn {
+    font-size: 12px;
+  }
+
+  /* Result — extend frame for taller modal */
+  .tryfit-result-frame {
+    min-height: 400px;
+  }
+
+  .tryfit-result-product-header {
+    padding: 18px 24px 8px;
+  }
+
+  .tryfit-result-content {
+    padding: 8px 24px 20px;
+  }
+
+  .tryfit-countdown-banner {
+    padding:   9px 20px;
+    font-size: 12px;
+  }
+
+  .tryfit-result-product-title { font-size: 12px; }
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   GLOBAL OVERFLOW GUARD — zero horizontal scroll at every breakpoint
+   ════════════════════════════════════════════════════════════════════════════ */
+.tryfit-modal *,
+.tryfit-modal *::before,
+.tryfit-modal *::after {
+  box-sizing: border-box;
+  max-width:  100%;
+}
+
+/* Images that aren't the result/preview fill their container without overflow */
+.tryfit-modal img:not(.tryfit-result-img):not(.tryfit-processing-preview-img) {
+  width:      auto;
+  max-width:  100%;
+  height:     auto;
+  display:    block;
 }

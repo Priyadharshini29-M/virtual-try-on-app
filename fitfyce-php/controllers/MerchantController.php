@@ -48,25 +48,46 @@ class MerchantController
     {
         ApiKeyAuth::handle();
 
-        $body = (array)(json_decode((string)file_get_contents('php://input'), true) ?? []);
+        $rawBody = (string)file_get_contents('php://input');
+        writeLog('info', 'register called', ['body' => $rawBody]);
+        $body = (array)(json_decode($rawBody, true) ?? []);
 
         $domain  = trim((string)($body['shopify_domain']   ?? ''));
         $storeId = trim((string)($body['shopify_store_id'] ?? ''));
         $token   = trim((string)($body['access_token']     ?? ''));
 
-        if ($domain === '' || $storeId === '' || $token === '') {
-            respondJson(['error' => 'shopify_domain, shopify_store_id, access_token are required'], 400);
+        // Normalise domain — strip protocol and trailing slash so DB stores consistent format
+        $domain  = preg_replace('#^https?://#i', '', $domain);
+        $domain  = rtrim($domain, '/');
+        $storeId = preg_replace('#^https?://#i', '', $storeId);
+        $storeId = rtrim($storeId, '/');
+
+        if ($domain === '' || $storeId === '') {
+            writeLog('error', 'register missing required fields', ['domain' => $domain, 'storeId' => $storeId]);
+            respondJson(['error' => 'shopify_domain and shopify_store_id are required'], 400);
         }
 
         $repo     = new MerchantRepo();
-        $existing = $repo->findByDomain($domain);
+        $existing = $repo->findByDomain($domain) ?? $repo->findByDomainLike($domain);
 
         if ($existing !== null) {
-            $db   = Database::getInstance();
-            $stmt = $db->prepare('UPDATE merchants SET access_token = ?, is_active = 1 WHERE id = ?');
-            $stmt->execute([$token, $existing['id']]);
+            $db = Database::getInstance();
+            if ($token !== '') {
+                $db->prepare('UPDATE merchants SET access_token = ?, is_active = 1, shopify_domain = ? WHERE id = ?')
+                   ->execute([$token, $domain, $existing['id']]);
+            } else {
+                // Re-activate even without a new token (e.g., app re-opened after uninstall)
+                $db->prepare('UPDATE merchants SET is_active = 1, shopify_domain = ? WHERE id = ?')
+                   ->execute([$domain, $existing['id']]);
+            }
 
             respondJson(['id' => $existing['id'], 'api_key' => $existing['api_key'], 'created' => false]);
+        }
+
+        // New merchant — token required for first install
+        if ($token === '') {
+            writeLog('error', 'register: access_token required for new merchant', ['domain' => $domain]);
+            respondJson(['error' => 'access_token is required for new merchant registration'], 400);
         }
 
         $apiKey    = AppConfig::API_KEY_PREFIX . bin2hex(random_bytes(24));
@@ -84,7 +105,9 @@ class MerchantController
         ]);
 
         $db = Database::getInstance();
-        $db->prepare('INSERT IGNORE INTO merchant_settings (merchant_id) VALUES (?)')->execute([$id]);
+        $db->prepare(
+            'INSERT IGNORE INTO merchant_settings (merchant_id, shopify_domain, shopify_store_id) VALUES (?, ?, ?)'
+        )->execute([$id, $domain, $storeId]);
 
         respondJson(['id' => $id, 'api_key' => $apiKey, 'created' => true]);
     }
@@ -95,9 +118,16 @@ class MerchantController
      */
     public function deactivate(): void
     {
-        ApiKeyAuth::handle();
+        // HMAC verification for Shopify webhooks
+        $hmacHeader = $_SERVER['HTTP_X_SHOPIFY_HMAC_SHA256'] ?? '';
+        $rawBody = file_get_contents('php://input');
+        $sharedSecret = AppConfig::shopifyApiSecret();
+        $calculatedHmac = base64_encode(hash_hmac('sha256', $rawBody, $sharedSecret, true));
+        if ($hmacHeader === '' || !hash_equals($calculatedHmac, $hmacHeader)) {
+            respondJson(['error' => 'Invalid HMAC'], 401);
+        }
 
-        $body   = (array)(json_decode((string)file_get_contents('php://input'), true) ?? []);
+        $body   = (array)(json_decode($rawBody, true) ?? []);
         $domain = trim((string)($body['shopify_domain'] ?? ''));
 
         if ($domain === '') {

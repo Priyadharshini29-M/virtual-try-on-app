@@ -1,3 +1,5 @@
+import { PHP_API_URL, PHP_API_SECRET } from "../lib/env.server";
+
 /**
  * Server-side action tracking proxy.
  * PHP_API_URL is never exposed to the client.
@@ -23,8 +25,8 @@ export const action = async ({ request }) => {
     return Response.json({ error: "session_id and action are required" }, { status: 400 });
   }
 
-  const phpBase   = (process.env.PHP_API_URL ?? "").replace(/\/$/, "");
-  const phpSecret = process.env.PHP_API_SECRET ?? "";
+  const phpBase   = (PHP_API_URL).replace(/\/$/, "");
+  const phpSecret = PHP_API_SECRET;
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 5_000);

@@ -41,7 +41,7 @@ require_once __DIR__ . '/middleware/CorsMiddleware.php';
 require_once __DIR__ . '/middleware/ApiKeyAuth.php';
 require_once __DIR__ . '/middleware/PlanLimitCheck.php';
 
-// Autoload VTON classes (needed by TryOnController and api.php)
+// Autoload VTON classes
 require_once __DIR__ . '/src/Config.php';
 require_once __DIR__ . '/src/ImageUtils.php';
 require_once __DIR__ . '/src/TryOnDiffusionClient.php';
@@ -59,6 +59,25 @@ require_once __DIR__ . '/controllers/TryOnController.php';
 require_once __DIR__ . '/controllers/ShopController.php';
 require_once __DIR__ . '/controllers/ProductDashboardController.php';
 require_once __DIR__ . '/controllers/WidgetController.php';
+require_once __DIR__ . '/controllers/ShopifySyncController.php';
+require_once __DIR__ . '/src/ShopifyApi.php';
+require_once __DIR__ . '/db/GarmentStudioRepo.php';
+require_once __DIR__ . '/controllers/GarmentStudioController.php';
+require_once __DIR__ . '/src/InfographicSkillLibrary.php';
+require_once __DIR__ . '/src/OpenAIClient.php';
+require_once __DIR__ . '/src/S3Client.php';
+require_once __DIR__ . '/src/QdrantClient.php';
+require_once __DIR__ . '/src/VectorStoreInterface.php';
+require_once __DIR__ . '/db/QdrantVectorStore.php';
+require_once __DIR__ . '/src/RagIngestor.php';
+require_once __DIR__ . '/src/RagRetriever.php';
+require_once __DIR__ . '/controllers/RagController.php';
+require_once __DIR__ . '/controllers/InfographicController.php';
+require_once __DIR__ . '/db/SavedModelRepo.php';
+require_once __DIR__ . '/db/GenerationRepo.php';
+require_once __DIR__ . '/db/InfographicGenRepo.php';
+require_once __DIR__ . '/db/AssetRepo.php';
+require_once __DIR__ . '/controllers/StudioV2Controller.php';
 
 use TryFit\Controllers\AnalyticsController;
 use TryFit\Controllers\ConversionController;
@@ -69,6 +88,7 @@ use TryFit\Controllers\ProductDashboardController;
 use TryFit\Controllers\SessionController;
 use TryFit\Controllers\SettingsController;
 use TryFit\Controllers\ShopController;
+use TryFit\Controllers\ShopifySyncController;
 use TryFit\Controllers\UploadController;
 use TryFit\Controllers\WidgetController;
 use TryFit\Middleware\CorsMiddleware;
@@ -88,8 +108,10 @@ $route = rtrim($route, '/') ?: '/';
 $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
 
 $routes = [
-    'POST /session/create'   => [SessionController::class,  'create'],
-    'POST /session/track'    => [SessionController::class,  'track'],
+    'POST /session/create'       => [SessionController::class,  'create'],
+    'POST /session/track'        => [SessionController::class,  'track'],
+    'POST /api/session/create'   => [SessionController::class,  'create'],
+    'POST /api/session/track'    => [SessionController::class,  'track'],
     'GET /settings'          => [SettingsController::class, 'get'],
     'POST /settings'         => [SettingsController::class, 'save'],
     'GET /products'          => [ProductController::class,  'list'],
@@ -103,13 +125,45 @@ $routes = [
     'POST /plan/update'          => [PlanController::class,     'updatePlan'],
     'POST /upload-temp'          => [UploadController::class,   'uploadTemp'],
     'POST /tryon'                => [\TryFit\Controllers\TryOnController::class, 'handle'],
+    'POST /api/tryon'            => [\TryFit\Controllers\TryOnController::class, 'handle'],
     'GET /merchant/by-domain'    => [MerchantController::class,        'byDomain'],
     'POST /merchant/register'    => [MerchantController::class,        'register'],
     'POST /merchant/deactivate'  => [MerchantController::class,        'deactivate'],
     'GET /shop'                  => [ShopController::class,            'get'],
     'GET /shop/products'         => [ProductDashboardController::class, 'get'],
+    'GET /api/widget-settings'   => [WidgetController::class,          'publicGet'],
     'GET /widget/settings'       => [WidgetController::class,          'get'],
     'PATCH /widget/settings'     => [WidgetController::class,          'patch'],
+    'POST /shopify/sync'         => [ShopifySyncController::class,     'sync'],
+    // Garment Studio (merchant-facing multi-image try-on)
+    'POST /studio/generate'       => [\TryFit\Controllers\GarmentStudioController::class, 'generate'],
+    'GET /studio/generate-status' => [\TryFit\Controllers\GarmentStudioController::class, 'checkGenerationStatus'],
+    'GET /studio/setup-check'     => [\TryFit\Controllers\GarmentStudioController::class, 'setupCheck'],
+    'GET /studio/models'          => [\TryFit\Controllers\GarmentStudioController::class, 'getModels'],
+    'GET /studio/session'         => [\TryFit\Controllers\GarmentStudioController::class, 'getSession'],
+    'GET /studio/sessions'        => [\TryFit\Controllers\GarmentStudioController::class, 'listSessions'],
+    'POST /studio/save-gallery'   => [\TryFit\Controllers\GarmentStudioController::class, 'saveGallery'],
+    'POST /studio/set-model-image'=> [\TryFit\Controllers\GarmentStudioController::class, 'setModelImage'],
+    'DELETE /studio/model-image'  => [\TryFit\Controllers\GarmentStudioController::class, 'deleteModelImage'],
+    // Infographic (OpenAI GPT key-point extraction + PHP GD composition)
+    'POST /infographic/create'         => [\TryFit\Controllers\InfographicController::class, 'create'],
+    'POST /infographic/extract-points' => [\TryFit\Controllers\InfographicController::class, 'extract'],
+    'POST /infographic/generate'       => [\TryFit\Controllers\InfographicController::class, 'generate'],
+    'POST /infographic/edit'           => [\TryFit\Controllers\InfographicController::class, 'edit'],
+    // RAG knowledge index (grounds infographic generation — see RagController)
+    'POST /rag/reindex' => [\TryFit\Controllers\RagController::class, 'reindex'],
+    'GET /rag/status'   => [\TryFit\Controllers\RagController::class, 'status'],
+    // Studio v2 (single-flow AI Studio: saved models, FASHN generation, auto OpenAI marketing infographics)
+    'POST /studio-v2/models'                      => [\TryFit\Controllers\StudioV2Controller::class, 'uploadSavedModel'],
+    'GET /studio-v2/models'                       => [\TryFit\Controllers\StudioV2Controller::class, 'listSavedModels'],
+    'DELETE /studio-v2/models'                    => [\TryFit\Controllers\StudioV2Controller::class, 'deleteSavedModel'],
+    'POST /studio-v2/generate'                    => [\TryFit\Controllers\StudioV2Controller::class, 'generate'],
+    'GET /studio-v2/generate-status'              => [\TryFit\Controllers\StudioV2Controller::class, 'checkGenerationStatus'],
+    'POST /studio-v2/regenerate-infographics'     => [\TryFit\Controllers\StudioV2Controller::class, 'regenerateInfographics'],
+    'DELETE /studio-v2/generation'                => [\TryFit\Controllers\StudioV2Controller::class, 'deleteGeneration'],
+    'GET /studio-v2/generations'                  => [\TryFit\Controllers\StudioV2Controller::class, 'listGenerations'],
+    'GET /studio-v2/generation'                   => [\TryFit\Controllers\StudioV2Controller::class, 'getGeneration'],
+    'GET /studio-v2/assets'                       => [\TryFit\Controllers\StudioV2Controller::class, 'listAssets'],
 ];
 
 $key = "{$method} {$route}";
@@ -118,6 +172,13 @@ if (isset($routes[$key])) {
     CorsMiddleware::handle();
     [$class, $action] = $routes[$key];
     (new $class())->$action();
+    exit;
+}
+
+// Dynamic route: PUT /variants/mapping/{id}
+if ($method === 'PUT' && preg_match('#^/variants/mapping/\d+$#', $route)) {
+    CorsMiddleware::handle();
+    (new ProductController())->updateMapping();
     exit;
 }
 

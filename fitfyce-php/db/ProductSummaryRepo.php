@@ -40,10 +40,15 @@ class ProductSummaryRepo
         $stmt = $this->db->prepare(
             'SELECT
                 p.id                    AS product_id,
+                p.merchant_id,
+                p.shopify_domain,
                 p.shopify_product_id,
                 p.shopify_product_gid,
-                p.title,
-                p.handle,
+                p.collection_id,
+                p.collection_title,
+                p.collection_handle,
+                p.collection_products,
+                p.shopify_variants,
                 p.is_tryon_enabled,
                 p.created_at,
                 p.updated_at,
@@ -52,7 +57,7 @@ class ProductSummaryRepo
              LEFT JOIN variant_image_mappings vim ON vim.product_id = p.id
              WHERE p.merchant_id = ?
              GROUP BY p.id
-             ORDER BY p.title ASC'
+             ORDER BY p.collection_title ASC'
         );
         $stmt->execute([$merchantId]);
         return $stmt->fetchAll();

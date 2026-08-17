@@ -7,16 +7,15 @@ namespace TryFit\Controllers;
 use TryFit\AppConfig;
 use TryFit\Db\AnalyticsRepo;
 use TryFit\Db\MerchantRepo;
+use TryFit\Db\ProductRepo;
 use TryFit\Db\SessionRepo;
 use TryFit\Middleware\ApiKeyAuth;
-use TryFit\Middleware\PlanLimitCheck;
 
 class SessionController
 {
     public function create(): void
     {
         $merchant = $this->authenticate();
-        PlanLimitCheck::handle($merchant);
 
         $body = (array)(json_decode((string)file_get_contents('php://input'), true) ?? []);
 
@@ -29,20 +28,35 @@ class SessionController
             respondJson(['error' => 'product_id is required'], 400);
         }
 
-        $sessionRepo = new SessionRepo();
-        $uuid = $sessionRepo->create([
-            'merchant_id'  => (int)$merchant['id'],
-            'product_id'   => $productId,
-            'variant_id'   => $variantId,
-            'device_type'  => $deviceType,
-            'country_code' => $countryCode,
-        ]);
+        // Widget sends Shopify product ID; look up internal products.id for the FK
+        $productRepo = new ProductRepo();
+        $dbProduct = $productRepo->findByShopifyId((int)$merchant['id'], $productId);
+        $internalProductId = $dbProduct ? (int)$dbProduct['id'] : null;
 
-        $analyticsRepo = new AnalyticsRepo();
-        $analyticsRepo->upsertDaily((int)$merchant['id'], date('Y-m-d'), ['tryon_initiated' => 1]);
+        // Create session (only possible when product is synced to DB)
+        $uuid = null;
+        if ($internalProductId !== null) {
+            $sessionRepo = new SessionRepo();
+            try {
+                $uuid = $sessionRepo->create([
+                    'merchant_id'  => (int)$merchant['id'],
+                    'product_id'   => $internalProductId,
+                    'variant_id'   => $variantId,
+                    'device_type'  => $deviceType,
+                    'country_code' => $countryCode,
+                ]);
+            } catch (\Throwable $e) {
+                error_log('[FitSnap] session create failed: ' . $e->getMessage());
+            }
+        }
 
-        $merchantRepo = new MerchantRepo();
-        $merchantRepo->incrementTryonCount((int)$merchant['id']);
+        // Always record daily analytics regardless of session creation success
+        try {
+            $analyticsRepo = new AnalyticsRepo();
+            $analyticsRepo->upsertDaily((int)$merchant['id'], date('Y-m-d'), ['tryon_initiated' => 1]);
+        } catch (\Throwable $e) {
+            error_log('[FitSnap] analytics upsert failed: ' . $e->getMessage());
+        }
 
         respondJson(['session_id' => $uuid]);
     }
@@ -68,12 +82,16 @@ class SessionController
 
         $sessionRepo->trackAction($sessId, $action);
 
-        $analyticsRepo = new AnalyticsRepo();
-        $analyticsRepo->upsertDaily(
-            (int)$merchant['id'],
-            date('Y-m-d'),
-            [AppConfig::ACTION_ANALYTICS_MAP[$action] => 1]
-        );
+        try {
+            $analyticsRepo = new AnalyticsRepo();
+            $analyticsRepo->upsertDaily(
+                (int)$merchant['id'],
+                date('Y-m-d'),
+                [AppConfig::ACTION_ANALYTICS_MAP[$action] => 1]
+            );
+        } catch (\Throwable $e) {
+            error_log('[FitSnap] analytics track failed: ' . $e->getMessage());
+        }
 
         respondJson(['ok' => true]);
     }

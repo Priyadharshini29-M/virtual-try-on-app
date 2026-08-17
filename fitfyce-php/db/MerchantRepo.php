@@ -35,6 +35,33 @@ class MerchantRepo
         return $row !== false ? $row : null;
     }
 
+    /**
+     * Fuzzy fallback for domains stored with protocol prefix or trailing slash.
+     * Used when exact-match fails (e.g. DB has "https://store.myshopify.com"
+     * but caller sends "store.myshopify.com").
+     */
+    public function findByDomainLike(string $domain): ?array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT * FROM merchants WHERE shopify_domain LIKE ? LIMIT 1"
+        );
+        $stmt->execute(['%' . $domain . '%']);
+        $row = $stmt->fetch();
+        if ($row === false) return null;
+
+        // Self-heal: normalise the stored domain for future exact matches
+        $normalised = preg_replace('#^https?://#i', '', (string)$row['shopify_domain']);
+        $normalised = rtrim($normalised, '/');
+        if ($normalised !== $row['shopify_domain']) {
+            $fix = $this->db->prepare('UPDATE merchants SET shopify_domain = ? WHERE id = ?');
+            $fix->execute([$normalised, $row['id']]);
+            $row['shopify_domain'] = $normalised;
+            error_log("[FitSnap] MerchantRepo: normalised shopify_domain for id={$row['id']} to '{$normalised}'");
+        }
+
+        return $row;
+    }
+
     public function create(array $data): int
     {
         $stmt = $this->db->prepare(
@@ -47,7 +74,7 @@ class MerchantRepo
             $data['shopify_domain'],
             $data['shopify_store_id'],
             $data['access_token'],
-            $data['plan'] ?? 'free',
+            $data['plan'] ?? 'basic',
             $data['api_key'],
             $data['api_secret'],
             $data['billing_cycle_start'] ?? date('Y-m-d'),

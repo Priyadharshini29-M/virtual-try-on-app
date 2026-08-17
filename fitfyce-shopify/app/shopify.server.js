@@ -18,20 +18,28 @@ const shopify = shopifyApp({
   sessionStorage: new PrismaSessionStorage(prisma),
   distribution: AppDistribution.AppStore,
   billing: {
-    "TryFit Pro": {
-      amount: 1499,
-      currencyCode: "INR",
-      interval: BillingInterval.Every30Days,
+    "FitSnap Growth": {
+      lineItems: [
+        {
+          amount: 19,
+          currencyCode: "USD",
+          interval: BillingInterval.Every30Days,
+        },
+      ],
+      trialDays: 3,
     },
-    "TryFit Premium": {
-      amount: 3999,
-      currencyCode: "INR",
-      interval: BillingInterval.Every30Days,
+    "FitSnap Pro": {
+      lineItems: [
+        {
+          amount: 49,
+          currencyCode: "USD",
+          interval: BillingInterval.Every30Days,
+        },
+      ],
+      trialDays: 3,
     },
   },
-  future: {
-    expiringOfflineAccessTokens: true,
-  },
+  future: {},
   ...(process.env.SHOP_CUSTOM_DOMAIN
     ? { customShopDomains: [process.env.SHOP_CUSTOM_DOMAIN] }
     : {}),

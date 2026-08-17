@@ -1,42 +1,104 @@
 {%- assign app_enabled = shop.metafields.fitfyce.app_enabled | default: 'true' -%}
-{%- if block.settings.enabled and app_enabled == 'true' and product.metafields.tryfit.tryon_enabled == 'true' -%}
-  <div id="tryfit-btn-wrap" class="tryfit-btn-container tryfit-app-block">
+{%- assign tryon_enabled = product.metafields.tryfit.tryon_enabled | default: 'false' -%}
+
+{%- comment -%}
+  Embed root: always rendered regardless of per-product enable state.
+  Tells the JS singleton what page context it is in so _applySettings
+  can run the live enabled-product check (beats CDN-cached metafield HTML)
+  and _injectCollectionIcons knows it is on a collection page.
+{%- endcomment -%}
+{%- if template.name == 'collection' -%}
+  {%- assign collection_tryon = collection.metafields.tryfit.tryon_enabled | default: 'true' -%}
+  <div
+    id="tryfit-embed-root"
+    data-page-type="collection"
+    data-collection-tryon="{{ collection_tryon }}"
+    data-proxy-url="https://{{ shop.permanent_domain }}/apps/tryfit"
+    data-shop="{{ shop.permanent_domain }}"
+    data-widget-id="fitfyce-{{ block.id }}"
+    style="display:none;"
+    aria-hidden="true"
+  ></div>
+{%- else -%}
+  <div
+    id="tryfit-embed-root"
+    data-page-type="product"
+    data-product-tryon="{{ tryon_enabled }}"
+    data-product-id="{{ product.id }}"
+    data-product-handle="{{ product.handle }}"
+    data-product-title="{{ product.title | escape }}"
+    data-proxy-url="https://{{ shop.permanent_domain }}/apps/tryfit"
+    data-shop="{{ shop.permanent_domain }}"
+    data-variants="{{ product.variants | json | escape }}"
+    data-options="{{ product.options | json | escape }}"
+    data-clothing-images="{{ product.metafields.tryfit.variant_mappings | json | escape }}"
+    data-product-images='{{ product.images | json | escape }}'
+    data-selected-variant-id="{{ product.selected_or_first_available_variant.id }}"
+    data-featured-image="{{ product.featured_image | image_url: width: 1024 }}"
+    data-currency="{{ shop.currency }}"
+    data-widget-id="fitfyce-{{ block.id }}"
+    style="display:none;"
+    aria-hidden="true"
+  ></div>
+{%- endif -%}
+
+{%- if app_enabled == 'true' and tryon_enabled == 'true' -%}
+
+  <div id="tryfit-btn-wrap" class="tryfit-btn-container tryfit-app-block" data-widget-id="fitfyce-{{ block.id }}">
     <button
+      type="button"
       id="tryfit-open-btn"
       class="tryfit-open-btn"
       data-product-id="{{ product.id }}"
+      data-product-handle="{{ product.handle }}"
+      data-storefront-url="{{ product.url }}"
+      data-product-title="{{ product.title | escape }}"
       data-variants="{{ product.variants | json | escape }}"
-      data-clothing-images="{{ product.metafields.tryfit.variant_mappings }}"
+      data-options="{{ product.options | json | escape }}"
+      data-clothing-images="{{ product.metafields.tryfit.variant_mappings | json | escape }}"
+      data-product-images='{{ product.images | json | escape }}'
+      data-selected-variant-id="{{ product.selected_or_first_available_variant.id }}"
       data-featured-image="{{ product.featured_image | image_url: width: 1024 }}"
-      data-proxy-url="{{ shop.secure_url }}/apps/tryfit"
+      data-proxy-url="https://{{ shop.permanent_domain }}/apps/tryfit"
       data-shop="{{ shop.permanent_domain }}"
+      data-currency="{{ shop.currency }}"
+      aria-label="Try On This Look"
       style="
-        background: {{ block.settings.button_color }};
-        color: {{ block.settings.button_text_color }};
+        background: #111827;
+        color: #FFFFFF;
         border: none;
-        padding: 12px 24px;
-        font-size: 16px;
+        padding: 0;
         font-weight: 600;
-        border-radius: 4px;
+        border-radius: 8px;
         cursor: pointer;
         width: 100%;
+        height: auto;
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
         align-items: center;
         justify-content: center;
         margin: 10px 0;
         box-sizing: border-box;
-        transition: opacity 0.15s;
-        gap: 2px;
+        transition: opacity 0.2s;
+        gap: 8px;
+        opacity: 0;
       "
     >
-      <span class="tryfit-btn-icon" style="display:none;align-items:center;justify-content:center;flex-shrink:0;"></span>
-      <span class="tryfit-btn-title" style="line-height:1.2;">{{ block.settings.button_text }}</span>
-      <span class="tryfit-btn-subtitle" style="display:none;opacity:0.8;line-height:1.2;"></span>
+      <span class="tryfit-btn-icon" style="display:none;align-items:center;justify-content:center;flex-shrink:0;" aria-hidden="true"></span>
+      <div class="tryfit-btn-text" style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+        <span class="tryfit-btn-title" style="font-weight:600;line-height:1.2;text-align:center;">Try On This Look</span>
+        <span class="tryfit-btn-subtitle" style="display:none;opacity:0.8;line-height:1.2;text-align:center;"></span>
+      </div>
     </button>
   </div>
+
 {%- endif -%}
 
+{%- comment -%}
+  Modal is rendered conditionally so it only appears once even when the block
+  is placed on a page alongside other app blocks. The JS deduplication guard
+  in _ensureOverlayInBody() handles section-reload duplicates at runtime.
+{%- endcomment -%}
 {%- render 'tryon-modal' -%}
 
 {{ 'tryon-widget.js' | asset_url | script_tag }}
@@ -44,33 +106,8 @@
 
 {% schema %}
 {
-  "name": "FitFyce Try-On Button",
+  "name": "FitSnap Try-On",
   "target": "section",
-  "settings": [
-    {
-      "type": "checkbox",
-      "id": "enabled",
-      "label": "Enable Button",
-      "default": true
-    },
-    {
-      "type": "text",
-      "id": "button_text",
-      "label": "Button text (used before settings load)",
-      "default": "Try On This Look"
-    },
-    {
-      "type": "color",
-      "id": "button_color",
-      "label": "Button background color (fallback)",
-      "default": "#111827"
-    },
-    {
-      "type": "color",
-      "id": "button_text_color",
-      "label": "Button text color (fallback)",
-      "default": "#FFFFFF"
-    }
-  ]
+  "settings": []
 }
 {% endschema %}

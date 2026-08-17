@@ -80,6 +80,28 @@ final class AppConfig
         return (string) (getenv('SHOPIFY_API_SECRET') ?: '');
     }
 
+    public static function openAiApiKey(): string
+    {
+        return (string) (getenv('OPENAI_API_KEY') ?: '');
+    }
+
+    // ── RAG / Qdrant ───────────────────────────────────────────────────────────
+    public static function qdrantUrl(): string
+    {
+        return rtrim((string) (getenv('QDRANT_URL') ?: ''), '/');
+    }
+
+    public static function qdrantApiKey(): string
+    {
+        return (string) (getenv('QDRANT_API_KEY') ?: '');
+    }
+
+    /** True once both Qdrant and OpenAI are configured — RAG grounding is a no-op fallback otherwise. */
+    public static function ragEnabled(): bool
+    {
+        return self::qdrantUrl() !== '' && self::openAiApiKey() !== '';
+    }
+
     /** Prefix applied to every generated merchant API key. */
     public const API_KEY_PREFIX = 'tf_';
 
@@ -163,8 +185,57 @@ final class AppConfig
         return dirname(__DIR__) . DIRECTORY_SEPARATOR . 'temp';
     }
 
+    /** Permanent storage for merchant-uploaded/saved model photos (Saved Models gallery). */
+    public static function libraryDir(): string
+    {
+        return dirname(__DIR__) . DIRECTORY_SEPARATOR . 'library';
+    }
+
+    /** Permanent storage for FASHN-generated model images and OpenAI marketing infographics. */
+    public static function generationsDir(): string
+    {
+        return dirname(__DIR__) . DIRECTORY_SEPARATOR . 'generations';
+    }
+
     public static function resultsTtlHours(): int
     {
         return 24;
+    }
+
+    // ── AWS S3 (generated infographic storage) ─────────────────────────────────
+    public static function awsAccessKeyId(): string
+    {
+        return (string) (getenv('AWS_ACCESS_KEY_ID') ?: '');
+    }
+
+    public static function awsSecretAccessKey(): string
+    {
+        return (string) (getenv('AWS_SECRET_ACCESS_KEY') ?: '');
+    }
+
+    public static function awsRegion(): string
+    {
+        return (string) (getenv('AWS_REGION') ?: '');
+    }
+
+    public static function awsS3Bucket(): string
+    {
+        return (string) (getenv('AWS_S3_BUCKET') ?: '');
+    }
+
+    /** 'aws' (default) or 'gcs' — Google Cloud Storage's S3-compatible XML API, using the same AWS_* credential vars (populated with GCS interoperability HMAC keys instead). See S3Client's docblock. */
+    public static function storageProvider(): string
+    {
+        $provider = strtolower((string) (getenv('STORAGE_PROVIDER') ?: 'aws'));
+        return $provider === 'gcs' ? 'gcs' : 'aws';
+    }
+
+    /** True once all four AWS S3 settings are configured — InfographicController falls back to local disk storage otherwise. */
+    public static function s3Enabled(): bool
+    {
+        return self::awsAccessKeyId() !== ''
+            && self::awsSecretAccessKey() !== ''
+            && self::awsRegion() !== ''
+            && self::awsS3Bucket() !== '';
     }
 }

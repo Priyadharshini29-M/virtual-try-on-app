@@ -50,6 +50,7 @@ module.exports = {
       },
       rules: {
         "react/no-unknown-property": ["error", { ignore: ["variant"] }],
+        "react/prop-types": "off",
       },
     },
 
@@ -74,6 +75,15 @@ module.exports = {
         "plugin:import/recommended",
         "plugin:import/typescript",
       ],
+    },
+
+    // Storefront widget assets — ES5-style browser scripts
+    // Empty catch blocks are intentional (graceful degradation in unknown theme environments).
+    {
+      files: ["extensions/tryon-widget/assets/*.js"],
+      rules: {
+        "no-empty": ["error", { allowEmptyCatch: true }],
+      },
     },
 
     // Node

@@ -79,10 +79,14 @@ final class TryOnDiffusionClient
         $seedHeader = null;
         $ch = curl_init($url);
         curl_setopt_array($ch, [
-            CURLOPT_POST => true,
+            CURLOPT_POST           => true,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POSTFIELDS => $fields,
-            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_POSTFIELDS     => $fields,
+            CURLOPT_HTTPHEADER     => $headers,
+            CURLOPT_TIMEOUT        => 90,
+            CURLOPT_CONNECTTIMEOUT => 15,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false,
             CURLOPT_HEADERFUNCTION => static function ($curl, $header) use (&$seedHeader) {
                 $len = strlen($header);
                 $header = trim($header);
