@@ -20,7 +20,7 @@ class GenerationRepo
             CREATE TABLE IF NOT EXISTS generations (
                 id CHAR(36) NOT NULL,
                 merchant_id INT NOT NULL,
-                product_id INT NULL,
+                product_id BIGINT NULL,
                 shopify_variant_id BIGINT NULL,
                 product_image_url TEXT NOT NULL,
                 saved_model_id CHAR(36) NULL,

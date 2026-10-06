@@ -1,0 +1,29 @@
+{%- comment -%}
+  Brix-TryOn Before/After — a position marker, not a content editor.
+  Target: section — merchants drag this anywhere on the page via the theme
+  editor. It has no settings of its own: the before/after images, title,
+  width, height, margin and padding are all configured in the app's Widget
+  Settings → Media → Before/after images, and injected here by
+  tryon-widget.js's _applyExampleBlockAnchors() once settings load. This
+  block only marks WHERE on the page that content should render.
+{%- endcomment -%}
+
+<div class="tryfit-ba-block" {{ block.shopify_attributes }}>
+  {%- if request.design_mode -%}
+    <div class="tryfit-ba-empty">
+      Content for this block comes from the app's Widget Settings → Media →
+      Before/after images — turn it on and upload both images there.
+    </div>
+  {%- endif -%}
+</div>
+
+{{ 'tryon-widget.js' | asset_url | script_tag }}
+{{ 'tryon-modal.css' | asset_url | stylesheet_tag }}
+
+{% schema %}
+{
+  "name": "Brix-TryOn Before/After",
+  "target": "section",
+  "settings": []
+}
+{% endschema %}

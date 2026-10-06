@@ -86,6 +86,7 @@ export const action = async ({ request }) => {
       detail_image_3_url: detail_image_3_url || null,
       model_key,
       garment_type:    garment_type    || null,
+      product_type:    body.product_type || null,
       clothing_prompt: clothing_prompt || null,
       product_id:      product_id      || null,
       shopify_variant_id: shopify_variant_id || null,

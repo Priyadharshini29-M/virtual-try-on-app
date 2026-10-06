@@ -52,6 +52,7 @@ async function handleTryOn(request) {
   const product_id       = body.shopify_product_id ?? body.product_id       ?? null;
   const client_session   = body.session_id        ?? null;
   const device_type      = body.device_type       ?? null;
+  const product_title    = body.product_title     ?? null;
 
   if (!clothing_image || !avatar_image) {
     return Response.json(
@@ -101,9 +102,13 @@ async function handleTryOn(request) {
   // path before the (slow) try-on call even starts.
   const sessionId = client_session ?? null;
 
-  // ── Call PHP try-on endpoint ──────────────────────────────────
-  // Path must be /tryon — sending "" (root) returns 404 from the PHP router.
-  // Timeout 90 s: RapidAPI / Fashn.ai inference can take 60–90 s.
+  // ── Submit to PHP try-on endpoint (fast — no waiting for generation) ──
+  // PHP now hands the job to RunPod and returns immediately with a job_id;
+  // the widget polls GET /api/tryon-status for the actual result. This is
+  // what keeps this request safely under Shopify App Proxy's own ~60s
+  // timeout — a single long-lived request could never do that reliably no
+  // matter how high its own timeout is set, since Shopify enforces its own
+  // limit independently.
   const tryOnPayload = {
     clothing_image,
     avatar_image,
@@ -112,64 +117,33 @@ async function handleTryOn(request) {
     session_id:         sessionId,
     ...(clothing_prompt ? { clothing_prompt } : {}),
     ...(avatar_sex      ? { avatar_sex }      : {}),
+    // PHP uses the title (plus the product's synced type, tags and collection)
+    // to tell sarees from other garments. The widget always sent it, but this
+    // proxy used to drop it, so PHP never saw it.
+    ...(product_title   ? { product_title }   : {}),
     seed,
   };
 
-  console.log("[api.tryon] calling PHP /tryon", { shop: shopDomain, session_id: sessionId, clothing_image: clothing_image?.substring(0, 80) });
-  const tryOnRes = await fetchPhp(phpBase, phpSecret, "POST", "/tryon", tryOnPayload, shopDomain, 90_000);
-  console.log("[api.tryon] /tryon response", { ok: tryOnRes.ok, has_result: Boolean(tryOnRes.data?.result_image), error: tryOnRes.error, httpStatus: tryOnRes.httpStatus });
+  console.log("[api.tryon] calling PHP /tryon (submit)", { shop: shopDomain, session_id: sessionId, clothing_image: clothing_image?.substring(0, 80) });
+  const tryOnRes = await fetchPhp(phpBase, phpSecret, "POST", "/tryon", tryOnPayload, shopDomain, 30_000);
+  console.log("[api.tryon] /tryon submit response", { ok: tryOnRes.ok, job_id: tryOnRes.data?.job_id, error: tryOnRes.error, httpStatus: tryOnRes.httpStatus });
 
-  if (!tryOnRes.ok || !tryOnRes.data?.result_image) {
-    let errMsg;
-    if (tryOnRes.timedOut) {
-      errMsg = "This is taking longer than expected. Please try again.";
-    } else if (tryOnRes.error && tryOnRes.error.length < 300) {
-      // Surface the actual PHP error so the user/admin can act on it
-      errMsg = tryOnRes.error;
-    } else {
-      errMsg = "Try-on failed. Please try again.";
-    }
+  if (!tryOnRes.ok || !tryOnRes.data?.job_id) {
+    const errMsg = tryOnRes.timedOut
+      ? "This is taking longer than expected. Please try again."
+      : (tryOnRes.error && tryOnRes.error.length < 300 ? tryOnRes.error : "Try-on failed. Please try again.");
 
-    console.error("[api.tryon] try-on failed:", {
+    console.error("[api.tryon] submit failed:", {
       timedOut:   tryOnRes.timedOut,
       error:      tryOnRes.error,
       httpStatus: tryOnRes.httpStatus,
-      clothing_image: clothing_image?.substring(0, 80),
     });
-
-    // Fire-and-forget — don't block the error response
-    if (sessionId) {
-      fetchPhp(phpBase, phpSecret, "POST", "/session/update", {
-        session_id: sessionId,
-        status: "failed",
-        error_message: errMsg,
-      }, shopDomain, 5_000).catch(() => {});
-    }
 
     const status = tryOnRes.timedOut ? 504 : (tryOnRes.httpStatus || 500);
     return Response.json({ error: errMsg, session_id: sessionId }, { status });
   }
 
-  const resultImage = tryOnRes.data.result_image;
-  const resultSeed  = tryOnRes.data.seed;
-
-  // Fire-and-forget — don't block the result response
-  if (sessionId) {
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000)
-      .toISOString()
-      .replace("T", " ")
-      .slice(0, 19);
-
-    fetchPhp(phpBase, phpSecret, "POST", "/session/update", {
-      session_id: sessionId,
-      status: "completed",
-      result_image_url: resultImage,
-      result_seed: resultSeed,
-      result_expires_at: expiresAt,
-    }, shopDomain, 5_000).catch(() => {});
-  }
-
-  return Response.json({ result_image: resultImage, seed: resultSeed, session_id: sessionId });
+  return Response.json({ status: "processing", job_id: tryOnRes.data.job_id, seed: tryOnRes.data.seed, session_id: sessionId });
 };
 
 // ── Helpers ─────────────────────────────────────────────────────

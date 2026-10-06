@@ -101,9 +101,21 @@
   box-sizing:     border-box;
   margin:         auto;
   pointer-events: auto !important;
+  /* Scrolls when content is taller than the modal, but stays scrollbar-free */
+  scrollbar-width: none;      /* Firefox */
+  -ms-overflow-style: none;   /* legacy Edge */
 
   /* Smooth entrance */
   animation: tryfit-modal-in var(--tryfit-transition) both;
+}
+
+/* Hides the scrollbar track/thumb in Chrome, Safari and Edge (Chromium) on
+   every scrollable region — scrolling still works via wheel/touch/keys,
+   it's just not visually rendered. */
+.tryfit-modal::-webkit-scrollbar,
+.tryfit-result-panel::-webkit-scrollbar,
+.tryfit-flip-back::-webkit-scrollbar {
+  display: none;
 }
 
 @media (max-width: 520px) {
@@ -194,6 +206,29 @@
 
 .tryfit-subheading em { font-style: normal; font-weight: 600; color: var(--tryfit-text-1); }
 
+/* Saree-only photo tips on the upload step */
+.tryfit-saree-tips {
+  margin:        0 0 14px;
+  padding:       12px 14px;
+  background:    var(--tryfit-primary-tint);
+  border:        1px solid var(--tryfit-primary-border);
+  border-radius: var(--tryfit-radius-sm);
+  text-align:    left;
+}
+.tryfit-saree-tips-title {
+  margin:      0 0 6px;
+  font-size:   13px;
+  font-weight: 600;
+  color:       var(--tryfit-text-1);
+}
+.tryfit-saree-tips-list {
+  margin:      0;
+  padding-left: 18px;
+  font-size:   13px;
+  line-height: 1.55;
+  color:       var(--tryfit-text-2);
+}
+
 /* ════════════════════════════════════════════════════════════════════════════
    STEP 1 · PRIVACY
    ════════════════════════════════════════════════════════════════════════════ */
@@ -257,6 +292,80 @@
 .tryfit-privacy-copy {
   margin-bottom: 20px;
   max-width:     320px;
+}
+
+/* Merchant-uploaded before/after example slider — built and inserted by JS
+   above/below the Try On button (see _injectProductButton /
+   _applyExampleSlider). Fully manual images, not tied to any product.
+   Deliberately does NOT use the .tryfit-compare class — that class is
+   position:absolute/inset:0, meant to overlay inside the modal's
+   result-frame, and its cascade order (later in this file) was overriding
+   a plain position:relative here, pulling the card out of normal page flow.
+   Split into two layers: this outer wrapper carries the merchant's
+   width/margin/padding and an optional title in normal flow, so the title
+   never gets covered by the inner box's absolutely positioned images. */
+.tryfit-page-example-slider {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.tryfit-page-example-title {
+  margin:      0 0 8px;
+  font-size:   13px;
+  font-weight: 600;
+  color:       var(--tryfit-text-1, #111827);
+  text-align:  center;
+}
+
+/* The actual compare slider box — image/handle/label children reuse
+   .tryfit-compare-img/-handle/-label styles. */
+.tryfit-page-example-box {
+  position:      relative;
+  width:         100%;
+  aspect-ratio:  3 / 4;
+  border-radius: 12px;
+  overflow:      hidden;
+  background:    #f1f5f9;
+  cursor:        ew-resize;
+  user-select:   none;
+}
+
+/* Optional merchant demo/promo video — built and inserted by JS directly
+   below the injected Try On button on the product page (see
+   _injectProductButton / _applyPromoVideo), not inside this modal. */
+.tryfit-page-promo-video {
+  width:         100%;
+  max-width:     420px;
+  margin:        10px auto 0;
+  border-radius: 12px;
+  overflow:      hidden;
+  background:    #000;
+  aspect-ratio:  16 / 9;
+}
+
+.tryfit-page-promo-video video,
+.tryfit-page-promo-video iframe {
+  width:   100%;
+  height:  100%;
+  display: block;
+  border:  0;
+}
+
+/* Theme-editor-only placeholders for the standalone Before/After and Promo
+   Video blocks (tryon-before-after.liquid / tryon-promo-video.liquid) — never
+   shown on the live storefront, since both blocks are empty position markers
+   with no settings of their own (content comes from Widget Settings). */
+.tryfit-ba-empty,
+.tryfit-pv-empty {
+  max-width:     420px;
+  margin:        0 auto;
+  padding:       32px 16px;
+  border:        1px dashed #d1d5db;
+  border-radius: 12px;
+  text-align:    center;
+  font-size:     13px;
+  color:         #6b7280;
+  background:    #f9fafb;
 }
 
 /* Privacy assurance pill */
@@ -517,6 +626,11 @@
 .tryfit-result-inner {
   align-items: stretch;
   padding:     0;
+  position:    relative;
+  /* Clips the blurred image's filter bleed at this boundary — an element's
+     own overflow:hidden does NOT clip its own filter, only an ancestor's
+     does, so this has to live here rather than on .tryfit-result-frame. */
+  overflow:    hidden;
 }
 
 /* Right panel on desktop — scrolls independently when content overflows */
@@ -546,10 +660,96 @@
   width:         100%;
   height:        100%;
   display:       block;
-  /* contain = full body visible; no cropping of the try-on result */
-  object-fit:    contain;
+  /* cover = always fills the frame, no blank letterbox gaps when the photo's
+     aspect ratio doesn't match the frame — mismatched edges crop instead. */
+  object-fit:    cover;
   object-position: center top;
   border-radius: 0;
+}
+
+/* Before/after comparison slider — overlays tryfit-result-img inside
+   tryfit-result-frame (already position:relative). Before image sits full
+   size underneath; the after-wrap is clipped to a JS-driven % width so
+   dragging the handle reveals more/less of the try-on result. */
+.tryfit-compare {
+  position: absolute;
+  inset:    0;
+  z-index:  1;
+  cursor:   ew-resize;
+  user-select: none;
+}
+
+.tryfit-compare-img {
+  position:      absolute;
+  inset:         0;
+  width:         100%;
+  height:        100%;
+  display:       block;
+  object-fit:    cover;
+  object-position: center top;
+  background:    #f1f5f9;
+}
+
+.tryfit-compare-after-wrap {
+  position: absolute;
+  inset:    0;
+  width:    50%;
+  overflow: hidden;
+}
+
+/* The after-image's width/height are set inline in JS to the frame's full
+   pixel size (not 100% of this wrap) so narrowing the wrap clips a fixed
+   image in place, like a curtain, instead of squishing/rescaling it. */
+.tryfit-compare-after-wrap .tryfit-compare-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.tryfit-compare-label {
+  position:       absolute;
+  top:            10px;
+  z-index:        2;
+  padding:        4px 10px;
+  border-radius:  999px;
+  font-size:      11px;
+  font-weight:    700;
+  letter-spacing: 0.02em;
+  color:          #fff;
+  background:     rgba(17, 24, 39, 0.65);
+  pointer-events: none;
+}
+.tryfit-compare-label--before { left:  10px; }
+.tryfit-compare-label--after  { right: 10px; }
+
+.tryfit-compare-handle {
+  position:        absolute;
+  top:             0;
+  bottom:          0;
+  left:            50%;
+  z-index:         3;
+  width:           3px;
+  background:      #fff;
+  box-shadow:      0 0 0 1px rgba(0,0,0,0.12);
+  transform:       translateX(-50%);
+  cursor:          ew-resize;
+  touch-action:    none;
+}
+
+.tryfit-compare-handle-grip {
+  position:        absolute;
+  top:             50%;
+  left:            50%;
+  transform:       translate(-50%, -50%);
+  width:           32px;
+  height:          32px;
+  border-radius:   50%;
+  background:      #fff;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  color:           var(--tryfit-text-1);
+  box-shadow:      0 2px 8px rgba(0,0,0,0.2);
 }
 
 /* Product title header */
@@ -598,19 +798,163 @@
 .tryfit-zoom-btn:hover:not(:disabled) { background: #fff; transform: scale(1.08); }
 .tryfit-zoom-btn:focus-visible        { outline: none; box-shadow: var(--tryfit-focus-ring); }
 
-/* Countdown urgency banner — full-bleed purple gradient */
+.tryfit-result-frame.tryfit-blurred {
+  filter:         blur(16px) brightness(0.9);
+  pointer-events: none;
+  user-select:    none;
+  transition:     filter 0.4s ease;
+}
+
+.tryfit-result-product-header.tryfit-hidden {
+  visibility: hidden;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   LEAD-CAPTURE FLIP CARD — the purchase panel (size/qty/Add to Cart/Buy Now)
+   flips between a front face (email/phone/consent form) and a back face
+   (the existing purchase content); the result image and product title stay
+   blurred/hidden (.tryfit-blurred / .tryfit-hidden above) until submit.
+
+   Both faces are absolutely positioned on top of each other (standard flip-
+   card pattern) — .tryfit-flip-card's own height is set inline by JS
+   (_syncFlipCardHeight in tryon-widget.js), measured from whichever face is
+   taller, since neither face contributes to normal document flow here.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.tryfit-flip-card {
+  position:    relative;
+  width:       100%;
+  perspective: 1400px;
+}
+
+.tryfit-flip-card-inner {
+  position:         relative;
+  width:            100%;
+  height:           100%;
+  transition:       transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style:  preserve-3d;
+}
+
+.tryfit-flip-card.tryfit-flipped .tryfit-flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+.tryfit-flip-face {
+  position:   absolute;
+  inset:      0;
+  width:      100%;
+  box-sizing: border-box;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.tryfit-flip-front {
+  display:     flex;
+  align-items: flex-start;
+}
+
+.tryfit-flip-back {
+  transform:  rotateY(180deg);
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.tryfit-lead-form {
+  width:   100%;
+  /* Bottom padding is generous on purpose: the watermark is pinned to the
+     bottom-right of the whole modal (not this form), so it never knows how
+     tall this content is. This clearance keeps the submit button and the
+     consent text (which can wrap to 2 lines) from ever rendering under it. */
+  padding: 10px 26px 40px;
+  box-sizing: border-box;
+}
+
+.tryfit-lead-gate-title {
+  margin:      0 0 6px;
+  font-size:   16px;
+  font-weight: 700;
+  color:       var(--tryfit-text-1);
+  text-align:  center;
+}
+
+.tryfit-lead-gate-sub {
+  margin:      0 0 22px;
+  font-size:   12px;
+  color:       var(--tryfit-text-2);
+  text-align:  center;
+  line-height: 1.45;
+}
+
+.tryfit-lead-input {
+  width:         100% !important;
+  box-sizing:    border-box;
+  padding:       14px 14px !important;
+  margin-bottom: 12px;
+  font-size:     13px;
+  font-family:   inherit;
+  color:         var(--tryfit-text-1);
+  background:    var(--tryfit-surface-2);
+  border:        1px solid var(--tryfit-border);
+  border-radius: var(--tryfit-radius-xs);
+  outline:       none;
+  transition:    border-color var(--tryfit-transition);
+}
+
+.tryfit-lead-input:focus { border-color: var(--tryfit-primary); background: var(--tryfit-surface); }
+
+.tryfit-lead-consent {
+  display:      flex;
+  align-items:  flex-start;
+  gap:          8px;
+  margin:       6px 0 20px;
+  font-size:    11px;
+  line-height:  1.5;
+  color:        var(--tryfit-text-2);
+  cursor:       pointer;
+}
+
+.tryfit-lead-consent input[type="checkbox"] {
+  flex-shrink: 0;
+  width:       15px;
+  height:      15px;
+  margin:      1px 0 0;
+  accent-color: var(--tryfit-primary);
+  cursor:      pointer;
+}
+
+.tryfit-lead-consent a {
+  color:           var(--tryfit-text-1);
+  font-weight:     600;
+  text-decoration: underline;
+}
+
+.tryfit-lead-error {
+  margin:        0 0 10px;
+  padding:       7px 10px;
+  font-size:     11px;
+  line-height:   1.4;
+  color:         #b91c1c;
+  background:    #fef2f2;
+  border:        1px solid #fecaca;
+  border-radius: var(--tryfit-radius-xs);
+}
+
+/* Countdown urgency banner — inset purple pill, not full-bleed */
 .tryfit-countdown-banner {
   display:         flex;
   align-items:     center;
   justify-content: center;
   gap:             6px;
-  width:           100%;
-  padding:         9px 20px;
+  width:           auto;
+  margin:          0 24px 14px;
+  padding:         9px 18px;
   background:      linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%);
   color:           #fff;
   font-size:       12px;
   font-weight:     600;
   letter-spacing:  0.02em;
+  border-radius:   999px;
   box-sizing:      border-box;
   flex-shrink:     0;
 }
@@ -1640,7 +1984,8 @@
     padding: 24px;
   }
 
-  /* ── Expand modal to 700 px for two-column result layout ── */
+  /* ── Expand modal for larger phones/small tablets — still a single
+     stacked column here; two-column result layout only kicks in at 769px ── */
   .tryfit-modal {
     width:      min(100%, 700px);
     max-width:  700px;
@@ -1693,45 +2038,6 @@
   }
 
   .tryfit-result-ctas { gap: 8px; }
-
-  /* ── Two-column result layout ── */
-  .tryfit-result-inner {
-    flex-direction: row;
-    padding:        0;
-  }
-
-  /* Image — left column, stretches to fill panel height */
-  .tryfit-result-frame {
-    width:         42%;
-    flex-shrink:   0;
-    aspect-ratio:  unset;
-    height:        auto;
-    min-height:    380px;
-    max-height:    unset;
-    align-self:    stretch;
-    border-radius: var(--tryfit-radius) 0 0 var(--tryfit-radius);
-    margin-bottom: 0;
-  }
-
-  /* Image — center vertically within the stretched frame */
-  .tryfit-result-img {
-    object-position: center center;
-  }
-
-  /* Right panel — fills remaining width, scrolls if needed */
-  .tryfit-result-panel {
-    overflow-y: auto;
-  }
-
-  /* Right column — header */
-  .tryfit-result-product-header {
-    padding: 20px 24px 6px;
-  }
-
-  /* Right column — all controls */
-  .tryfit-result-content {
-    padding: 8px 24px 20px;
-  }
 }
 
 /* ════════════════════════════════════════════════════════════════════════════
@@ -1784,17 +2090,47 @@
     font-size: 12px;
   }
 
-  /* Result — extend frame for taller modal */
+  /* ── Two-column result layout — tablets/desktop only; phones (and phones
+     in landscape) stay stacked below this width ── */
+  .tryfit-result-inner {
+    flex-direction: row;
+    padding:        0;
+  }
+
+  /* Image — left column, stretches to fill panel height */
   .tryfit-result-frame {
-    min-height: 400px;
+    width:         42%;
+    flex-shrink:   0;
+    aspect-ratio:  unset;
+    height:        auto;
+    min-height:    400px;
+    max-height:    unset;
+    align-self:    stretch;
+    border-radius: var(--tryfit-radius) 0 0 var(--tryfit-radius);
+    margin-bottom: 0;
+  }
+
+  /* Image — center vertically within the stretched frame */
+  .tryfit-result-img {
+    object-position: center center;
+  }
+
+  /* Right panel — fills remaining width, scrolls if needed. A hairline
+     divider (not a gap) keeps the two columns visually separated without
+     breaking the modal's flush, edge-to-edge look. */
+  .tryfit-result-panel {
+    overflow-y:  auto;
+    border-left: 1px solid var(--tryfit-border);
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
 
   .tryfit-result-product-header {
-    padding: 18px 24px 8px;
+    padding: 22px 26px 8px;
   }
 
   .tryfit-result-content {
-    padding: 8px 24px 20px;
+    padding: 10px 26px 22px;
   }
 
   .tryfit-countdown-banner {

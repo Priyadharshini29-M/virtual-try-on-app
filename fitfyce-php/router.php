@@ -30,11 +30,22 @@ if (is_file($envFile)) {
 require_once __DIR__ . '/db/Database.php';
 require_once __DIR__ . '/db/MerchantRepo.php';
 require_once __DIR__ . '/db/SessionRepo.php';
+require_once __DIR__ . '/db/LeadRepo.php';
 require_once __DIR__ . '/db/ProductRepo.php';
 require_once __DIR__ . '/db/AnalyticsRepo.php';
 require_once __DIR__ . '/db/ShopRepo.php';
 require_once __DIR__ . '/db/ProductSummaryRepo.php';
 require_once __DIR__ . '/db/WidgetSettingsRepo.php';
+// Guarded: missing on the server right now (Size Chart not in use) — without
+// this guard, a missing file here would fatal the entire router, breaking
+// every unrelated route (widget settings, uploads, AI Studio, etc).
+if (is_file(__DIR__ . '/db/SizeChartRepo.php')) {
+    require_once __DIR__ . '/db/SizeChartRepo.php';
+}
+// Guarded for the same reason — also missing on the server right now.
+if (is_file(__DIR__ . '/db/ProductPairingRepo.php')) {
+    require_once __DIR__ . '/db/ProductPairingRepo.php';
+}
 
 // Autoload middleware
 require_once __DIR__ . '/middleware/CorsMiddleware.php';
@@ -45,9 +56,15 @@ require_once __DIR__ . '/middleware/PlanLimitCheck.php';
 require_once __DIR__ . '/src/Config.php';
 require_once __DIR__ . '/src/ImageUtils.php';
 require_once __DIR__ . '/src/TryOnDiffusionClient.php';
+require_once __DIR__ . '/src/RunpodVtonClient.php';
+require_once __DIR__ . '/src/FashnClient.php';
+require_once __DIR__ . '/src/HfSpaceClient.php';
+require_once __DIR__ . '/src/AccessoryJobs.php';
+require_once __DIR__ . '/src/SareeRouting.php';
 
 // Autoload controllers
 require_once __DIR__ . '/controllers/SessionController.php';
+require_once __DIR__ . '/controllers/LeadController.php';
 require_once __DIR__ . '/controllers/SettingsController.php';
 require_once __DIR__ . '/controllers/ProductController.php';
 require_once __DIR__ . '/controllers/AnalyticsController.php';
@@ -55,14 +72,26 @@ require_once __DIR__ . '/controllers/ConversionController.php';
 require_once __DIR__ . '/controllers/PlanController.php';
 require_once __DIR__ . '/controllers/UploadController.php';
 require_once __DIR__ . '/controllers/MerchantController.php';
+require_once __DIR__ . '/controllers/OnboardingController.php';
+require_once __DIR__ . '/db/DefaultModelCatalog.php';
+require_once __DIR__ . '/controllers/DefaultModelsController.php';
 require_once __DIR__ . '/controllers/TryOnController.php';
 require_once __DIR__ . '/controllers/ShopController.php';
 require_once __DIR__ . '/controllers/ProductDashboardController.php';
 require_once __DIR__ . '/controllers/WidgetController.php';
+// Guarded alongside db/SizeChartRepo.php above — see that comment.
+if (is_file(__DIR__ . '/controllers/SizeChartController.php')) {
+    require_once __DIR__ . '/controllers/SizeChartController.php';
+}
+// Guarded for the same reason — also missing on the server right now.
+if (is_file(__DIR__ . '/controllers/CompleteLookController.php')) {
+    require_once __DIR__ . '/controllers/CompleteLookController.php';
+}
 require_once __DIR__ . '/controllers/ShopifySyncController.php';
 require_once __DIR__ . '/src/ShopifyApi.php';
 require_once __DIR__ . '/db/GarmentStudioRepo.php';
 require_once __DIR__ . '/controllers/GarmentStudioController.php';
+require_once __DIR__ . '/controllers/AccessoryWorkerController.php';
 require_once __DIR__ . '/src/InfographicSkillLibrary.php';
 require_once __DIR__ . '/src/OpenAIClient.php';
 require_once __DIR__ . '/src/S3Client.php';
@@ -81,6 +110,7 @@ require_once __DIR__ . '/controllers/StudioV2Controller.php';
 
 use TryFit\Controllers\AnalyticsController;
 use TryFit\Controllers\ConversionController;
+use TryFit\Controllers\LeadController;
 use TryFit\Controllers\MerchantController;
 use TryFit\Controllers\PlanController;
 use TryFit\Controllers\ProductController;
@@ -112,6 +142,10 @@ $routes = [
     'POST /session/track'        => [SessionController::class,  'track'],
     'POST /api/session/create'   => [SessionController::class,  'create'],
     'POST /api/session/track'    => [SessionController::class,  'track'],
+    'POST /lead/capture'         => [LeadController::class,     'capture'],
+    'POST /api/lead/capture'     => [LeadController::class,     'capture'],
+    'GET /lead/list'             => [LeadController::class,     'list'],
+    'GET /leads'                 => [LeadController::class,     'listForMerchant'],
     'GET /settings'          => [SettingsController::class, 'get'],
     'POST /settings'         => [SettingsController::class, 'save'],
     'GET /products'          => [ProductController::class,  'list'],
@@ -126,14 +160,38 @@ $routes = [
     'POST /upload-temp'          => [UploadController::class,   'uploadTemp'],
     'POST /tryon'                => [\TryFit\Controllers\TryOnController::class, 'handle'],
     'POST /api/tryon'            => [\TryFit\Controllers\TryOnController::class, 'handle'],
+    'GET /tryon-status'          => [\TryFit\Controllers\TryOnController::class, 'status'],
+    'GET /api/tryon-status'      => [\TryFit\Controllers\TryOnController::class, 'status'],
     'GET /merchant/by-domain'    => [MerchantController::class,        'byDomain'],
     'POST /merchant/register'    => [MerchantController::class,        'register'],
     'POST /merchant/deactivate'  => [MerchantController::class,        'deactivate'],
+    'GET /merchant/onboarding'   => [\TryFit\Controllers\OnboardingController::class, 'get'],
+    'POST /merchant/onboarding'  => [\TryFit\Controllers\OnboardingController::class, 'save'],
+    // Built-in model library for AI Studio (photos generated by generate-default-models.php)
+    'GET /studio/default-models'           => [\TryFit\Controllers\DefaultModelsController::class, 'list'],
+    'POST /studio/default-models/activate' => [\TryFit\Controllers\DefaultModelsController::class, 'activate'],
     'GET /shop'                  => [ShopController::class,            'get'],
     'GET /shop/products'         => [ProductDashboardController::class, 'get'],
     'GET /api/widget-settings'   => [WidgetController::class,          'publicGet'],
+    'POST /api/widget-event'     => [WidgetController::class,          'publicTrackEvent'],
     'GET /widget/settings'       => [WidgetController::class,          'get'],
     'PATCH /widget/settings'     => [WidgetController::class,          'patch'],
+
+    // Size Chart module
+    'GET /size-chart'            => [\TryFit\Controllers\SizeChartController::class, 'list'],
+    'POST /size-chart'           => [\TryFit\Controllers\SizeChartController::class, 'create'],
+    'PATCH /size-chart'          => [\TryFit\Controllers\SizeChartController::class, 'update'],
+    'DELETE /size-chart'         => [\TryFit\Controllers\SizeChartController::class, 'delete'],
+    'POST /size-chart/assign'    => [\TryFit\Controllers\SizeChartController::class, 'assign'],
+    'DELETE /size-chart/assign'  => [\TryFit\Controllers\SizeChartController::class, 'unassign'],
+    'POST /size-chart/enabled'   => [\TryFit\Controllers\SizeChartController::class, 'setEnabled'],
+    'GET /api/size-chart'        => [\TryFit\Controllers\SizeChartController::class, 'publicGet'],
+
+    // Complete Your Look module
+    'GET /complete-look'             => [\TryFit\Controllers\CompleteLookController::class, 'list'],
+    'POST /complete-look/pairings'   => [\TryFit\Controllers\CompleteLookController::class, 'setPairings'],
+    'POST /complete-look/enabled'    => [\TryFit\Controllers\CompleteLookController::class, 'setEnabled'],
+    'GET /api/complete-look'         => [\TryFit\Controllers\CompleteLookController::class, 'publicGet'],
     'POST /shopify/sync'         => [ShopifySyncController::class,     'sync'],
     // Garment Studio (merchant-facing multi-image try-on)
     'POST /studio/generate'       => [\TryFit\Controllers\GarmentStudioController::class, 'generate'],
@@ -142,6 +200,8 @@ $routes = [
     'GET /studio/models'          => [\TryFit\Controllers\GarmentStudioController::class, 'getModels'],
     'GET /studio/session'         => [\TryFit\Controllers\GarmentStudioController::class, 'getSession'],
     'GET /studio/sessions'        => [\TryFit\Controllers\GarmentStudioController::class, 'listSessions'],
+    // Background worker for accessory try-ons (HMAC-signed loopback only — see AccessoryJobs)
+    'POST /accessory-worker'      => [\TryFit\Controllers\AccessoryWorkerController::class, 'run'],
     'POST /studio/save-gallery'   => [\TryFit\Controllers\GarmentStudioController::class, 'saveGallery'],
     'POST /studio/set-model-image'=> [\TryFit\Controllers\GarmentStudioController::class, 'setModelImage'],
     'DELETE /studio/model-image'  => [\TryFit\Controllers\GarmentStudioController::class, 'deleteModelImage'],

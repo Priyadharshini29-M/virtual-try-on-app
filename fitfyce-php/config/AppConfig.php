@@ -6,9 +6,6 @@ namespace TryFit;
 
 final class AppConfig
 {
-    // ── Fashn.ai mode fallback ─────────────────────────────────────────────────
-    private const FASHN_API_MODE_DEFAULT = 'quality';
-
     // ── Database getters ───────────────────────────────────────────────────────
     public static function dbHost(): string
     {
@@ -43,17 +40,78 @@ final class AppConfig
         return (string) (getenv('VTON_API_KEY') ?: getenv('TRY_ON_DIFFUSION_DEMO_API_KEY') ?: '');
     }
 
+    public static function runpodApiKey(): string
+    {
+        return (string) (getenv('RUNPOD_API_KEY') ?: '');
+    }
+
+    public static function runpodEndpointId(): string
+    {
+        return (string) (getenv('RUNPOD_ENDPOINT_ID') ?: '');
+    }
+
+    /** Returns true when the RunPod FASHN VTON 1.5 endpoint is configured — the only garment-transfer engine used by this app. */
+    public static function useRunpod(): bool
+    {
+        return self::runpodApiKey() !== '' && self::runpodEndpointId() !== '';
+    }
+
+    /**
+     * Hugging Face token + Space used for accessory try-ons (Qwen-Image-Edit
+     * fusion Space). Free accounts get only a few GPU-minutes per day, so this
+     * suits testing / low volume; when HF_TOKEN is unset the RunPod accessory
+     * endpoint below is used instead.
+     */
+    public static function hfToken(): string
+    {
+        return (string) (getenv('HF_TOKEN') ?: '');
+    }
+
+    public static function hfAccessorySpace(): string
+    {
+        return (string) (getenv('HF_ACCESSORY_SPACE') ?: 'prithivmlmods-qwen-image-edit-2509-loras-fast-fusion.hf.space');
+    }
+
+    public static function hfAccessoryAdapter(): string
+    {
+        return (string) (getenv('HF_ACCESSORY_ADAPTER') ?: 'Fuse-Objects');
+    }
+
+    public static function useHfAccessory(): bool
+    {
+        return self::hfToken() !== '';
+    }
+
+    /** Separate RunPod endpoint running an image-edit model (FLUX Kontext / Qwen-Image-Edit) for accessory try-ons — VTON 1.5 can't place accessories. */
+    public static function runpodAccessoryEndpointId(): string
+    {
+        return (string) (getenv('RUNPOD_ACCESSORY_ENDPOINT_ID') ?: '');
+    }
+
+    public static function useRunpodAccessory(): bool
+    {
+        return self::runpodApiKey() !== '' && self::runpodAccessoryEndpointId() !== '';
+    }
+
     public static function fashnApiKey(): string
     {
         return (string) (getenv('FASHN_API_KEY') ?: '');
     }
 
-    public static function fashnApiMode(): string
+    /** Fashn.ai quality tier: 'performance' | 'balanced' | 'quality'. */
+    public static function fashnMode(): string
     {
-        return (string) (getenv('FASHN_API_MODE') ?: self::FASHN_API_MODE_DEFAULT);
+        return (string) (getenv('FASHN_MODE') ?: 'quality');
     }
 
-    /** Returns true when Fashn.ai should be used instead of RapidAPI. */
+    /** Fashn model used for sarees: 'tryon-max' (default; takes a drape prompt) or 'tryon-v1.6' (no prompt, category-based). */
+    public static function fashnSareeModel(): string
+    {
+        $model = strtolower((string) (getenv('FASHN_SAREE_MODEL') ?: 'tryon-max'));
+        return $model === 'tryon-v1.6' ? 'tryon-v1.6' : 'tryon-max';
+    }
+
+    /** Returns true when the hosted Fashn.ai API is configured — used only for saree try-ons; without it saree try-ons fail (they never fall back to RunPod). */
     public static function useFashn(): bool
     {
         return self::fashnApiKey() !== '';
@@ -115,26 +173,54 @@ final class AppConfig
     public const BUTTON_ICONS         = ['none', 'eye', 'sparkles', 'camera', 'shopping-bag'];
     public const ICON_SHAPES          = ['square', 'circle'];
     public const COLLECTION_POSITIONS = ['top_left', 'top_right', 'bottom_left', 'bottom_right'];
+    public const EXAMPLE_SLIDER_POSITIONS = ['above_button', 'below_button'];
 
     public const WIDGET_DEFAULTS = [
         'button_text'            => 'Try On This Look',
         'widget_subtitle'        => 'See how it fits before you buy',
+        // Result display: a draggable before/after comparison slider instead
+        // of a single static result image. Off by default (single image is
+        // the safer/simpler default for merchants who never touch this tab).
+        'before_after_enabled'   => 0,
+        // Optional promo/demo video shown in the widget's opening state —
+        // unrelated to the AI generation itself, just a merchant-provided
+        // walkthrough clip. Empty = not shown.
+        'promo_video_url'        => '',
+        'promo_video_position'   => 'below_button',
+        // Static merchant-uploaded before/after example images — fully manual,
+        // not tied to any product or AI Studio generation. Off by default;
+        // both images must be set (via the admin upload fields) to show.
+        'example_before_after_enabled' => 0,
+        'example_before_image'   => '',
+        'example_after_image'    => '',
+        'example_slider_position' => 'below_button',
+        'example_title'          => '',
+        'example_width'          => 320,
+        'example_height'         => 0,
+        'example_margin_top'     => 10,
+        'example_margin_right'   => 0,
+        'example_margin_bottom'  => 0,
+        'example_margin_left'    => 0,
+        'example_padding_top'    => 0,
+        'example_padding_right'  => 0,
+        'example_padding_bottom' => 0,
+        'example_padding_left'   => 0,
         'button_color'           => '#111827',
         'button_text_color'      => '#FFFFFF',
         'button_border_radius'   => 8,
         'hover_bg_color'         => '#F3F4F6',
         'button_width'           => 0,
         'button_height'          => 0,
-        'button_padding_top'     => 10,
+        'button_padding_top'     => 14,
         'button_padding_right'   => 24,
-        'button_padding_bottom'  => 10,
+        'button_padding_bottom'  => 14,
         'button_padding_left'    => 24,
         'button_margin_top'      => 0,
         'button_margin_right'    => 0,
         'button_margin_bottom'   => 0,
         'button_margin_left'     => 0,
-        'title_font_size'        => 20,
-        'subtitle_font_size'     => 14,
+        'title_font_size'        => 16,
+        'subtitle_font_size'     => 12,
         'title_font_weight'      => '600',
         'title_font_family'      => 'Inter, sans-serif',
         'subtitle_font_family'   => 'Inter, sans-serif',

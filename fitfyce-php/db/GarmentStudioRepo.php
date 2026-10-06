@@ -20,7 +20,7 @@ class GarmentStudioRepo
             CREATE TABLE IF NOT EXISTS garment_studio_sessions (
                 id CHAR(36) NOT NULL,
                 merchant_id INT NOT NULL,
-                product_id INT NULL,
+                product_id BIGINT NULL,
                 shopify_variant_id BIGINT NULL,
                 front_image_url TEXT NOT NULL,
                 back_image_url TEXT NOT NULL,

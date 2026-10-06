@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "876421af61b2135a56534b6b182909bd"
-name = "The Fit Snap"
+name = "Brix-TryOn"
 application_url = "https://thefitsnap.fly.dev"
 embedded = true
 

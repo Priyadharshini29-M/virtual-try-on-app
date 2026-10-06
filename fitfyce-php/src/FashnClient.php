@@ -131,6 +131,7 @@ final class FashnClient
             'inputs'     => $inputs,
         ];
 
+
         $ch = curl_init(self::BASE_URL . '/run');
         curl_setopt_array($ch, [
             CURLOPT_POST           => true,
@@ -142,8 +143,6 @@ final class FashnClient
             CURLOPT_POSTFIELDS     => (string)json_encode($body),
             CURLOPT_TIMEOUT        => 30,
             CURLOPT_CONNECTTIMEOUT => 10,
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_SSL_VERIFYHOST => false,
         ]);
 
         $response = curl_exec($ch);
@@ -202,8 +201,6 @@ final class FashnClient
             CURLOPT_HTTPHEADER     => ['Authorization: Bearer ' . $this->apiKey],
             CURLOPT_TIMEOUT        => 15,
             CURLOPT_CONNECTTIMEOUT => 5,
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_SSL_VERIFYHOST => false,
         ]);
 
         $response = curl_exec($ch);
@@ -276,8 +273,6 @@ final class FashnClient
             CURLOPT_TIMEOUT        => 30,
             CURLOPT_CONNECTTIMEOUT => 10,
             CURLOPT_USERAGENT      => 'TryFit/1.0',
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_SSL_VERIFYHOST => false,
         ]);
         $bytes  = curl_exec($ch);
         $status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);

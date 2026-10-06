@@ -22,7 +22,7 @@ class WidgetController
 
         $shop = trim((string)($_GET['shop'] ?? ''));
         if ($shop === '') {
-            error_log('[FitSnap Widget] publicGet: missing shop param — request URI: ' . ($_SERVER['REQUEST_URI'] ?? ''));
+            error_log('[FitSnap Widget] publicGet: missing shop param - request URI: ' . ($_SERVER['REQUEST_URI'] ?? ''));
             respondJson([]);
             return;
         }
@@ -50,7 +50,7 @@ class WidgetController
         // even after uninstall until the merchant manually removes them. Withholding
         // settings would only break the storefront for users who still have the block.
         if ((int)$merchant['is_active'] !== 1) {
-            error_log("[FitSnap Widget] publicGet: merchant id={$merchant['id']} is_active={$merchant['is_active']} — serving settings anyway");
+            error_log("[FitSnap Widget] publicGet: merchant id={$merchant['id']} is_active={$merchant['is_active']} - serving settings anyway");
         }
 
         $repo = new WidgetSettingsRepo();
@@ -121,6 +121,43 @@ class WidgetController
         }
 
         respondJson($flat);
+    }
+
+    /**
+     * POST /api/widget-event  { shop, event }
+     * Public endpoint (no API key) — same trust model as publicGet() above.
+     * Fire-and-forget engagement tracking for moments that happen BEFORE a
+     * tryon_sessions row exists (widget button opened, camera permission
+     * granted), so they can't go through SessionController::track(), which
+     * requires an existing session_id. Always responds 200/ok — a dropped
+     * analytics ping must never surface as an error to the shopper.
+     */
+    public function publicTrackEvent(): void
+    {
+        $body  = (array)(json_decode((string)file_get_contents('php://input'), true) ?? []);
+        $shop  = preg_replace('#^https?://#i', '', trim((string)($body['shop'] ?? '')));
+        $shop  = rtrim($shop, '/');
+        $event = trim((string)($body['event'] ?? ''));
+
+        $column = ['widget_open' => 'widget_open_count', 'camera_granted' => 'camera_granted_count'][$event] ?? null;
+
+        if ($shop === '' || $column === null) {
+            respondJson(['ok' => true]); // malformed ping — swallow, not an error the widget should retry
+            return;
+        }
+
+        $mRepo    = new \TryFit\Db\MerchantRepo();
+        $merchant = $mRepo->findByDomain($shop) ?? $mRepo->findByDomainLike($shop);
+
+        if ($merchant !== null) {
+            try {
+                (new \TryFit\Db\AnalyticsRepo())->upsertDaily((int)$merchant['id'], date('Y-m-d'), [$column => 1]);
+            } catch (\Throwable $e) {
+                error_log('[FitSnap Widget] publicTrackEvent upsert failed: ' . $e->getMessage());
+            }
+        }
+
+        respondJson(['ok' => true]);
     }
 
     /**
@@ -237,6 +274,24 @@ class WidgetController
             'share_whatsapp_enabled' => (bool)($cfg['share_whatsapp_enabled'] ?? $d['share_whatsapp_enabled']),
             'save_image_enabled'     => (bool)($cfg['save_image_enabled']    ?? $d['save_image_enabled']),
             'privacy_notice_shown'   => (bool)($cfg['privacy_notice_shown']  ?? $d['privacy_notice_shown']),
+            'before_after_enabled'   => (bool)($cfg['before_after_enabled']  ?? $d['before_after_enabled']),
+            'promo_video_url'        => $cfg['promo_video_url']         ?? $d['promo_video_url'],
+            'promo_video_position'   => $cfg['promo_video_position']    ?? $d['promo_video_position'],
+            'example_before_after_enabled' => (bool)($cfg['example_before_after_enabled'] ?? $d['example_before_after_enabled']),
+            'example_before_image'   => $cfg['example_before_image']   ?? $d['example_before_image'],
+            'example_after_image'    => $cfg['example_after_image']    ?? $d['example_after_image'],
+            'example_slider_position' => $cfg['example_slider_position'] ?? $d['example_slider_position'],
+            'example_title'          => $cfg['example_title']           ?? $d['example_title'],
+            'example_width'          => (int)($cfg['example_width']          ?? $d['example_width']),
+            'example_height'         => (int)($cfg['example_height']         ?? $d['example_height']),
+            'example_margin_top'     => (int)($cfg['example_margin_top']     ?? $d['example_margin_top']),
+            'example_margin_right'   => (int)($cfg['example_margin_right']   ?? $d['example_margin_right']),
+            'example_margin_bottom'  => (int)($cfg['example_margin_bottom']  ?? $d['example_margin_bottom']),
+            'example_margin_left'    => (int)($cfg['example_margin_left']    ?? $d['example_margin_left']),
+            'example_padding_top'    => (int)($cfg['example_padding_top']    ?? $d['example_padding_top']),
+            'example_padding_right'  => (int)($cfg['example_padding_right']  ?? $d['example_padding_right']),
+            'example_padding_bottom' => (int)($cfg['example_padding_bottom'] ?? $d['example_padding_bottom']),
+            'example_padding_left'   => (int)($cfg['example_padding_left']   ?? $d['example_padding_left']),
         ];
     }
 
@@ -251,6 +306,9 @@ class WidgetController
         }
         if (array_key_exists('widget_subtitle', $b)) {
             $out['widget_subtitle'] = substr(trim((string)$b['widget_subtitle']), 0, 200);
+        }
+        if (array_key_exists('example_title', $b)) {
+            $out['example_title'] = substr(trim((string)$b['example_title']), 0, 80);
         }
         foreach (['button_color', 'button_text_color', 'hover_bg_color', 'icon_color'] as $f) {
             if (array_key_exists($f, $b)) {
@@ -282,6 +340,16 @@ class WidgetController
                 'icon_size'             => [8,   48],
                 'icon_radius'           => [0,   32],
                 'icon_opacity'          => [0,  100],
+                'example_width'         => [100, 800],
+                'example_height'        => [0,  800],
+                'example_margin_top'    => [0,  200],
+                'example_margin_right'  => [0,  200],
+                'example_margin_bottom' => [0,  200],
+                'example_margin_left'   => [0,  200],
+                'example_padding_top'    => [0, 200],
+                'example_padding_right'  => [0, 200],
+                'example_padding_bottom' => [0, 200],
+                'example_padding_left'   => [0, 200],
             ] as $f => [$min, $max]
         ) {
             if (array_key_exists($f, $b)) {
@@ -305,10 +373,27 @@ class WidgetController
         if (array_key_exists('collection_position', $b) && in_array($b['collection_position'], AppConfig::COLLECTION_POSITIONS, true)) {
             $out['collection_position'] = $b['collection_position'];
         }
-        foreach (['show_on_collection', 'show_watermark', 'share_whatsapp_enabled', 'save_image_enabled', 'privacy_notice_shown'] as $f) {
+        foreach (['show_on_collection', 'show_watermark', 'share_whatsapp_enabled', 'save_image_enabled', 'privacy_notice_shown', 'before_after_enabled', 'example_before_after_enabled'] as $f) {
             if (array_key_exists($f, $b)) {
                 $out[$f] = (int)(bool)$b[$f];
             }
+        }
+        foreach (['promo_video_url', 'example_before_image', 'example_after_image'] as $f) {
+            if (array_key_exists($f, $b)) {
+                $v = trim((string)$b[$f]);
+                // Empty clears it; otherwise must be a well-formed http(s) URL.
+                if ($v === '') {
+                    $out[$f] = '';
+                } elseif (filter_var($v, FILTER_VALIDATE_URL) && preg_match('#^https?://#i', $v)) {
+                    $out[$f] = substr($v, 0, 500);
+                }
+            }
+        }
+        if (array_key_exists('example_slider_position', $b) && in_array($b['example_slider_position'], AppConfig::EXAMPLE_SLIDER_POSITIONS, true)) {
+            $out['example_slider_position'] = $b['example_slider_position'];
+        }
+        if (array_key_exists('promo_video_position', $b) && in_array($b['promo_video_position'], AppConfig::EXAMPLE_SLIDER_POSITIONS, true)) {
+            $out['promo_video_position'] = $b['promo_video_position'];
         }
 
         return $out;
@@ -354,6 +439,24 @@ class WidgetController
             'share_whatsapp_enabled' => (bool)($row['share_whatsapp_enabled'] ?? $d['share_whatsapp_enabled']),
             'save_image_enabled'     => (bool)($row['save_image_enabled']    ?? $d['save_image_enabled']),
             'privacy_notice_shown'   => (bool)($row['privacy_notice_shown']  ?? $d['privacy_notice_shown']),
+            'before_after_enabled'   => (bool)($row['before_after_enabled']  ?? $d['before_after_enabled']),
+            'promo_video_url'        => $row['promo_video_url']         ?? $d['promo_video_url'],
+            'promo_video_position'   => $row['promo_video_position']    ?? $d['promo_video_position'],
+            'example_before_after_enabled' => (bool)($row['example_before_after_enabled'] ?? $d['example_before_after_enabled']),
+            'example_before_image'   => $row['example_before_image']   ?? $d['example_before_image'],
+            'example_after_image'    => $row['example_after_image']    ?? $d['example_after_image'],
+            'example_slider_position' => $row['example_slider_position'] ?? $d['example_slider_position'],
+            'example_title'          => $row['example_title']           ?? $d['example_title'],
+            'example_width'          => (int)($row['example_width']          ?? $d['example_width']),
+            'example_height'         => (int)($row['example_height']         ?? $d['example_height']),
+            'example_margin_top'     => (int)($row['example_margin_top']     ?? $d['example_margin_top']),
+            'example_margin_right'   => (int)($row['example_margin_right']   ?? $d['example_margin_right']),
+            'example_margin_bottom'  => (int)($row['example_margin_bottom']  ?? $d['example_margin_bottom']),
+            'example_margin_left'    => (int)($row['example_margin_left']    ?? $d['example_margin_left']),
+            'example_padding_top'    => (int)($row['example_padding_top']    ?? $d['example_padding_top']),
+            'example_padding_right'  => (int)($row['example_padding_right']  ?? $d['example_padding_right']),
+            'example_padding_bottom' => (int)($row['example_padding_bottom'] ?? $d['example_padding_bottom']),
+            'example_padding_left'   => (int)($row['example_padding_left']   ?? $d['example_padding_left']),
         ];
     }
 

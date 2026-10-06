@@ -1,0 +1,7 @@
+runpod>=1.7.0
+diffusers @ git+https://github.com/huggingface/diffusers.git
+transformers>=4.45.0
+accelerate>=0.34.0
+peft>=0.13.0
+safetensors
+pillow

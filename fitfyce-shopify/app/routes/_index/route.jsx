@@ -35,7 +35,7 @@ export default function App() {
   return (
     <div className={styles.index}>
       <div className={styles.content}>
-        <h1 className={styles.heading}>FitSnap — AI Virtual Try-On</h1>
+        <h1 className={styles.heading}>Brix-TryOn — AI Virtual Try-On</h1>
         <p className={styles.text}>
           Let shoppers see how clothes look on them before they buy. Reduce
           returns, increase conversions, and build buyer confidence with
@@ -59,13 +59,13 @@ export default function App() {
             instantly see the product on their body — no guesswork needed.
           </li>
           <li>
-            <strong>Zero-code setup.</strong> Add the FitSnap block to any
+            <strong>Zero-code setup.</strong> Add the Brix-TryOn block to any
             product page via the Shopify Theme Editor in under 2 minutes.
           </li>
           <li>
             <strong>Built-in analytics.</strong> Track try-on sessions,
             add-to-cart rate, conversions, and device breakdown from your
-            FitSnap dashboard.
+            Brix-TryOn dashboard.
           </li>
         </ul>
       </div>

@@ -1634,6 +1634,52 @@ class OpenAIClient
         return $ch;
     }
 
+    /**
+     * Text-to-image with gpt-image-1 (images/generations). Returns raw image bytes.
+     * Used by the AI Studio default model library generator.
+     *
+     * @param string $size    '1024x1024' | '1024x1536' (portrait) | '1536x1024'
+     * @param string $quality 'low' | 'medium' | 'high'
+     */
+    public function generateImage(string $prompt, string $size = '1024x1536', string $quality = 'high'): string
+    {
+        $ch = curl_init(self::BASE_URL . '/images/generations');
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => (string) json_encode([
+                'model'         => self::IMAGE_MODEL,
+                'prompt'        => $prompt,
+                'size'          => $size,
+                'quality'       => $quality,
+                'n'             => 1,
+                'output_format' => 'jpeg',
+            ]),
+            CURLOPT_TIMEOUT        => 180,
+            CURLOPT_HTTPHEADER     => [
+                'Authorization: Bearer ' . $this->apiKey,
+                'Content-Type: application/json',
+            ],
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false,
+        ]);
+        $raw      = curl_exec($ch);
+        $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErr  = curl_error($ch);
+        curl_close($ch);
+
+        $data = $this->parseImageEditResponse($raw, $httpCode, $curlErr);
+        $b64  = $data['data'][0]['b64_json'] ?? null;
+        if (!is_string($b64) || $b64 === '') {
+            throw new \RuntimeException('OpenAI returned no image data');
+        }
+        $bytes = base64_decode($b64, true);
+        if ($bytes === false || $bytes === '') {
+            throw new \RuntimeException('OpenAI returned invalid image data');
+        }
+        return $bytes;
+    }
+
     private function parseImageEditResponse($raw, int $httpCode, string $curlErr): array
     {
         if ($curlErr) {

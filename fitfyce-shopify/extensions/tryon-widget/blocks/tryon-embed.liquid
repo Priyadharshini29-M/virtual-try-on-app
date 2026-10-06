@@ -1,5 +1,5 @@
 {%- comment -%}
-  FitSnap Try-On — App Embed Block
+  Brix-TryOn — App Embed Block
   Target: body — enable once in Theme Settings → App Embeds.
   Auto-injects the try-on button on product pages and collection icons on collection pages.
   No manual block placement needed per template.
@@ -12,7 +12,7 @@
     data-shop="{{ shop.permanent_domain }}"
     data-currency="{{ shop.currency }}"
     data-widget-id="fitfyce-{{ shop.permanent_domain | replace: '.', '-' }}"
-    data-widget-styles='{"button_color":"{{ shop.metafields.fitfyce.button_color | default: "#111827" | escape }}","button_text_color":"{{ shop.metafields.fitfyce.button_text_color | default: "#FFFFFF" | escape }}","hover_bg_color":"{{ shop.metafields.fitfyce.hover_bg_color | default: "#F3F4F6" | escape }}","button_border_radius":"{{ shop.metafields.fitfyce.button_border_radius | default: 8 | escape }}","button_width":"{{ shop.metafields.fitfyce.button_width | default: 0 | escape }}","button_height":"{{ shop.metafields.fitfyce.button_height | default: 0 | escape }}","button_padding_top":"{{ shop.metafields.fitfyce.button_padding_top | default: 10 | escape }}","button_padding_right":"{{ shop.metafields.fitfyce.button_padding_right | default: 24 | escape }}","button_padding_bottom":"{{ shop.metafields.fitfyce.button_padding_bottom | default: 10 | escape }}","button_padding_left":"{{ shop.metafields.fitfyce.button_padding_left | default: 24 | escape }}","button_margin_top":"{{ shop.metafields.fitfyce.button_margin_top | default: 0 | escape }}","button_margin_right":"{{ shop.metafields.fitfyce.button_margin_right | default: 0 | escape }}","button_margin_bottom":"{{ shop.metafields.fitfyce.button_margin_bottom | default: 0 | escape }}","button_margin_left":"{{ shop.metafields.fitfyce.button_margin_left | default: 0 | escape }}","button_text":"{{ shop.metafields.fitfyce.button_text | default: "Try On This Look" | escape }}","button_icon":"{{ shop.metafields.fitfyce.button_icon | default: "eye" | escape }}","icon_color":"{{ shop.metafields.fitfyce.icon_color | default: "#FFFFFF" | escape }}","icon_size":"{{ shop.metafields.fitfyce.icon_size | default: 16 | escape }}"}'
+    data-widget-styles='{"button_color":"{{ shop.metafields.fitfyce.button_color | default: "#111827" | escape }}","button_text_color":"{{ shop.metafields.fitfyce.button_text_color | default: "#FFFFFF" | escape }}","hover_bg_color":"{{ shop.metafields.fitfyce.hover_bg_color | default: "#F3F4F6" | escape }}","button_border_radius":"{{ shop.metafields.fitfyce.button_border_radius | default: 8 | escape }}","button_width":"{{ shop.metafields.fitfyce.button_width | default: 0 | escape }}","button_height":"{{ shop.metafields.fitfyce.button_height | default: 0 | escape }}","button_padding_top":"{{ shop.metafields.fitfyce.button_padding_top | default: 14 | escape }}","button_padding_right":"{{ shop.metafields.fitfyce.button_padding_right | default: 24 | escape }}","button_padding_bottom":"{{ shop.metafields.fitfyce.button_padding_bottom | default: 14 | escape }}","button_padding_left":"{{ shop.metafields.fitfyce.button_padding_left | default: 24 | escape }}","button_margin_top":"{{ shop.metafields.fitfyce.button_margin_top | default: 0 | escape }}","button_margin_right":"{{ shop.metafields.fitfyce.button_margin_right | default: 0 | escape }}","button_margin_bottom":"{{ shop.metafields.fitfyce.button_margin_bottom | default: 0 | escape }}","button_margin_left":"{{ shop.metafields.fitfyce.button_margin_left | default: 0 | escape }}","button_text":"{{ shop.metafields.fitfyce.button_text | default: "Try On This Look" | escape }}","button_icon":"{{ shop.metafields.fitfyce.button_icon | default: "eye" | escape }}","icon_color":"{{ shop.metafields.fitfyce.icon_color | default: "#FFFFFF" | escape }}","icon_size":"{{ shop.metafields.fitfyce.icon_size | default: 16 | escape }}"}'
     {%- if request.page_type == 'product' -%}
     data-page-type="product"
     data-product-id="{{ product.id }}"
@@ -42,7 +42,7 @@
 
 {% schema %}
 {
-  "name": "FitSnap Try-On",
+  "name": "Brix-TryOn",
   "target": "body",
   "settings": []
 }

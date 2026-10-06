@@ -5,23 +5,31 @@ declare(strict_types=1);
 /**
  * Standalone virtual try-on API endpoint.
  *
- * ACTIVE ENGINE: fal.ai "Kling Kolors Virtual Try-On v1.5"
- * (src/KolorsClient.php) — submit to the fal.ai queue, poll until
- * COMPLETED, download the result image.
+ * ENGINE: RunPod Serverless "FASHN VTON 1.5" (src/RunpodVtonClient.php) —
+ * a self-hosted model on RunPod's own GPUs, unrelated to Fashn.ai's hosted
+ * API. Submits to the RunPod runsync endpoint; on a cold worker that
+ * returns IN_QUEUE/IN_PROGRESS before the job finishes, so the client polls
+ * /status/{id} until COMPLETED, then the result image is decoded here.
+ * This is the only engine — Fashn.ai has been fully retired from this app.
  *
- * Fashn.ai (tryon-v1.6) is TEMPORARILY DISABLED below — its code is
+ * fal.ai "Kling Kolors Virtual Try-On v1.5" is TEMPORARILY DISABLED below
+ * (fal.ai account is currently locked pending top-up) — its code is
  * commented out, not removed, so it can be swapped back in later by
- * uncommenting the "FASHN.AI (disabled)" block and commenting out the
- * "KOLORS (active)" block in the two places marked below.
+ * uncommenting the "KOLORS (disabled)" block and commenting out the
+ * "RUNPOD (active)" block in the two places marked below.
  *
  * ── Request ─────────────────────────────────────────────────────────────
  * POST multipart/form-data:
- *   model_image    (file, required)  — photo of the person
- *   garment_image  (file, required)  — photo of the garment/tee to try on
- *   category            (optional)   — Fashn-only, ignored while Kolors is active
- *   garment_photo_type  (optional)   — Fashn-only, ignored while Kolors is active
- *   mode                (optional)   — Fashn-only, ignored while Kolors is active
- *   seed                (optional)   — Fashn-only, ignored while Kolors is active
+ *   model_image         (file, required)  — photo of the person
+ *   garment_image       (file, required)  — photo of the garment/tee to try on
+ *   category            (optional)   — 'tops' | 'bottoms' | 'one-pieces' | 'saree' (default 'tops')
+ *   garment_photo_type  (optional)   — 'model' | 'flat-lay' (default 'model')
+ *   prompt              (optional)   — free-text hint, default ''
+ *   num_samples         (optional)   — default 1
+ *   num_timesteps       (optional)   — default 30
+ *   guidance_scale      (optional)   — default 1.5
+ *   segmentation_free   (optional)   — default true
+ *   seed                (optional)   — default 42
  *
  * Example:
  *   curl -X POST https://your-host/standalone-tryon.php \
@@ -33,13 +41,13 @@ declare(strict_types=1);
  * 4xx/5xx JSON: { "error": "..." }
  *
  * ── Config ──────────────────────────────────────────────────────────────
- * Reads FAL_API_KEY (Kolors, active) and FASHN_API_KEY / FASHN_API_MODE
- * (Fashn.ai, disabled) from a .env file next to this script (same simple
+ * Reads RUNPOD_API_KEY / RUNPOD_ENDPOINT_ID (RunPod, active) and FAL_API_KEY
+ * (Kolors, disabled) from a .env file next to this script (same simple
  * parser used elsewhere in this project), or from real server environment
  * variables — set whichever you prefer.
- *   FAL_API_KEY     required while Kolors is active — get one at https://fal.ai/dashboard/keys
- *   FASHN_API_KEY   only needed if you switch back to Fashn.ai — https://fashn.ai
- *   FASHN_API_MODE  optional, default "quality" (Fashn.ai only)
+ *   RUNPOD_API_KEY      required — https://runpod.io
+ *   RUNPOD_ENDPOINT_ID  required — your serverless endpoint id
+ *   FAL_API_KEY         only needed if you switch back to Kolors — https://fal.ai/dashboard/keys
  */
 
 header('Access-Control-Allow-Origin: *');
@@ -82,13 +90,13 @@ if (is_file($envFile)) {
     }
 }
 
-// ── FASHN.AI (active — Kolors temporarily disabled, no fal.ai balance) ────
-require_once __DIR__ . '/src/FashnClient.php';
-use VTON\FashnClient;
-$apiKey = (string)(getenv('FASHN_API_KEY') ?: '');
-$mode   = (string)(getenv('FASHN_API_MODE') ?: 'quality');
-if ($apiKey === '') {
-    respond(['error' => 'Server not configured: set FASHN_API_KEY in .env or as an environment variable'], 500);
+// ── RUNPOD (active — Kolors temporarily disabled) ─────────────────────────
+require_once __DIR__ . '/src/RunpodVtonClient.php';
+use VTON\RunpodVtonClient;
+$runpodApiKey     = (string)(getenv('RUNPOD_API_KEY') ?: '');
+$runpodEndpointId = (string)(getenv('RUNPOD_ENDPOINT_ID') ?: '');
+if ($runpodApiKey === '' || $runpodEndpointId === '') {
+    respond(['error' => 'Server not configured: set RUNPOD_API_KEY and RUNPOD_ENDPOINT_ID in .env or as environment variables'], 500);
 }
 
 // ── KOLORS (disabled) ─────────────────────────────────────────────────────
@@ -99,8 +107,8 @@ if ($apiKey === '') {
 //     respond(['error' => 'Server not configured: set FAL_API_KEY in .env or as an environment variable'], 500);
 // }
 
-// Fashn generation can take up to ~75s (30 poll attempts x 2.5s).
-@set_time_limit(120);
+// RunPod generation (incl. cold worker queue time) can take up to ~2 minutes.
+@set_time_limit(150);
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 
@@ -146,18 +154,19 @@ if ($garmentErr !== null) {
 }
 
 $category = trim((string)($_POST['category'] ?? 'auto'));
-if (!in_array($category, ['auto', 'tops', 'bottoms', 'one-pieces'], true)) {
+if (!in_array($category, ['auto', 'tops', 'bottoms', 'one-pieces', 'saree'], true)) {
     $category = 'auto';
 }
 $photoType = trim((string)($_POST['garment_photo_type'] ?? ''));
 if (!in_array($photoType, ['auto', 'flat-lay', 'model'], true)) {
     $photoType = '';
 }
-$requestedMode = trim((string)($_POST['mode'] ?? ''));
-if (in_array($requestedMode, ['performance', 'balanced', 'quality'], true)) {
-    $mode = $requestedMode;
-}
-$seed = ($_POST['seed'] ?? '') !== '' ? (int)$_POST['seed'] : -1;
+$seed             = ($_POST['seed'] ?? '') !== '' ? (int)$_POST['seed'] : -1;
+$prompt           = trim((string)($_POST['prompt'] ?? ''));
+$numSamples       = max(1, min(4, (int)($_POST['num_samples'] ?? 1)));
+$numTimesteps     = max(1, min(100, (int)($_POST['num_timesteps'] ?? 30)));
+$guidanceScale    = (float)($_POST['guidance_scale'] ?? 1.5);
+$segmentationFree = !isset($_POST['segmentation_free']) || $_POST['segmentation_free'] !== '0';
 
 $modelUri   = fileToBase64Uri($modelFile['tmp_name']);
 $garmentUri = fileToBase64Uri($garmentFile['tmp_name']);
@@ -171,20 +180,31 @@ if ($garmentUri === null) {
 
 // ── Run the try-on (submit + poll until complete) ───────────────────────
 
-// ── FASHN.AI (active — Kolors temporarily disabled, no fal.ai balance) ────
-$client = new FashnClient($apiKey, $mode);
+// ── RUNPOD (active — Kolors temporarily disabled) ─────────────────────────
+$client = new RunpodVtonClient($runpodApiKey, $runpodEndpointId);
 $params = [
-    'model_image'   => $modelUri,
-    'garment_image' => $garmentUri,
-    'category'      => $category,
+    'person_image'      => $modelUri,
+    'garment_image'     => $garmentUri,
+    // RunPod's handler has no 'auto' category — default to 'tops'.
+    'category'          => $category !== 'auto' ? $category : 'tops',
+    'garment_photo_type' => $photoType !== '' && $photoType !== 'auto' ? $photoType : 'model',
+    'prompt'            => $prompt,
+    'num_samples'       => $numSamples,
+    'num_timesteps'     => $numTimesteps,
+    'guidance_scale'    => $guidanceScale,
+    'segmentation_free' => $segmentationFree,
 ];
-if ($photoType !== '') {
-    $params['garment_photo_type'] = $photoType;
-}
 if ($seed >= 0) {
     $params['seed'] = $seed;
 }
-$result = $client->tryOn($params);
+$runpodResult = $client->tryOn($params);
+$result = [
+    'status_code'   => $runpodResult['status_code'],
+    'image_bytes'   => ($runpodResult['status_code'] === 200 && !empty($runpodResult['images']))
+        ? base64_decode($runpodResult['images'][0])
+        : null,
+    'error_details' => $runpodResult['error_details'],
+];
 
 // ── KOLORS (disabled) ─────────────────────────────────────────────────────
 // $client = new KolorsClient($apiKey);

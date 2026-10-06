@@ -101,8 +101,8 @@ export default function phpApiClient(apiKey, baseUrl, shopDomain = null) {
     getProducts: () =>
       request('GET', '/products'),
 
-    syncProduct: (data) =>
-      request('POST', '/products/sync', data),
+    syncProduct: (data, timeoutMs) =>
+      request('POST', '/products/sync', data, timeoutMs),
 
     getVariantMappings: (productId) =>
       request('GET', `/variants/mapping?product_id=${productId}`),
@@ -123,6 +123,9 @@ export default function phpApiClient(apiKey, baseUrl, shopDomain = null) {
       const qs = new URLSearchParams(params).toString();
       return request('GET', `/analytics${qs ? '?' + qs : ''}`);
     },
+
+    getLeads: (limit = 100) =>
+      request('GET', `/leads?limit=${limit}`),
 
     getPlans: () =>
       request('GET', '/plans'),
@@ -147,6 +150,20 @@ export default function phpApiClient(apiKey, baseUrl, shopDomain = null) {
 
     patchWidgetSettings: (data) =>
       request('PATCH', '/widget/settings', data),
+
+    // ── Built-in AI Studio model library ─────────────────────────────────────
+    getDefaultModels: () =>
+      request('GET', '/studio/default-models'),
+
+    setDefaultModelActive: (modelKey, active) =>
+      request('POST', '/studio/default-models/activate', { model_key: modelKey, active: !!active }),
+
+    // ── Merchant onboarding (answers collected by the first-run wizard) ─────
+    getOnboarding: () =>
+      request('GET', '/merchant/onboarding'),
+
+    saveOnboarding: (data) =>
+      request('POST', '/merchant/onboarding', data),
 
     // ── Garment Studio ───────────────────────────────────────────────────────
 
@@ -242,5 +259,37 @@ export default function phpApiClient(apiKey, baseUrl, shopDomain = null) {
 
     studioV2ListAssets: () =>
       request('GET', '/studio-v2/assets'),
+
+    // ── Size Chart module ─────────────────────────────────────────────────────
+    getSizeCharts: () =>
+      request('GET', '/size-chart'),
+
+    createSizeChart: (data) =>
+      request('POST', '/size-chart', data),
+
+    updateSizeChart: (data) =>
+      request('PATCH', '/size-chart', data),
+
+    deleteSizeChart: (id) =>
+      request('DELETE', '/size-chart', { id }),
+
+    assignSizeChart: (shopifyProductId, chartId) =>
+      request('POST', '/size-chart/assign', { shopify_product_id: shopifyProductId, chart_id: chartId }),
+
+    unassignSizeChart: (shopifyProductId) =>
+      request('DELETE', '/size-chart/assign', { shopify_product_id: shopifyProductId }),
+
+    setSizeChartEnabled: (enabled) =>
+      request('POST', '/size-chart/enabled', { enabled }),
+
+    // ── Complete Your Look module ────────────────────────────────────────────
+    getCompleteLook: () =>
+      request('GET', '/complete-look'),
+
+    setCompleteLookPairings: (shopifyProductId, pairedIds) =>
+      request('POST', '/complete-look/pairings', { shopify_product_id: shopifyProductId, paired_ids: pairedIds }),
+
+    setCompleteLookEnabled: (enabled) =>
+      request('POST', '/complete-look/enabled', { enabled }),
   };
 }

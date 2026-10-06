@@ -1,20 +1,7 @@
-import { useLoaderData, useSubmit, useNavigation, useActionData, useNavigate } from "react-router";
+import { useLoaderData, useSubmit, useNavigation, useActionData } from "react-router";
 import { useState, useEffect } from "react";
-import {
-  Page,
-  Layout,
-  Card,
-  Text,
-  BlockStack,
-  InlineStack,
-  TextField,
-  Select,
-  Button,
-  Badge,
-  Banner,
-  Divider,
-  Thumbnail,
-} from "@shopify/polaris";
+import PropTypes from "prop-types";
+import { FsPage, FsCard, FsButton, FsPill, FsProgress, FsEmpty, FsIcon } from "../components/fs-ui";
 import { authenticate } from "../shopify.server";
 import phpApiClient from "../lib/php-api.server";
 import { ensureMerchant } from "../lib/merchant.server";
@@ -159,9 +146,9 @@ export async function action({ request }) {
 }
 
 const IMAGE_TYPE_OPTIONS = [
-  { label: "Flat lay",          value: "flat_lay"         },
-  { label: "Ghost mannequin",   value: "ghost_mannequin"  },
-  { label: "On model",          value: "on_model"         },
+  { label: "Flat lay",          value: "flat_lay",        hint: "Laid flat on a surface" },
+  { label: "Ghost mannequin",   value: "ghost_mannequin", hint: "Invisible mannequin" },
+  { label: "On model",          value: "on_model",        hint: "Worn by a person" },
 ];
 
 const AVATAR_SEX_OPTIONS = [
@@ -171,9 +158,9 @@ const AVATAR_SEX_OPTIONS = [
 ];
 
 const GARMENT_TYPE_OPTIONS = [
-  { label: "Top wear (shirt, kurti, jacket…)",  value: "top"    },
-  { label: "Bottom wear (pants, skirt…)",       value: "bottom" },
-  { label: "Full body (saree, dress, jumpsuit…)", value: "full" },
+  { label: "Top wear",    value: "top",    hint: "Shirt, kurti, jacket…",      shape: "M8 3 3 6l2 5 3-1v6h8v-6l3 1 2-5-5-3a4 4 0 0 1-8 0z" },
+  { label: "Bottom wear", value: "bottom", hint: "Pants, skirt, shorts…",      shape: "M7 3h10l1 18h-5l-1-10-1 10H6z" },
+  { label: "Full body",   value: "full",   hint: "Saree, dress, jumpsuit…",    shape: "M9 3h6l1 5-2 2 5 11H5l5-11-2-2z" },
 ];
 
 function VariantRow({ variant, mapping, productImages, internalProductId, productGid, shopifyProductId }) {
@@ -188,6 +175,7 @@ function VariantRow({ variant, mapping, productImages, internalProductId, produc
   const [prompt,       setPrompt]       = useState(mapping?.clothing_prompt ?? "");
   const [saved,      setSaved]      = useState(false);
   const [saveError,  setSaveError]  = useState(null);
+  const [open,       setOpen]       = useState(!mapping?.tryon_image_url);
 
   const actionData = useActionData();
 
@@ -218,16 +206,11 @@ function VariantRow({ variant, mapping, productImages, internalProductId, produc
   const isSaving = navigation.state === "submitting" &&
     String(navigation.json?.shopify_variant_id ?? navigation.formData?.get("shopify_variant_id")) === numericId;
 
-  const imageOptions = [
-    { label: "Enter URL below", value: "" },
-    ...productImages.map((img) => ({
-      label: img.altText || img.url.split("/").pop() || "Image",
-      value: img.url,
-    })),
-    ...(variant.image?.url
-      ? [{ label: "Variant image", value: variant.image.url }]
-      : []),
-  ];
+  // Variant image first, then the product gallery (deduped)
+  const pickable = [
+    ...(variant.image?.url ? [{ url: variant.image.url, label: "Variant image" }] : []),
+    ...productImages.map((img) => ({ url: img.url, label: img.altText || "Product image" })),
+  ].filter((img, i, arr) => arr.findIndex((o) => o.url === img.url) === i);
 
   const handleSave = () => {
     if (!imageUrl.trim()) return;
@@ -256,110 +239,133 @@ function VariantRow({ variant, mapping, productImages, internalProductId, produc
     );
   };
 
+  const onPromptChange = (v) => {
+    const trimmed = v.slice(0, 200);
+    setPrompt(trimmed);
+    // Auto-correct garment type when prompt mentions full-body garments
+    const lower = trimmed.toLowerCase();
+    if (/\b(saree|sari|lehenga|gown|dress|jumpsuit|anarkali|abaya|salwar\s*kameez)\b/.test(lower)) {
+      setGarmentType("full");
+    }
+  };
+
   return (
-    <BlockStack gap="300">
-      {saveError && (
-        <Banner tone="critical" onDismiss={() => setSaveError(null)}>
-          <p>{saveError}</p>
-        </Banner>
-      )}
-      <InlineStack align="space-between" blockAlign="center">
-        <InlineStack gap="200" blockAlign="center">
-          {variant.image?.url && (
-            <Thumbnail source={variant.image.url} alt={variant.title} size="small" />
+    <section className="fs-card" style={{ padding: 0, gap: 0 }}>
+      <button type="button" className="fs-variant-head" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
+        <span className="fs-thumb">{(imageUrl || variant.image?.url) ? <img src={imageUrl || variant.image.url} alt="" /> : <FsIcon name="image" size={16} />}</span>
+        <span style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
+          <span style={{ display: "block", fontSize: 14, fontWeight: 600 }}>{variant.title}</span>
+          <span style={{ display: "block", fontSize: 12, color: "var(--fs-muted)", marginTop: 2 }}>
+            {isMapped ? `${GARMENT_TYPE_OPTIONS.find((g) => g.value === (mapping?.garment_type ?? "top"))?.label ?? "Top wear"} · ${IMAGE_TYPE_OPTIONS.find((t) => t.value === (mapping?.image_type ?? "flat_lay"))?.label ?? "Flat lay"}` : "Needs a try-on image"}
+          </span>
+        </span>
+        {isMapped ? <FsPill tone="success"><FsIcon name="check" size={12} strokeWidth={3} />Ready</FsPill> : <FsPill tone="warning">Not mapped</FsPill>}
+        <FsIcon name="chevronRight" size={16} style={{ color: "#9CA3AF", transform: open ? "rotate(90deg)" : "none", transition: "transform .2s" }} />
+      </button>
+
+      {open && (
+        <div className="fs-variant-body">
+          {saveError && (
+            <div className="fs-banner fs-banner--critical" role="alert">
+              <FsIcon name="info" size={16} /><span style={{ flex: 1 }}>{saveError}</span>
+              <button type="button" className="fs-icon-btn" aria-label="Dismiss" onClick={() => setSaveError(null)}><FsIcon name="x" size={14} /></button>
+            </div>
           )}
-          <Text as="h3" variant="bodyMd" fontWeight="semibold">{variant.title}</Text>
-        </InlineStack>
-        <Badge tone={isMapped ? "success" : "attention"}>
-          {isMapped ? "Mapped" : "Not mapped"}
-        </Badge>
-      </InlineStack>
 
-      {imageOptions.length > 1 && (
-        <Select
-          label="Pick from product images"
-          options={imageOptions}
-          value={imageOptions.find((o) => o.value === imageUrl) ? imageUrl : ""}
-          onChange={(v) => { if (v) setImageUrl(v); }}
-        />
+          <div>
+            <span className="fs-label">Try-on image</span>
+            {pickable.length > 0 && (
+              <div className="fs-pick-grid" role="radiogroup" aria-label="Pick a try-on image">
+                {pickable.map((img) => (
+                  <button key={img.url} type="button" role="radio" aria-checked={imageUrl === img.url} aria-label={img.label}
+                    className={`fs-pick${imageUrl === img.url ? " is-on" : ""}`} onClick={() => setImageUrl(img.url)}>
+                    <img src={img.url} alt="" />
+                    {imageUrl === img.url && <span className="fs-pick-check"><FsIcon name="check" size={12} strokeWidth={3.2} /></span>}
+                  </button>
+                ))}
+              </div>
+            )}
+            <label className="fs-input-row" style={{ marginTop: 10 }}>
+              <FsIcon name="link" size={16} />
+              <input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="Or paste an image URL — https://…" aria-label="Try-on image URL" autoComplete="off" />
+            </label>
+          </div>
+
+          <div>
+            <span className="fs-label">Garment type</span>
+            <div className="fs-option-grid" role="radiogroup" aria-label="Garment type">
+              {GARMENT_TYPE_OPTIONS.map((g) => (
+                <button key={g.value} type="button" role="radio" aria-checked={garmentType === g.value}
+                  className={`fs-option${garmentType === g.value ? " is-on" : ""}`} onClick={() => setGarmentType(g.value)}>
+                  <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><path d={g.shape} fill="currentColor" /></svg>
+                  <span className="fs-option-title">{g.label}</span>
+                  <span className="fs-option-hint">{g.hint}</span>
+                </button>
+              ))}
+            </div>
+            <p className="fs-help">Controls how the result is composited. Top wear keeps the shopper&apos;s original lower body.</p>
+          </div>
+
+          <div className="fs-two-col">
+            <div>
+              <span className="fs-label">Photo style</span>
+              <div className="fs-seg" role="group" aria-label="Image type" style={{ display: "flex" }}>
+                {IMAGE_TYPE_OPTIONS.map((t) => (
+                  <button key={t.value} type="button" style={{ flex: 1 }} className={imageType === t.value ? "is-on" : ""} aria-pressed={imageType === t.value} onClick={() => setImageType(t.value)} title={t.hint}>{t.label}</button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <span className="fs-label">Model</span>
+              <div className="fs-seg" role="group" aria-label="Avatar sex" style={{ display: "flex" }}>
+                {AVATAR_SEX_OPTIONS.map((o) => (
+                  <button key={o.value || "auto"} type="button" style={{ flex: 1 }} className={avatarSex === o.value ? "is-on" : ""} aria-pressed={avatarSex === o.value} onClick={() => setAvatarSex(o.value)}>{o.label}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <label className="fs-label" htmlFor={`prompt-${numericId}`}>Styling note <span style={{ fontWeight: 400, color: "var(--fs-muted)" }}>(optional)</span></label>
+              <span className="fs-tabular" style={{ fontSize: 12, color: "var(--fs-muted)" }}>{prompt.length} / 200</span>
+            </div>
+            <textarea id={`prompt-${numericId}`} className="fs-textarea" rows={2} value={prompt} maxLength={200}
+              onChange={(e) => onPromptChange(e.target.value)} placeholder="e.g. red cotton t-shirt with white logo" />
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <FsButton onClick={handleSave} disabled={!imageUrl.trim() || !internalProductId || isSaving}>
+              {isSaving ? "Saving…" : saved ? "Saved" : isMapped ? "Save changes" : "Save mapping"}
+            </FsButton>
+            {saved && <span style={{ fontSize: 13, color: "var(--fs-success-ink)", fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}><FsIcon name="check" size={14} strokeWidth={3} />Live on your storefront</span>}
+            {!internalProductId && <span style={{ fontSize: 12, color: "var(--fs-warning-ink)" }}>Product isn&apos;t synced yet — refresh to retry.</span>}
+          </div>
+        </div>
       )}
-
-      <TextField
-        label="Try-on image URL"
-        value={imageUrl}
-        onChange={setImageUrl}
-        placeholder="https://..."
-        autoComplete="off"
-      />
-
-      <Select
-        label="Garment type"
-        options={GARMENT_TYPE_OPTIONS}
-        value={garmentType}
-        onChange={setGarmentType}
-        helpText="Controls how the try-on result is composited. Top wear preserves the original lower body."
-      />
-
-<InlineStack gap="300" wrap>
-        <div style={{ flex: 1 }}>
-          <Select
-            label="Image type"
-            options={IMAGE_TYPE_OPTIONS}
-            value={imageType}
-            onChange={setImageType}
-          />
-        </div>
-        <div style={{ flex: 1 }}>
-          <Select
-            label="Avatar sex"
-            options={AVATAR_SEX_OPTIONS}
-            value={avatarSex}
-            onChange={setAvatarSex}
-          />
-        </div>
-      </InlineStack>
-
-      <TextField
-        label="Clothing prompt (optional, max 200 chars)"
-        value={prompt}
-        onChange={(v) => {
-          const trimmed = v.slice(0, 200);
-          setPrompt(trimmed);
-          // Auto-correct garment type when prompt mentions full-body garments
-          const lower = trimmed.toLowerCase();
-          if (/\b(saree|sari|lehenga|gown|dress|jumpsuit|anarkali|abaya|salwar\s*kameez)\b/.test(lower)) {
-            setGarmentType("full");
-          }
-        }}
-        multiline={2}
-        maxLength={200}
-        showCharacterCount
-        autoComplete="off"
-        placeholder="e.g. red cotton t-shirt with white logo"
-      />
-
-      <Button
-        variant="primary"
-        size="slim"
-        onClick={handleSave}
-        loading={isSaving}
-        disabled={!imageUrl.trim() || !internalProductId}
-      >
-        {saved ? "Saved!" : "Save"}
-      </Button>
-    </BlockStack>
+    </section>
   );
 }
 
+VariantRow.propTypes = {
+  variant: PropTypes.object.isRequired,
+  mapping: PropTypes.object,
+  productImages: PropTypes.array,
+  internalProductId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  productGid: PropTypes.string,
+  shopifyProductId: PropTypes.string,
+};
+
 export default function Variants() {
   const { product, variants, mappings, productImages, internalId, productId, syncError } = useLoaderData();
-  const navigate = useNavigate();
 
   if (!product) {
     return (
-      <Page title="Variant Mappings" backAction={{ onAction: () => navigate("/app/products"), content: "Products" }}>
-        <Text as="p">No product selected. Go back to Products.</Text>
-      </Page>
+      <FsPage title="Variant mapping">
+        <FsCard>
+          <FsEmpty icon="image" text="Choose a product first, then give each variant its try-on image." cta="Go to products" to="/app/products" />
+        </FsCard>
+      </FsPage>
     );
   }
 
@@ -367,40 +373,46 @@ export default function Variants() {
   for (const m of mappings) {
     mappingsByVariant[String(m.shopify_variant_id)] = m;
   }
+  const mappedCount = variants.filter((v) => mappingsByVariant[v.id.replace("gid://shopify/ProductVariant/", "")]?.tryon_image_url).length;
+  const pct = variants.length ? Math.round((mappedCount / variants.length) * 100) : 0;
 
   return (
-    <Page
-      title={`Variant Mappings — ${product.title}`}
-      backAction={{ onAction: () => navigate("/app/products"), content: "Products" }}
+    <FsPage
+      title={product.title}
+      subtitle="Give each variant a try-on image so shoppers see the exact color and style they picked."
+      actions={<FsButton to="/app/products" variant="ghost" icon="arrowLeft">Products</FsButton>}
     >
-      <Layout>
-        <Layout.Section>
-          <BlockStack gap="400">
-            {syncError && (
-              <Banner tone="critical">
-                <p>{syncError}</p>
-              </Banner>
-            )}
+      {syncError && (
+        <div className="fs-banner fs-banner--critical" role="alert"><FsIcon name="info" size={16} /><span>{syncError}</span></div>
+      )}
 
-            {variants.map((variant, idx) => {
-              const numericId = variant.id.replace("gid://shopify/ProductVariant/", "");
-              return (
-                <Card key={variant.id}>
-                  <VariantRow
-                    variant={variant}
-                    mapping={mappingsByVariant[numericId] ?? null}
-                    productImages={productImages}
-                    internalProductId={internalId}
-                    productGid={product.id}
-                    shopifyProductId={productId}
-                  />
-                  {idx < variants.length - 1 && <Divider />}
-                </Card>
-              );
-            })}
-          </BlockStack>
-        </Layout.Section>
-      </Layout>
-    </Page>
+      <FsCard>
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <div style={{ flex: 1 }}>
+            <div className="fs-tabular" style={{ fontSize: 16, fontWeight: 700 }}>{mappedCount} of {variants.length} variants ready</div>
+            <p className="fs-card-sub">{mappedCount === variants.length ? "Every variant has a try-on image." : "Variants without an image fall back to the main product image."}</p>
+          </div>
+          <span className="fs-tabular" style={{ fontSize: 17, fontWeight: 700 }}>{pct}%</span>
+        </div>
+        <FsProgress value={pct} tone={pct === 100 ? "success" : "primary"} />
+      </FsCard>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        {variants.map((variant) => {
+          const numericId = variant.id.replace("gid://shopify/ProductVariant/", "");
+          return (
+            <VariantRow
+              key={variant.id}
+              variant={variant}
+              mapping={mappingsByVariant[numericId] ?? null}
+              productImages={productImages}
+              internalProductId={internalId}
+              productGid={product.id}
+              shopifyProductId={productId}
+            />
+          );
+        })}
+      </div>
+    </FsPage>
   );
 }

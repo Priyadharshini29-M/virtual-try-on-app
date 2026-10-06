@@ -1,23 +1,26 @@
 :root {
-  --vto-bg: #F8FAFC;
-  --vto-primary: #000000;
-  --vto-primary-hover: #1F2937;
-  --vto-primary-light: rgba(0, 0, 0, 0.05);
-  --vto-text-main: #000000;
-  --vto-text-sub: #6B7280;
-  --vto-card-bg: #FFFFFF;
-  --vto-border: #E5E7EB;
-  --vto-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
-  --vto-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.03), 0 4px 6px -4px rgba(0, 0, 0, 0.03);
-  
+  /* Aliased onto app/design-tokens.css — kept under their original names so
+     every existing var(--vto-*) / var(--font-*) reference across the app
+     keeps working unchanged while resolving to the shared, unified palette. */
+  --vto-bg: var(--surface-0);
+  --vto-primary: var(--accent-500);
+  --vto-primary-hover: var(--accent-600);
+  --vto-primary-light: var(--accent-50);
+  --vto-text-main: var(--ink-900);
+  --vto-text-sub: var(--ink-500);
+  --vto-card-bg: var(--surface-1);
+  --vto-border: var(--border-subtle);
+  --vto-shadow: var(--shadow-sm);
+  --vto-shadow-lg: var(--shadow-lg);
+
   /* Font Size Standards - Global Consistency */
-  --font-xs: 0.625rem; /* 10px */
-  --font-sm: 0.6875rem; /* 11px */
-  --font-base: 0.75rem; /* 12px */
-  --font-md: 0.875rem; /* 14px */
-  --font-lg: 1rem; /* 16px */
-  --font-xl: 1.125rem; /* 18px */
-  --font-2xl: 1.25rem; /* 20px */
+  --font-xs: var(--text-2xs);  /* 10px */
+  --font-sm: var(--text-xs);   /* 11px */
+  --font-base: var(--text-sm); /* 12px */
+  --font-md: var(--text-md);   /* 14px */
+  --font-lg: var(--text-lg);   /* 16px */
+  --font-xl: var(--text-xl);   /* 18px */
+  --font-2xl: var(--text-2xl); /* 22px */
 }
 
 /*
@@ -66,7 +69,7 @@ body {
 .vto-card {
   background: var(--vto-card-bg);
   border: 1px solid var(--vto-border);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   box-shadow: var(--vto-shadow);
   padding: 24px;
   margin-bottom: 12px;
@@ -141,25 +144,27 @@ body {
 }
 
 .vto-title {
-  font-size: var(--font-xl);
+  font-size: var(--text-2xl);
   font-weight: 800;
   color: var(--vto-text-main);
   letter-spacing: -0.02em;
+  line-height: 1.25;
 }
 
 .vto-subtitle {
-  font-size: var(--font-sm);
+  font-size: var(--text-md);
+  font-weight: 500;
   line-height: 1.6;
-  color: var(--vto-text-sub);
+  color: var(--ink-700);
   margin-top: 8px;
 }
 
 .vto-section-intro {
-  font-size: 11px;
-  color: #111827;
+  font-size: var(--font-sm);
+  color: var(--vto-text-sub);
   line-height: 1.7;
   max-width: 740px;
-  margin-top: 12px;
+  margin-top: 10px;
 }
 
 .vto-slider-card {
@@ -196,13 +201,13 @@ body {
 .vto-slider-card-title {
   font-size: var(--font-base);
   font-weight: 700;
-  color: #111827;
+  color: var(--ink-900);
   line-height: 1.3;
 }
 
 .vto-slider-card-desc {
   font-size: var(--font-sm);
-  color: #4B5563;
+  color: var(--ink-500);
   line-height: 1.6;
 }
 
@@ -319,8 +324,8 @@ body {
   font-size: var(--font-2xl) !important;
 }
 
-.stat-icon-blue {
-  background: rgba(59, 91, 219, 0.1);
+.vto-stat-icon-blue {
+  background: rgba(var(--accent-rgb), 0.1);
   color: var(--vto-primary);
 }
 
@@ -332,6 +337,36 @@ body {
 .vto-stat-icon-purple {
   background: rgba(139, 92, 246, 0.1);
   color: #8B5CF6;
+}
+
+/* Shared banners — replaces one-off inline-styled success/critical/warning notices */
+.vto-banner {
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  font-size: 12px;
+  line-height: 1.5;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid transparent;
+}
+
+.vto-banner-success {
+  background: var(--success-50);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #065F46;
+}
+
+.vto-banner-critical {
+  background: var(--danger-50);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #991B1B;
+}
+
+.vto-banner-warning {
+  background: var(--warning-50);
+  border-color: rgba(245, 158, 11, 0.35);
+  color: #92400E;
 }
 
 /* Custom Badges */
@@ -346,7 +381,7 @@ body {
 }
 
 .vto-badge-ready {
-  background: rgba(59, 91, 219, 0.1);
+  background: rgba(var(--accent-rgb), 0.1);
   color: var(--vto-primary);
 }
 
@@ -548,7 +583,7 @@ body {
 
 .vto-chart-bar {
   flex: 1;
-  background: rgba(59, 91, 219, 0.2);
+  background: rgba(var(--accent-rgb), 0.2);
   border-radius: 2px;
   transition: height 0.3s ease;
 }
@@ -593,7 +628,7 @@ body {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: rgba(59, 91, 219, 0.1);
+  background: rgba(var(--accent-rgb), 0.1);
   color: var(--vto-primary);
   display: flex;
   align-items: center;
@@ -714,9 +749,10 @@ body {
 .vto-slider-card {
   flex: 0 0 280px;
   scroll-snap-align: start;
-  background: white;
-  border-radius: 16px;
+  background: var(--surface-1);
+  border-radius: var(--radius-lg);
   border: 1px solid var(--vto-border);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
   transition: all 0.2s ease;
 }
@@ -740,11 +776,11 @@ body {
 .vto-video-container {
   position: relative;
   width: 100%;
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  background: #0F172A;
+  background: var(--ink-900);
   aspect-ratio: 16 / 9;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-lg);
 }
 
 .vto-video-overlay {
@@ -1406,8 +1442,8 @@ body {
   align-items:    center;
   padding:        4px 14px;
   border-radius:  999px;
-  border:         1.5px solid #1D9E75;
-  color:          #1D9E75;
+  border:         1.5px solid var(--success-500);
+  color:          var(--success-500);
   font-size:      10px;
   font-weight:    700;
   letter-spacing: 0.08em;
@@ -1460,7 +1496,7 @@ body {
 }
 
 .vto-plan-card--featured {
-  border: 2px solid #1D9E75;
+  border: 2px solid var(--success-500);
 }
 
 /* ── Badge row ── */
@@ -1487,7 +1523,7 @@ body {
 }
 
 .vto-plan-badge--popular {
-  background: #1D9E75;
+  background: var(--success-500);
   color:      #ffffff;
 }
 
@@ -1576,12 +1612,12 @@ body {
 }
 
 .vto-plan-btn--green {
-  background: #1D9E75;
+  background: var(--success-500);
   color:      #ffffff;
 }
 
 .vto-plan-btn--green:hover:not(:disabled) {
-  background: #178a64;
+  background: var(--success-600);
 }
 
 .vto-plan-btn--dark {
@@ -1641,7 +1677,7 @@ body {
 }
 
 .vto-faq-question:hover {
-  color: #1D9E75;
+  color: var(--success-500);
 }
 
 .vto-faq-answer {

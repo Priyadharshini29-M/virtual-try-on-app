@@ -91,6 +91,18 @@ class MerchantRepo
         $stmt->execute([$plan, $id]);
     }
 
+    public function setSizeChartEnabled(int $id, bool $enabled): void
+    {
+        $stmt = $this->db->prepare('UPDATE merchants SET size_chart_enabled = ? WHERE id = ?');
+        $stmt->execute([(int)$enabled, $id]);
+    }
+
+    public function setCompleteLookEnabled(int $id, bool $enabled): void
+    {
+        $stmt = $this->db->prepare('UPDATE merchants SET complete_look_enabled = ? WHERE id = ?');
+        $stmt->execute([(int)$enabled, $id]);
+    }
+
     public function incrementTryonCount(int $id): void
     {
         $stmt = $this->db->prepare(

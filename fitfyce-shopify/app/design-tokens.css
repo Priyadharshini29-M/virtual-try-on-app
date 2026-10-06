@@ -1,0 +1,94 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   Brix-TryOn Design Tokens
+   ────────────────────────────────────────────────────────────────────────────
+   Single source of truth for color / spacing / radius / shadow / type used
+   across the admin UI. Consumed by:
+     - app/vto-design.css               (--vto-*, --font-* aliases below)
+     - app.studio._index.jsx  inline <style> (.d-*  classes)
+     - app.studio.create.jsx  inline <style> (.cr-* classes)
+   Do not remove a token without checking those three for remaining usages.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Ink (text) */
+  --ink-900: #111827;
+  --ink-700: #374151;
+  --ink-500: #5F6673;
+  --ink-300: #9CA3AF;
+
+  /* Surfaces */
+  --surface-0: #F6F6F7; /* page background */
+  --surface-1: #FFFFFF; /* card background */
+  --surface-2: #F3F4F6; /* subtle fill — inputs, chips, hovers */
+
+  /* Borders */
+  --border-subtle: #E3E3E3;
+  --border-strong: #D4D4D8;
+
+  /* Accent (brand) — black, matching the app's black & white palette */
+  --accent-50:  #F3F4F6;
+  --accent-100: #E5E7EB;
+  --accent-500: #111827;
+  --accent-600: #1F2937;
+  --accent-700: #000000;
+  --accent-rgb: 17, 24, 39; /* for rgba() tints */
+
+  /* Semantic */
+  --success-500: #10B981;
+  --success-600: #0D9668;
+  --success-50:  #ECFDF5;
+  --warning-500: #F59E0B;
+  --warning-50:  #FFFBEB;
+  --danger-500:  #EF4444;
+  --danger-50:   #FEF2F2;
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  /* Shadow — soft elevation, no heavy borders */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 1px rgba(15, 23, 42, 0.03);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06), 0 2px 4px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.08), 0 4px 10px rgba(15, 23, 42, 0.04);
+
+  /* Type scale (Inter, loaded via Shopify CDN in root.jsx) */
+  --text-2xs: 0.5625rem; /* 9px */
+  --text-xs:  0.625rem;  /* 10px */
+  --text-sm:  0.6875rem; /* 11px */
+  --text-md:  0.75rem;   /* 12px */
+  --text-lg:  0.8125rem; /* 13px */
+  --text-xl:  0.9375rem; /* 15px */
+  --text-2xl: 1.125rem;  /* 18px */
+  --text-3xl: 1.375rem;  /* 22px */
+
+  /* Spacing (4px base) */
+  --space-1: 4px;
+  --space-2: 6px;
+  --space-3: 10px;
+  --space-4: 13px;
+  --space-5: 16px;
+  --space-6: 20px;
+  --space-8: 26px;
+  --space-10: 32px;
+  --space-16: 52px;
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+   Polaris bridge — nudges native Polaris components (used directly in
+   app.variants.jsx, and mixed into app.analytics.jsx / app.plans.jsx /
+   app._index.jsx) onto the same accent color as the rest of the app.
+   Only brand/focus/link tokens are touched; semantic tones (info/success/
+   critical) are left as Polaris defaults on purpose.
+   ──────────────────────────────────────────────────────────────────────────── */
+:root {
+  --p-color-bg-fill-brand: var(--accent-500);
+  --p-color-bg-fill-brand-hover: var(--accent-600);
+  --p-color-bg-fill-brand-active: var(--accent-700);
+  --p-color-bg-fill-brand-selected: var(--accent-500);
+  --p-color-border-focus: var(--accent-500);
+  --p-color-text-link: var(--accent-500);
+  --p-color-text-link-hover: var(--accent-600);
+  --p-color-text-link-active: var(--accent-700);
+}

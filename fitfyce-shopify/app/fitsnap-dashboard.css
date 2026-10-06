@@ -1,0 +1,21 @@
+/* Dashboard welcome banner — storefront status row */
+.fs-welcome > div:first-child { gap: 12px !important; }
+.fs-welcome-actions { margin-top: 2px; }
+.fs-storefront {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 12px 12px 16px;
+  border: 1px solid var(--fs-border); border-radius: 10px; background: #FAFAFB;
+  max-width: 620px;
+}
+.fs-storefront .fs-status-dot { flex-shrink: 0; }
+.fs-storefront-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.fs-storefront-text strong { font-size: 13px; font-weight: 600; color: var(--fs-ink); }
+.fs-storefront-text span { font-size: 12px; color: var(--fs-muted); line-height: 1.4; }
+.fs-storefront-text a { font-weight: 600; color: var(--fs-primary); text-decoration: none; white-space: nowrap; }
+.fs-storefront-text a:hover { text-decoration: underline; }
+.fs-storefront .fs-onoff { flex-shrink: 0; background: #FFFFFF; border: 1px solid var(--fs-border); }
+@media (max-width: 560px) {
+  .fs-storefront { flex-wrap: wrap; }
+  .fs-storefront .fs-onoff { width: 100%; }
+  .fs-storefront .fs-onoff button { flex: 1; justify-content: center; }
+}

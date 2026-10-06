@@ -10,18 +10,20 @@ use TryFit\Db\GenerationRepo;
 use TryFit\Db\InfographicGenRepo;
 use TryFit\Db\MerchantRepo;
 use TryFit\Db\SavedModelRepo;
-use VTON\FashnClient;
 use VTON\ImageUtils;
 use VTON\OpenAIClient;
+use VTON\RunpodVtonClient;
+use VTON\SareeRouting;
 
 /**
  * StudioV2Controller — single-flow AI Studio pipeline.
  *
  * Flow: merchant uploads a product image, selects a saved model (or uploads
  * a new one), enters a required prompt describing the garment/creative
- * direction, FASHN.ai generates the dressed model, and on completion this
- * controller automatically chains an OpenAI marketing-infographic batch
- * (5 fixed styles) using the FASHN result as the visual reference.
+ * direction, RunPod's FASHN VTON 1.5 endpoint generates the dressed model,
+ * and on completion this controller automatically chains an OpenAI
+ * marketing-infographic batch (5 fixed styles) using the result as the
+ * visual reference.
  *
  * Deliberately namespaced under /studio-v2/* so the existing /studio/*
  * (GarmentStudioController, 14-slot model registry) routes are left
@@ -166,8 +168,11 @@ class StudioV2Controller
             return;
         }
 
-        if (AppConfig::fashnApiKey() === '') {
-            respondJson(['error' => 'Try-on service is not configured. Add FASHN_API_KEY to .env.'], 503);
+        // Sarees go to the hosted Fashn.ai API; everything else to RunPod.
+        $useFashn = SareeRouting::shouldUseFashn($prompt, (string) ($payload['product_title'] ?? ''));
+
+        if (!$useFashn && !AppConfig::useRunpod()) {
+            respondJson(['error' => 'Try-on service is not configured. Add RUNPOD_API_KEY/RUNPOD_ENDPOINT_ID to .env.'], 503);
             return;
         }
 
@@ -199,15 +204,25 @@ class StudioV2Controller
             $tempFiles[] = $modelPath;
             $modelPath = ImageUtils::ensureMinimumSize($modelPath, 768, 1024, $tempFiles);
 
-            require_once dirname(__DIR__) . '/src/FashnClient.php';
-            $fashnClient = new FashnClient(AppConfig::fashnApiKey(), 'quality');
-            $result = $fashnClient->submitRun([
-                'model_image'        => ImageUtils::fileToBase64Uri($modelPath),
-                'garment_image'      => ImageUtils::fileToBase64Uri($productPath),
-                'category'           => $this->resolveCategory($garmentType, $prompt),
-                'garment_photo_type' => 'auto',
-                'seed'               => -1,
-            ]);
+            $category = $this->resolveCategory($garmentType, $prompt);
+
+            if ($useFashn) {
+                // 'auto' lets Fashn detect whether the product photo is flat-lay or worn.
+                $result = SareeRouting::submitFashn([
+                    'person_image'       => ImageUtils::fileToBase64Uri($modelPath),
+                    'garment_image'      => ImageUtils::fileToBase64Uri($productPath),
+                    'garment_photo_type' => 'auto',
+                ]);
+            } else {
+                $runpodClient = new RunpodVtonClient(AppConfig::runpodApiKey(), AppConfig::runpodEndpointId());
+                $result = $runpodClient->submitRun([
+                    'person_image'       => ImageUtils::fileToBase64Uri($modelPath),
+                    'garment_image'      => ImageUtils::fileToBase64Uri($productPath),
+                    'category'           => $category,
+                    'garment_photo_type' => 'model',
+                    'prompt'             => $prompt,
+                ]);
+            }
         } catch (\Throwable $e) {
             $this->cleanupTempFiles($tempFiles);
             writeLog('ERROR', 'StudioV2Controller generation exception', ['message' => $e->getMessage()]);
@@ -232,7 +247,7 @@ class StudioV2Controller
     /**
      * GET /studio-v2/generate-status?generation_id=...
      *
-     * Polled by the client. Checks FASHN exactly once per call. On FASHN
+     * Polled by the client. Checks RunPod exactly once per call. On RunPod
      * completion, immediately (synchronously) chains the 5-style OpenAI
      * marketing-infographic batch before responding 'completed', so the
      * client's existing poll loop drives both pipeline stages.
@@ -281,9 +296,8 @@ class StudioV2Controller
             return;
         }
 
-        require_once dirname(__DIR__) . '/src/FashnClient.php';
-        $fashnClient = new FashnClient(AppConfig::fashnApiKey());
-        $check       = $fashnClient->checkStatus($predictionId);
+        // Engine (Fashn for sarees, RunPod otherwise) is read from the ID prefix.
+        $check        = SareeRouting::checkStatus($predictionId);
 
         if ($check['job_status'] === 'processing' || $check['job_status'] === 'error') {
             respondJson(['status' => 'processing', 'generation_id' => $generationId]);
@@ -300,7 +314,7 @@ class StudioV2Controller
             return;
         }
 
-        // FASHN completed — save the dressed-model result, then chain OpenAI.
+        // RunPod completed — save the dressed-model result, then chain OpenAI.
         $generationsDir = AppConfig::generationsDir();
         if (!is_dir($generationsDir)) {
             @mkdir($generationsDir, 0755, true);
@@ -541,10 +555,15 @@ class StudioV2Controller
     // ── Private: garment-type inference (mirrors GarmentStudioController) ────
 
     /**
-     * Resolves the Fashn category ('tops' | 'bottoms' | 'one-pieces').
+     * Resolves the try-on category ('tops' | 'bottoms' | 'one-pieces').
      * Prefers the merchant's explicit garment_type selection (from the
      * Product Type step); falls back to keyword-inference from the prompt
      * when no garment_type was provided.
+     *
+     * Note: 'saree' is listed in this RunPod endpoint's sample UI but is not
+     * actually implemented in the deployed pipeline — passing it crashes the
+     * worker (FASHN_LABELS_TO_IDS lookup returns None). Confirmed via a live
+     * error trace; do not use it. Sarees/lehengas route to 'one-pieces'.
      */
     private function resolveCategory(string $garmentType, string $prompt): string
     {

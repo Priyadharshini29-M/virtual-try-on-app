@@ -18,6 +18,30 @@ const shopify = shopifyApp({
   sessionStorage: new PrismaSessionStorage(prisma),
   distribution: AppDistribution.AppStore,
   billing: {
+    // New subscriptions are created under the "Brix-TryOn" names. The old
+    // "FitSnap" entries stay configured so merchants who subscribed before
+    // the rename keep a valid, checkable plan (billing.check/cancel still
+    // needs to recognize their existing subscription's stored name).
+    "Brix-TryOn Growth": {
+      lineItems: [
+        {
+          amount: 19,
+          currencyCode: "USD",
+          interval: BillingInterval.Every30Days,
+        },
+      ],
+      trialDays: 3,
+    },
+    "Brix-TryOn Pro": {
+      lineItems: [
+        {
+          amount: 49,
+          currencyCode: "USD",
+          interval: BillingInterval.Every30Days,
+        },
+      ],
+      trialDays: 3,
+    },
     "FitSnap Growth": {
       lineItems: [
         {

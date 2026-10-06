@@ -7,8 +7,9 @@ namespace TryFit\Controllers;
 use TryFit\AppConfig;
 use TryFit\Db\GarmentStudioRepo;
 use TryFit\Db\MerchantRepo;
-use VTON\FashnClient;
 use VTON\ImageUtils;
+use VTON\RunpodVtonClient;
+use VTON\SareeRouting;
 
 /**
  * GarmentStudioController — merchant-facing multi-image try-on generation.
@@ -70,9 +71,10 @@ class GarmentStudioController
         }
 
         // Required fields
-        $frontUrl = trim((string) ($payload['front_image_url'] ?? ''));
-        $backUrl  = trim((string) ($payload['back_image_url']  ?? ''));
-        $modelKey = trim((string) ($payload['model_key']       ?? ''));
+        $frontUrl      = trim((string) ($payload['front_image_url'] ?? ''));
+        $backUrl       = trim((string) ($payload['back_image_url']  ?? ''));
+        $modelKey      = trim((string) ($payload['model_key']       ?? ''));
+        $modelImageUrl = trim((string) ($payload['model_image_url'] ?? ''));
 
         if ($frontUrl === '') {
             respondJson(['error' => 'front_image_url is required'], 400);
@@ -80,65 +82,101 @@ class GarmentStudioController
         }
         // back_image_url is optional — single-image workflows (flat-lay,
         // mannequin, accessories) only ever supply a front photo. Compositing
-        // it against a duplicate of the front image would feed Fashn a
-        // labelled, shrunk collage instead of the clean garment photo.
-        if (!isset(self::MODELS[$modelKey])) {
+        // it against a duplicate of the front image would feed the try-on
+        // model a labelled, shrunk collage instead of the clean garment photo.
+
+        // model_key selects one of the 14 built-in registry models; a merchant
+        // can instead pass model_image_url for any photo directly — unlimited,
+        // not constrained by the registry's fixed 7-per-gender slots.
+        $modelInfo = self::MODELS[$modelKey] ?? null;
+        if ($modelInfo === null && $modelImageUrl === '') {
             respondJson([
-                'error'        => 'Invalid model_key',
-                'valid_keys'   => array_keys(self::MODELS),
+                'error'      => 'Either model_key or model_image_url is required',
+                'valid_keys' => array_keys(self::MODELS),
             ], 400);
             return;
         }
 
-        $modelInfo   = self::MODELS[$modelKey];
-        $gender      = $modelInfo['gender'];
+        $gender = $modelInfo['gender']
+            ?? (in_array($payload['model_gender'] ?? null, ['male', 'female'], true) ? $payload['model_gender'] : 'female');
+        $modelLabel  = $modelInfo['label'] ?? 'Custom Model';
         $detail1     = trim((string) ($payload['detail_image_1_url'] ?? '')) ?: null;
         $detail2     = trim((string) ($payload['detail_image_2_url'] ?? '')) ?: null;
         $detail3     = trim((string) ($payload['detail_image_3_url'] ?? '')) ?: null;
         $garmentType = $this->resolveGarmentType($payload);
         $customPrompt = trim((string) ($payload['clothing_prompt'] ?? ''));
 
-        // Tell Fashn how to interpret the garment reference image. This matters
-        // most for 'flat-lay' — an unworn, flat-photographed garment (e.g. a
-        // saree laid on a table) needs Fashn to infer draping itself; without
-        // this hint it tends to fall back to a generic silhouette instead of
-        // the actual garment shape (e.g. rendering a saree as a plain dress).
+        // Tell RunPod's model how to interpret the garment reference image.
+        // This matters most for 'flat-lay' — an unworn, flat-photographed
+        // garment (e.g. a saree laid on a table) needs the model to infer
+        // draping itself; without this hint it tends to fall back to a
+        // generic silhouette instead of the actual garment shape (e.g.
+        // rendering a saree as a plain dress).
         $workflowType = trim((string) ($payload['workflow_type'] ?? ''));
+
+        // Sarees go to the hosted Fashn.ai API; everything else to RunPod.
+        // The wizard's explicit product type decides when present (so a gown
+        // whose notes mention "saree-style" isn't misrouted); free-text
+        // keyword matching is the fallback for callers that don't send it.
+        // Accessories (watch, necklace…) go through SareeRouting::submitAccessory(),
+        // which rides them on the same FASHN VTON RunPod endpoint as a 'tops'
+        // garment_image plus an explicit placement prompt. Never through Fashn.
+        // A product title that says saree always counts, whatever type was picked.
+        $productType  = trim((string) ($payload['product_type'] ?? ''));
+        $productTitle = (string) ($payload['product_title'] ?? '');
+        $isAccessory  = $workflowType === 'accessories';
+        $useFashn     = !$isAccessory && (
+            SareeRouting::shouldUseFashn($productType, $productTitle)
+            || ($productType === '' && SareeRouting::shouldUseFashn($customPrompt))
+        );
+        $accessoryPrompt = $isAccessory
+            ? SareeRouting::buildAccessoryPrompt(
+                (string) ($payload['accessory_category'] ?? ''),
+                (string) ($payload['accessory_placement'] ?? '')
+            )
+            : null;
+
         $garmentPhotoType = match ($workflowType) {
             'flat-lay' => 'flat-lay',
             default    => 'auto',
         };
 
-        // Fashn's IDM-VTON only knows pre-stitched Western silhouettes
+        // The RunPod try-on model only knows pre-stitched Western silhouettes
         // (tops/bottoms/one-pieces) — it has no concept of draping unstitched
         // fabric, so a flat saree/lehenga photo gets painted onto a generic
         // dress shape instead of an actual drape. Route these through
         // FlatLayConverter first to get a photorealistic worn reference.
+        // Never for Fashn sarees: FLUX Kontext re-imagines the saree into a
+        // generated "worn" photo (often losing the real colour, pattern or
+        // drape), and tryon-max drapes the raw flat-lay photo correctly itself.
         $useFlatLayConversion = $garmentType === 'full'
             && $workflowType === 'flat-lay'
+            && !$useFashn
             && AppConfig::useFlatLayConverter();
         $flatLayHint = $this->inferFlatLayGarmentHint($customPrompt);
 
-        // Which Fashn model to submit to. Defaults to the existing tryon-v1.6
-        // garment-transfer pipeline; 'tryon-max' and 'product-to-model' are
-        // exposed as an explicit opt-in so results can be compared side by
-        // side while evaluating them for full-body (saree/lehenga) generation.
-        $fashnModel = trim((string) ($payload['fashn_model'] ?? ''));
-        if (!in_array($fashnModel, ['tryon-v1.6', 'tryon-max', 'product-to-model'], true)) {
-            $fashnModel = 'tryon-v1.6';
-        }
+        $tempFiles = [];
 
-        // Resolve model image (must exist on server)
-        $modelImagePath = $this->resolveModelImagePath($modelKey, $gender);
-        if ($modelImagePath === null) {
-            $modelsDir = $this->modelsBaseDir() . "/{$gender}/{$modelKey}.jpg";
-            respondJson([
-                'error'           => "Model image for '{$modelKey}' not found. Upload a JPEG to: {$modelsDir}",
-                'model_key'       => $modelKey,
-                'model_label'     => $modelInfo['label'],
-                'expected_path'   => $modelsDir,
-            ], 422);
-            return;
+        // Resolve model image: a registry model_key must exist on server as a
+        // file; an ad-hoc model_image_url is downloaded like any other input.
+        if ($modelInfo !== null) {
+            $modelImagePath = $this->resolveModelImagePath($modelKey, $gender);
+            if ($modelImagePath === null) {
+                $modelsDir = $this->modelsBaseDir() . "/{$gender}/{$modelKey}.jpg";
+                respondJson([
+                    'error'           => "Model image for '{$modelKey}' not found. Upload a JPEG to: {$modelsDir}",
+                    'model_key'       => $modelKey,
+                    'model_label'     => $modelLabel,
+                    'expected_path'   => $modelsDir,
+                ], 422);
+                return;
+            }
+        } else {
+            $modelImagePath = $this->inputToTempFile($modelImageUrl, $tempFiles);
+            if ($modelImagePath === null) {
+                respondJson(['error' => 'Failed to load model_image_url'], 400);
+                return;
+            }
         }
 
         // Create DB session
@@ -159,14 +197,27 @@ class GarmentStudioController
         ]);
         $repo->updateStatus($sessionId, 'processing', ['api_request_at' => date('Y-m-d H:i:s')]);
 
-        $tempFiles = [];
-
         try {
             $result = $this->prepareAndSubmit(
                 $frontUrl, $backUrl, $detail1, $detail2, $detail3,
                 $modelImagePath, $garmentType, $garmentPhotoType, $tempFiles,
-                $useFlatLayConversion, $flatLayHint, $fashnModel
+                $useFlatLayConversion, $flatLayHint, $useFashn, $accessoryPrompt
             );
+
+            // RunPod's single worker (workersMax pinned to 1 for cost control)
+            // can still be finishing a prior job when this one arrives — most
+            // likely here because the flat-lay path's extra FAL.ai conversion
+            // step keeps the worker occupied longer than other workflows.
+            // That's a transient condition, not a real outage, so retry once
+            // after a short wait instead of failing the merchant's request outright.
+            if ($result['status_code'] === 429) {
+                sleep(5);
+                $result = $this->prepareAndSubmit(
+                    $frontUrl, $backUrl, $detail1, $detail2, $detail3,
+                    $modelImagePath, $garmentType, $garmentPhotoType, $tempFiles,
+                    $useFlatLayConversion, $flatLayHint, $useFashn, $accessoryPrompt
+                );
+            }
         } catch (\Throwable $e) {
             $this->cleanupTempFiles($tempFiles);
             writeLog('ERROR', 'GarmentStudioController generation exception', [
@@ -195,7 +246,7 @@ class GarmentStudioController
                 default                        => 400,
             };
             respondJson([
-                'error'      => $this->userFriendlyError($result['status_code'], $rawError),
+                'error'      => $this->userFriendlyError($result['status_code'], $rawError, $useFashn),
                 'session_id' => $sessionId,
                 'raw_error'  => $rawError,
             ], $httpStatus);
@@ -203,7 +254,7 @@ class GarmentStudioController
         }
 
         // Submission succeeded — the actual generation is still running on
-        // Fashn's side. Store the prediction ID and return immediately; the
+        // RunPod's side. Store the job ID and return immediately; the
         // client polls /studio/generate-status until it completes or fails.
         $repo->updateStatus($sessionId, 'processing', ['fashn_prediction_id' => $result['prediction_id']]);
 
@@ -211,7 +262,7 @@ class GarmentStudioController
             'session_id'   => $sessionId,
             'status'       => 'processing',
             'model_key'    => $modelKey,
-            'model_label'  => $modelInfo['label'],
+            'model_label'  => $modelLabel,
             'garment_type' => $garmentType,
         ]);
     }
@@ -220,10 +271,10 @@ class GarmentStudioController
      * GET /studio/generate-status?session_id=...
      *
      * Polled by the client every few seconds after generate() returns
-     * 'processing'. Checks Fashn exactly once per call (no internal retry
+     * 'processing'. Checks RunPod exactly once per call (no internal retry
      * loop) so this request always completes quickly regardless of host
      * timeout limits. Idempotent once resolved — a session already
-     * completed/failed just returns its stored result without re-checking Fashn.
+     * completed/failed just returns its stored result without re-checking RunPod.
      */
     public function checkGenerationStatus(): void
     {
@@ -255,9 +306,9 @@ class GarmentStudioController
             return;
         }
 
-        // Give up after 3 minutes of processing — Fashn's own generation is
+        // Give up after 3 minutes of processing — RunPod's own generation is
         // typically done in well under a minute; this guards against a
-        // prediction that never resolves (e.g. stuck on Fashn's side).
+        // job that never resolves (e.g. stuck worker on RunPod's side).
         $requestedAt = strtotime((string) ($row['api_request_at'] ?? ''));
         if ($requestedAt !== false && (time() - $requestedAt) > 180) {
             $repo->updateStatus($sessionId, 'failed', ['error_message' => 'Generation timed out. Please try again.']);
@@ -265,9 +316,8 @@ class GarmentStudioController
             return;
         }
 
-        require_once dirname(__DIR__) . '/src/FashnClient.php';
-        $fashnClient = new FashnClient(AppConfig::fashnApiKey());
-        $check       = $fashnClient->checkStatus($predictionId);
+        // Engine (Fashn for sarees, RunPod otherwise) is read from the ID prefix.
+        $check        = SareeRouting::checkStatus($predictionId);
 
         if ($check['job_status'] === 'processing' || $check['job_status'] === 'error') {
             respondJson(['status' => 'processing', 'session_id' => $sessionId]);
@@ -635,23 +685,20 @@ class GarmentStudioController
     // ── Private: generation pipeline ──────────────────────────────────────────
 
     /**
-     * Image prep + Fashn submission — deliberately does NOT wait for the result.
-     * A single blocking HTTP request risks exceeding the host's connection
-     * timeout (Fashn generation can take 10-60s+ in 'quality' mode; this host
-     * hard-kills requests around ~25s regardless of PHP's own execution-time
-     * limit). The caller stores the returned prediction_id and polls it via
-     * checkGenerationStatus() instead.
+     * Image prep + RunPod submission — deliberately does NOT wait for the
+     * result. A single blocking HTTP request risks exceeding the host's
+     * connection timeout (generation can take 10-60s+, longer on a cold
+     * worker; this host hard-kills requests around ~25s regardless of PHP's
+     * own execution-time limit). The caller stores the returned prediction_id
+     * and polls it via checkGenerationStatus() instead.
      *
      * Key improvement: all uploaded garment images (front + back + up to 3
      * details) are composited into a single multi-view reference sheet before
-     * being sent to Fashn.ai.  This gives the AI model the full 360° context of
+     * being sent to the try-on model. This gives it the full 360° context of
      * the garment in one pass, dramatically improving:
      *   • Back-design fidelity (back neckline, embroidery, pleats, closures)
      *   • Detail accuracy (collar, sleeves, embroidery motifs, pocket shape)
      *   • Colour and pattern consistency across the entire garment
-     *
-     * Studio generations always run in 'quality' mode — speed is secondary to
-     * accuracy for merchant product photography.
      *
      * @return array{status_code:int, prediction_id:?string, error_details:?string}
      */
@@ -667,7 +714,8 @@ class GarmentStudioController
         array   &$tempFiles,
         bool    $useFlatLayConversion = false,
         string  $flatLayHint = 'default',
-        string  $fashnModel = 'tryon-v1.6'
+        bool    $useFashn = false,
+        ?string $accessoryPrompt = null
     ): array {
         // ── Download & pre-process front image ───────────────────────────────
         $frontPath = $this->inputToTempFile($frontUrl, $tempFiles);
@@ -682,85 +730,88 @@ class GarmentStudioController
         $modelPath = $this->trackJpeg($modelImagePath, $tempFiles);
         $modelPath = ImageUtils::ensureMinimumSize($modelPath, 768, 1024, $tempFiles);
 
-        if (AppConfig::fashnApiKey() === '') {
+        // Accessories: model photo + accessory photo + placement prompt to
+        // SareeRouting::submitAccessory(). No garment compositing logic here.
+        if ($accessoryPrompt !== null) {
+            return SareeRouting::submitAccessory([
+                'person_image'    => ImageUtils::fileToBase64Uri($modelPath),
+                'accessory_image' => ImageUtils::fileToBase64Uri($frontPath),
+                'prompt'          => $accessoryPrompt,
+            ]);
+        }
+
+        if (!$useFashn && !AppConfig::useRunpod()) {
             return [
                 'status_code'   => 503,
                 'prediction_id' => null,
-                'error_details' => 'Try-on service is not configured. Add FASHN_API_KEY to .env.',
+                'error_details' => 'Try-on service is not configured. Add RUNPOD_API_KEY/RUNPOD_ENDPOINT_ID to .env.',
             ];
         }
 
-        require_once dirname(__DIR__) . '/src/FashnClient.php';
-        $fashnClient = new FashnClient(AppConfig::fashnApiKey(), 'quality');
-
-        // ── product-to-model: Fashn's own model built for exactly this job ────
-        // (flat/ghost-mannequin product photo → a brand-new photorealistic
-        // model wearing it, native draping understanding). Send the raw front
-        // photo directly — running it through FlatLayConverter or the
-        // multi-view composite first would be redundant since this model
-        // already understands garment structure and draping on its own.
-        if ($fashnModel === 'product-to-model') {
-            // No model_image means no built-in pose/framing/identity anchor —
-            // unlike tryon-max/tryon-v1.6, this model has to be told explicitly
-            // to reproduce the registry model's pose and to frame full-body,
-            // or it defaults to a generic studio bust-crop with a fresh face.
-            $inputs = [
-                'product_image'       => ImageUtils::fileToBase64Uri($frontPath),
-                'face_reference'      => ImageUtils::fileToBase64Uri($modelPath),
-                'face_reference_mode' => 'match_reference',
-                // Reuses the same registry photo to steer pose/environment/
-                // lighting toward it, since there's no model_image param here.
-                'image_prompt'        => ImageUtils::fileToBase64Uri($modelPath),
-                'aspect_ratio'        => '3:4',
-                'generation_mode'     => 'quality',
-                'output_format'       => 'jpeg',
-            ];
-            $prompt = $this->buildProductToModelPrompt($flatLayHint);
-            if ($prompt !== '') $inputs['prompt'] = $prompt;
-            return $fashnClient->submitModelRun('product-to-model', $inputs);
-        }
-
+        // Fashn takes a single clean garment photo, so skip the multi-view
+        // front+back+detail composite for sarees.
         $garmentPath = $this->resolveGarmentImagePath(
-            $frontUrl, $frontPath, $backUrl, $detail1, $detail2, $detail3,
+            $frontUrl, $frontPath,
+            $useFashn ? '' : $backUrl,
+            $useFashn ? null : $detail1, $useFashn ? null : $detail2, $useFashn ? null : $detail3,
             $useFlatLayConversion, $flatLayHint, $garmentPhotoType, $tempFiles
         );
 
-        // ── tryon-max: Fashn's recommended garment-transfer model ──────────────
-        // Higher quality than tryon-v1.6 and accepts a free-text prompt, but
-        // has no category/garment_photo_type params — it auto-detects.
-        if ($fashnModel === 'tryon-max') {
-            $prompt = $this->buildDrapePrompt($flatLayHint);
-            $inputs = [
-                'product_image'   => ImageUtils::fileToBase64Uri($garmentPath),
-                'model_image'     => ImageUtils::fileToBase64Uri($modelPath),
-                'generation_mode' => 'quality',
-                'output_format'   => 'jpeg',
-            ];
-            if ($prompt !== '') $inputs['prompt'] = $prompt;
-            return $fashnClient->submitModelRun('tryon-max', $inputs);
+        if ($useFashn) {
+            $fashnResult = SareeRouting::submitFashn([
+                'person_image'       => ImageUtils::fileToBase64Uri($modelPath),
+                'garment_image'      => ImageUtils::fileToBase64Uri($garmentPath),
+                'garment_photo_type' => $garmentPhotoType,
+            ]);
+            if ($fashnResult['status_code'] === 200 && !empty($fashnResult['prediction_id'])) {
+                return $fashnResult;
+            }
+
+            // Fashn failed (commonly: out of credits/billing) — fall back to
+            // RunPod rather than failing outright. Deliberate quality
+            // tradeoff: RunPod can't drape a saree correctly (renders it as
+            // a generic dress shape instead of an actual drape — see
+            // SareeRouting::shouldUseFashn()'s docblock), but a rougher
+            // result beats none while Fashn billing is being topped up.
+            // Remove this fallback once Fashn is reliably funded again.
+            writeLog('WARNING', 'GarmentStudioController: Fashn failed, falling back to RunPod for saree', [
+                'fashn_status_code' => $fashnResult['status_code'],
+                'fashn_error'       => $fashnResult['error_details'] ?? null,
+            ]);
+            if (!AppConfig::useRunpod()) {
+                return $fashnResult;
+            }
+            $fallbackClient = new RunpodVtonClient(AppConfig::runpodApiKey(), AppConfig::runpodEndpointId());
+            return $fallbackClient->submitRun([
+                'person_image'       => ImageUtils::fileToBase64Uri($modelPath),
+                'garment_image'      => ImageUtils::fileToBase64Uri($garmentPath),
+                'category'           => 'one-pieces',
+                'garment_photo_type' => $garmentPhotoType !== 'auto' ? $garmentPhotoType : 'model',
+            ]);
         }
 
-        // ── tryon-v1.6 (default): existing garment-transfer pipeline ───────────
-        $fashnCategory = match ($garmentType) {
+        // 'saree' is listed in this RunPod endpoint's sample UI but is not
+        // actually implemented in the deployed pipeline — passing it crashes
+        // the worker (FASHN_LABELS_TO_IDS lookup returns None). Confirmed via
+        // a live error trace; do not use it. 'one-pieces' is the only working
+        // category for full-body garments including sarees/lehengas.
+        $category = match ($garmentType) {
             'bottom' => 'bottoms',
             'full'   => 'one-pieces',
             default  => 'tops',
         };
 
-        $fashnParams = [
-            'model_image'        => ImageUtils::fileToBase64Uri($modelPath),
+        $runpodClient = new RunpodVtonClient(AppConfig::runpodApiKey(), AppConfig::runpodEndpointId());
+        return $runpodClient->submitRun([
+            'person_image'       => ImageUtils::fileToBase64Uri($modelPath),
             'garment_image'      => ImageUtils::fileToBase64Uri($garmentPath),
-            'category'           => $fashnCategory,
-            'garment_photo_type' => $garmentPhotoType,
-            'mode'               => 'quality',
-            'seed'               => -1,
-        ];
-
-        return $fashnClient->submitRun($fashnParams);
+            'category'           => $category,
+            'garment_photo_type' => $garmentPhotoType !== 'auto' ? $garmentPhotoType : 'model',
+        ]);
     }
 
     /**
-     * Resolves the single garment reference image sent to tryon-v1.6/tryon-max:
+     * Resolves the single garment reference image sent to the try-on model:
      * either a FlatLayConverter worn-reference (saree/lehenga flat-lay), or the
      * multi-view front+back+detail composite, or just the front photo alone.
      */
@@ -777,10 +828,10 @@ class GarmentStudioController
         array   &$tempFiles
     ): string {
         // ── Flat-lay → worn-reference conversion (saree/lehenga/unstitched) ───
-        // IDM-VTON has no concept of draping unstitched fabric — it just paints
-        // the flat photo's pattern onto a generic dress silhouette. Convert to a
-        // photorealistic worn reference first so Fashn gets an actual drape to
-        // transfer instead of flat fabric.
+        // The try-on model has no concept of draping unstitched fabric — it
+        // just paints the flat photo's pattern onto a generic dress silhouette.
+        // Convert to a photorealistic worn reference first so it gets an
+        // actual drape to transfer instead of flat fabric.
         if ($useFlatLayConversion) {
             require_once dirname(__DIR__) . '/src/FlatLayConverter.php';
             $converter   = new \VTON\FlatLayConverter(AppConfig::falApiKey(), AppConfig::tempDir());
@@ -816,34 +867,6 @@ class GarmentStudioController
         // Stitch front (dominant) + back + details into one 1024×1024 reference
         // sheet so the AI model sees the complete garment in a single input.
         return $this->createGarmentComposite($frontPath, $backPath, $detailPaths, $tempFiles);
-    }
-
-    /** Short styling instructions for tryon-max/product-to-model's 'prompt' field. */
-    private function buildDrapePrompt(string $flatLayHint): string
-    {
-        return match ($flatLayHint) {
-            'saree'   => 'Drape as a traditional Indian saree in nivi style: fitted blouse '
-                       . 'matching the border color, pleats tucked at the front waist, pallu '
-                       . 'draped over the left shoulder showing the zari border and motifs. '
-                       . 'Preserve exact fabric color and embroidery.',
-            'lehenga' => 'Style as a complete lehenga choli set: fitted blouse, full flared '
-                       . 'embroidered skirt, dupatta draped over one shoulder. Preserve exact '
-                       . 'colors and embroidery.',
-            default   => '',
-        };
-    }
-
-    /**
-     * product-to-model has no model_image to anchor pose/framing, so the
-     * drape instructions alone leave it free to default to a generic
-     * studio bust-crop. Explicitly ask for full-body, head-to-feet framing.
-     */
-    private function buildProductToModelPrompt(string $flatLayHint): string
-    {
-        $drape  = $this->buildDrapePrompt($flatLayHint);
-        $framing = 'Full-body shot from head to feet, standing naturally facing the camera, '
-                 . 'plain neutral studio background, professional fashion photography.';
-        return trim($drape !== '' ? $drape . ' ' . $framing : $framing);
     }
 
     /**
@@ -1151,9 +1174,14 @@ class GarmentStudioController
         }
     }
 
-    private function userFriendlyError(int $statusCode, string $rawError): string
+    private function userFriendlyError(int $statusCode, string $rawError, bool $isFashn = false): string
     {
         if ($statusCode === 503)                             return $rawError; // config errors — pass through as-is
+        // Fashn.ai's plan-level concurrency limit (commonly 1 in-flight
+        // prediction) rejects a new saree submission with 429 while an
+        // earlier one is still running — that can take up to ~75s to clear,
+        // not a brief blip, so say so instead of the generic RunPod message.
+        if ($statusCode === 429 && $isFashn)                 return 'Another saree generation is still processing on your account. Please wait about a minute and try again.';
         if ($statusCode === 429)                             return 'Service temporarily unavailable. Please try again later.';
         if ($statusCode === 0)                               return 'Request timed out. Please try again.';
         if ($statusCode === 401 || $statusCode === 403)      return 'Try-on service configuration error. Please contact support.';

@@ -1,9 +1,12 @@
 /**
- * app.studio._index.jsx — AI Studio dashboard: asset library + saved models.
+ * app.studio._index.jsx — AI Studio dashboard: workflow picker, asset library + saved models.
  */
 
 import { useState, useRef, useEffect } from "react";
+import PropTypes from "prop-types";
 import { useFetcher, useLoaderData, useNavigate, useNavigation } from "react-router";
+import { FsPage, FsCard, FsButton, FsEmpty, FsIcon } from "../components/fs-ui";
+import WorkflowCards from "../components/WorkflowCards";
 import { authenticate } from "../shopify.server";
 import { ensureMerchant } from "../lib/merchant.server";
 import phpApiClient from "../lib/php-api.server";
@@ -15,13 +18,15 @@ export const loader = async ({ request }) => {
   const { session } = await authenticate.admin(request);
   const apiKey = await ensureMerchant(session);
   const api = phpApiClient(apiKey, PHP_API_URL, session.shop);
-  const [assetsRes, modelsRes] = await Promise.all([
+  const [assetsRes, modelsRes, defaultsRes] = await Promise.all([
     api.studioV2ListAssets(),
     api.studioV2ListModels(),
+    api.getDefaultModels(),
   ]);
   return {
     assets: assetsRes.ok ? (assetsRes.data?.assets ?? []) : [],
     models: modelsRes.ok ? (modelsRes.data?.models ?? []) : [],
+    defaultModels: defaultsRes.ok ? (defaultsRes.data?.models ?? []) : [],
     shop:   session.shop,
   };
 };
@@ -42,6 +47,10 @@ export const action = async ({ request }) => {
   }
   if (body._action === "delete-model") {
     const res = await api.studioV2DeleteModel(body.saved_model_id);
+    return Response.json(res.ok ? res.data : { error: res.error }, { status: res.ok ? 200 : 500 });
+  }
+  if (body._action === "toggle-default-model") {
+    const res = await api.setDefaultModelActive(body.model_key, body.active);
     return Response.json(res.ok ? res.data : { error: res.error }, { status: res.ok ? 200 : 500 });
   }
   return Response.json({ error: "Unknown action" }, { status: 400 });
@@ -85,43 +94,31 @@ function validateModelFile(file) {
 
 function SkeletonCard() {
   return (
-    <div className="d-card">
-      <div className="d-skel-thumb" />
-      <div className="d-card-body">
-        <div className="d-skel-line" style={{ width: "70%" }} />
-        <div className="d-skel-line" style={{ width: "45%" }} />
+    <div className="fs-card fs-asset" aria-hidden="true">
+      <div className="fs-asset-img fs-skeleton" />
+      <div className="fs-asset-body">
+        <div className="fs-skeleton" style={{ height: 12, width: "70%", borderRadius: 4 }} />
+        <div className="fs-skeleton" style={{ height: 10, width: "45%", borderRadius: 4, marginTop: 8 }} />
       </div>
     </div>
   );
 }
 
 /** Thumbnail with graceful broken-image handling + retry (cache-busts the src). */
-function AssetImage({ src, alt, className, style }) {
+function AssetImage({ src, alt }) {
   const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => { setFailed(false); }, [src]);
 
-  if (!src) {
-    return (
-      <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100%",color:"#D1D5DB"}}>
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5"/><path d="M3 15l5-5 4 4 3-3 6 6" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/></svg>
-      </div>
-    );
-  }
+  if (!src) return <FsIcon name="image" size={28} style={{ color: "#C4C7CC" }} />;
 
   if (failed) {
     return (
-      <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",gap:"6px",color:"#9CA3AF"}}>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 9v4m0 4h.01M10.29 3.86l-8.18 14.18A1 1 0 003 19.5h18a1 1 0 00.87-1.5L13.71 3.86a1 1 0 00-1.72 0z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/></svg>
-        <span style={{fontSize:"10px"}}>Failed to load</span>
-        <button
-          type="button"
-          className="d-act d-act-view"
-          onClick={(e) => { e.stopPropagation(); setFailed(false); setAttempt((n) => n + 1); }}
-        >
-          Retry
-        </button>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, color: "var(--fs-muted)", fontSize: 12 }}>
+        <FsIcon name="info" size={20} />
+        Couldn&apos;t load
+        <button type="button" className="fs-btn fs-btn--ghost fs-btn--sm" onClick={(e) => { e.stopPropagation(); setFailed(false); setAttempt((n) => n + 1); }}>Retry</button>
       </div>
     );
   }
@@ -132,12 +129,14 @@ function AssetImage({ src, alt, className, style }) {
       src={attempt > 0 ? `${src}${src.includes("?") ? "&" : "?"}retry=${attempt}` : src}
       alt={alt ?? ""}
       loading="lazy"
-      className={className}
-      style={style}
       onError={() => setFailed(true)}
     />
   );
 }
+
+AssetImage.propTypes = { src: PropTypes.string, alt: PropTypes.string };
+
+const fmtDate = (d) => (d ? new Date(String(d).replace(" ", "T")).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—");
 
 // ── Asset Library ─────────────────────────────────────────────────────────────
 
@@ -163,103 +162,89 @@ function DashboardView({ assets, loading, onCreate }) {
     });
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
-  const paged = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
-
-  const fmt = (d) => d ? new Date(d).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "—";
+  const current = Math.min(page, totalPages);
+  const paged = filtered.slice((current - 1) * PER_PAGE, current * PER_PAGE);
+  const counts = assets.reduce((m, a) => ({ ...m, [a.source_type]: (m[a.source_type] ?? 0) + 1 }), {});
 
   if (loading) {
+    return <div className="fs-asset-grid">{Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}</div>;
+  }
+
+  if (assets.length === 0) {
     return (
-      <div className="d-grid">
-        {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
-      </div>
+      <FsCard>
+        <FsEmpty icon="sparkle" text="Your AI photos and infographics will live here. Create your first one in about a minute." cta="Create new asset" onClick={onCreate} />
+      </FsCard>
     );
   }
 
   return (
-    <div>
-      {/* Toolbar */}
-      <div className="d-toolbar">
-        <div className="d-search-wrap">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{position:"absolute",left:"11px",top:"50%",transform:"translateY(-50%)",color:"#9CA3AF",pointerEvents:"none"}}><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2"/><path d="M16.5 16.5L21 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-          <input className="d-search" placeholder="Search assets…" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <label className="fs-search">
+          <FsIcon name="search" size={16} />
+          <input type="search" placeholder="Search assets" aria-label="Search assets" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
+        </label>
+        <div role="group" aria-label="Filter by type" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {[["all", "All", assets.length], ...Object.entries(SOURCE_LABELS).map(([k, v]) => [k, v, counts[k] ?? 0])].map(([k, label, n]) => (
+            <button key={k} type="button" className={`fs-chip${typeFilter === k ? " is-on" : ""}`} aria-pressed={typeFilter === k} onClick={() => { setTypeFilter(k); setPage(1); }}>
+              {label} <small className="fs-tabular">{n}</small>
+            </button>
+          ))}
         </div>
-        <div style={{display:"flex",gap:"8px",flexWrap:"wrap"}}>
-          <select className="d-select" value={typeFilter} onChange={(e) => { setTypeFilter(e.target.value); setPage(1); }}>
-            <option value="all">All Types</option>
-            {Object.entries(SOURCE_LABELS).map(([k,v]) => <option key={k} value={k}>{v}</option>)}
-          </select>
-          <select className="d-select" value={sort} onChange={(e) => setSort(e.target.value)}>
-            <option value="newest">Newest</option>
-            <option value="oldest">Oldest</option>
-          </select>
-        </div>
+        <div style={{ flex: 1 }} />
+        <select className="fs-select" style={{ width: 160 }} aria-label="Sort" value={sort} onChange={(e) => setSort(e.target.value)}>
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+        </select>
       </div>
 
-      {/* Empty */}
-      {assets.length === 0 && (
-        <div className="d-empty">
-          <div className="d-empty-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="#4F46E5" strokeWidth="1.5" strokeLinejoin="round"/></svg>
-          </div>
-          <p className="d-empty-title">No assets yet</p>
-          <p className="d-empty-sub">Create your first AI-generated product visual to get started.</p>
-          <button className="d-btn-primary" onClick={onCreate}>Create New Asset</button>
-        </div>
-      )}
-
-      {/* No results */}
-      {assets.length > 0 && filtered.length === 0 && (
-        <div className="d-empty" style={{paddingTop:"48px",paddingBottom:"48px"}}>
-          <p className="d-empty-title" style={{fontSize:"13px"}}>No results</p>
-          <p className="d-empty-sub">No assets match your current filters.</p>
-          <button className="d-btn-ghost" onClick={() => { setSearch(""); setTypeFilter("all"); }}>Clear Filters</button>
-        </div>
-      )}
-
-      {/* Grid */}
-      {paged.length > 0 && (
-        <div className="d-grid">
+      {filtered.length === 0 ? (
+        <FsCard><FsEmpty icon="search" text="No assets match these filters." cta="Clear filters" onClick={() => { setSearch(""); setTypeFilter("all"); }} /></FsCard>
+      ) : (
+        <div className="fs-asset-grid">
           {paged.map((a) => (
-            <div key={a.id} className="d-card">
-              <div className="d-card-thumb">
-                <AssetImage src={a.thumbnail_url || a.url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}} />
+            <article key={a.id} className="fs-card fs-asset">
+              <div className="fs-asset-img">
+                <AssetImage src={a.thumbnail_url || a.url} alt={SOURCE_LABELS[a.source_type] ?? "Asset"} />
+                <span className="fs-pill fs-asset-tag">{SOURCE_LABELS[a.source_type] ?? a.source_type}</span>
+                <div className="fs-asset-hover">
+                  <a className="fs-btn fs-btn--primary" href={a.url} target="_blank" rel="noreferrer" style={{ width: "100%" }}><FsIcon name="eye" size={15} />Open full size</a>
+                  <a className="fs-btn" href={`/api/download?url=${encodeURIComponent(a.url)}&filename=${encodeURIComponent(`brix-tryon-${a.id}.jpg`)}`} style={{ width: "100%", background: "#FFFFFF", color: "var(--fs-ink)" }}><FsIcon name="download" size={15} />Download</a>
+                </div>
               </div>
-              <div className="d-card-body">
-                <span style={{ fontSize:"10px",fontWeight:600,color:"#6B7280",background:"#F3F4F6",padding:"2px 8px",borderRadius:"4px" }}>
-                  {SOURCE_LABELS[a.source_type] ?? a.source_type}
-                </span>
-                <p className="d-card-date">{fmt(a.created_at)}</p>
+              <div className="fs-asset-body">
+                <div style={{ fontSize: 14, fontWeight: 600 }}>{SOURCE_LABELS[a.source_type] ?? "Asset"}</div>
+                <div style={{ fontSize: 12, color: "var(--fs-muted)", marginTop: 3 }}>{fmtDate(a.created_at)}</div>
               </div>
-              <div className="d-card-footer">
-                <a href={a.url} target="_blank" rel="noreferrer" className="d-act d-act-view">View</a>
-                <a href={a.url} download className="d-act d-act-dl">Download</a>
-              </div>
-            </div>
+            </article>
           ))}
         </div>
       )}
 
-      {/* Pagination */}
       {totalPages > 1 && (
-        <div className="d-pager">
-          <button className="d-page-btn" disabled={page===1} onClick={() => setPage(p=>p-1)}>Previous</button>
-          {Array.from({length:Math.min(7,totalPages)},(_,i)=>{
-            const p = Math.max(1,Math.min(totalPages-6,page-3))+i;
-            return <button key={p} className={`d-page-btn ${p===page?"active":""}`} onClick={() => setPage(p)}>{p}</button>;
-          })}
-          <button className="d-page-btn" disabled={page===totalPages} onClick={() => setPage(p=>p+1)}>Next</button>
-          <span style={{fontSize:"11px",color:"#9CA3AF"}}>{filtered.length} assets</span>
+        <div className="fs-pager" style={{ padding: 0 }}>
+          <span className="fs-tabular">{filtered.length} assets</span>
+          <nav aria-label="Pagination" style={{ display: "flex", gap: 6 }}>
+            <button type="button" className="fs-page-btn" disabled={current === 1} onClick={() => setPage(current - 1)} aria-label="Previous page">‹</button>
+            {Array.from({ length: Math.min(7, totalPages) }, (_, i) => {
+              const p = Math.max(1, Math.min(totalPages - 6, current - 3)) + i;
+              return <button key={p} type="button" className={`fs-page-btn${p === current ? " is-on" : ""}`} aria-current={p === current ? "page" : undefined} onClick={() => setPage(p)}>{p}</button>;
+            })}
+            <button type="button" className="fs-page-btn" disabled={current === totalPages} onClick={() => setPage(current + 1)} aria-label="Next page">›</button>
+          </nav>
         </div>
       )}
     </div>
   );
 }
 
+DashboardView.propTypes = { assets: PropTypes.array, loading: PropTypes.bool, onCreate: PropTypes.func };
+
 // ── Saved Models (flat, no categorization) ────────────────────────────────────
 
 function ModelsView({ models, loading }) {
   const [items, setItems] = useState(models);
-  const [search, setSearch] = useState("");
   const inputRef = useRef(null);
   const uploadFetcher = useFetcher();
   const delFetcher = useFetcher();
@@ -287,7 +272,7 @@ function ModelsView({ models, loading }) {
       setItems((p) => p.filter((m) => m.id !== confirmDel.id));
       setConfirmDel(null);
     }
-  }, [delFetcher.state, delFetcher.data]);
+  }, [delFetcher.state, delFetcher.data]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleFile = async (file) => {
     if (!file) return;
@@ -300,97 +285,56 @@ function ModelsView({ models, loading }) {
     } catch (e) { setUploading(false); setErr(e.message ?? "Upload failed."); }
   };
 
-  const handleDelete = (model) => {
-    setConfirmDel(model);
-  };
-
   const confirmDelete = () => {
     delFetcher.submit({ _action: "delete-model", saved_model_id: confirmDel.id }, { method: "POST", encType: "application/json" });
   };
 
-  const visible = items.filter((m) => !search || m.id.toLowerCase().includes(search.toLowerCase()));
-  const fmt = (d) => d ? new Date(d).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "—";
-
   if (loading) {
-    return (
-      <div className="d-models-grid">
-        {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
-      </div>
-    );
+    return <div className="fs-asset-grid">{Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}</div>;
   }
 
   return (
-    <div>
-      <div className="d-models-top">
-        <div>
-          <p style={{fontWeight:700,fontSize:"13px",margin:"0 0 3px",color:"#111827"}}>Saved Models</p>
-          <p style={{fontSize:"12px",color:"#6B7280",margin:0}}>
-            Upload model photos to reuse across every product generation.
-          </p>
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <FsCard style={{ flexDirection: "row", alignItems: "center", gap: 16, padding: 20, flexWrap: "wrap" }}>
+        <span className="fs-tile-icon"><FsIcon name="users" size={20} /></span>
+        <div style={{ flex: 1, minWidth: 220 }}>
+          <div style={{ fontSize: 15, fontWeight: 600 }}>Custom models</div>
+          <p className="fs-card-sub" style={{ marginTop: 2 }}>Front-facing, full body, clean background · JPG, PNG or WEBP up to 10 MB</p>
         </div>
-        <button className="d-btn-primary" disabled={uploading} onClick={() => inputRef.current?.click()}>
-          {uploading ? "Uploading…" : "Upload New Model"}
-        </button>
-        <input ref={inputRef} type="file" accept="image/jpeg,image/jpg,image/png,image/webp" style={{display:"none"}}
-          onChange={(e) => { handleFile(e.target.files?.[0]); e.target.value=""; }} />
-      </div>
+        <FsButton icon="upload" disabled={uploading} onClick={() => inputRef.current?.click()}>{uploading ? "Uploading…" : "Upload model"}</FsButton>
+        <input ref={inputRef} type="file" accept="image/jpeg,image/jpg,image/png,image/webp" style={{ display: "none" }} aria-label="Upload model photo"
+          onChange={(e) => { handleFile(e.target.files?.[0]); e.target.value = ""; }} />
+      </FsCard>
+      {err && <div className="fs-banner fs-banner--critical" role="alert"><FsIcon name="info" size={16} /><span>{err}</span></div>}
 
-      <div className="d-banner d-banner-info" style={{marginBottom:"16px"}}>
-        <strong>Photo tips:</strong> Front-facing full-body, clean background. JPG / JPEG / PNG / WEBP, max 10 MB.
-      </div>
-      {err && <div className="d-inline-err" style={{marginBottom:"16px"}}>{err}</div>}
-
-      <div className="d-search-wrap" style={{marginBottom:"20px",maxWidth:"320px"}}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{position:"absolute",left:"11px",top:"50%",transform:"translateY(-50%)",color:"#9CA3AF",pointerEvents:"none"}}><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2"/><path d="M16.5 16.5L21 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-        <input className="d-search" placeholder="Search models…" value={search} onChange={(e) => setSearch(e.target.value)} />
-      </div>
-
-      {visible.length === 0 && (
-        <div className="d-empty">
-          <div className="d-empty-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#4F46E5" strokeWidth="1.5"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="#4F46E5" strokeWidth="1.5" strokeLinecap="round"/></svg>
-          </div>
-          <p className="d-empty-title">No saved models yet</p>
-          <p className="d-empty-sub">Upload a model photo to start generating product visuals.</p>
-          <button className="d-btn-primary" onClick={() => inputRef.current?.click()}>Upload New Model</button>
-        </div>
-      )}
-
-      {visible.length > 0 && (
-        <div className="d-models-grid">
-          {visible.map((m) => (
-            <div key={m.id} className="d-model-card">
-              <div className="d-model-img">
-                <AssetImage src={m.image_url} alt="Saved model" style={{width:"100%",height:"100%",objectFit:"cover"}} />
-              </div>
-              <div style={{padding:"10px 12px"}}>
-                <p style={{fontSize:"10px",color:"#9CA3AF",margin:"0 0 8px"}}>{fmt(m.created_at)}</p>
-                <div style={{display:"flex",gap:"6px",flexWrap:"wrap"}}>
-                  <button className="d-btn-primary" style={{flex:1,fontSize:"10px",padding:"6px 10px"}}
-                    onClick={() => navigate(`/app/studio/create?saved_model_id=${encodeURIComponent(m.id)}`)}>
-                    Use
-                  </button>
-                  <a className="d-act d-act-dl" href={m.image_url} download>Download</a>
-                  <button className="d-act d-act-del" onClick={() => handleDelete(m)}>Delete</button>
+      {items.length === 0 ? (
+        <FsCard><FsEmpty icon="users" text="Save a model photo once, then reuse it for every product." cta="Upload model" onClick={() => inputRef.current?.click()} /></FsCard>
+      ) : (
+        <div className="fs-asset-grid">
+          {items.map((m) => (
+            <article key={m.id} className="fs-card fs-asset">
+              <div className="fs-asset-img"><AssetImage src={m.image_url} alt="Saved model" /></div>
+              <div className="fs-asset-body" style={{ gap: 10, display: "flex", flexDirection: "column" }}>
+                <div style={{ fontSize: 12, color: "var(--fs-muted)" }}>Added {fmtDate(m.created_at)}</div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <FsButton size="sm" style={{ flex: 1 }} onClick={() => navigate(`/app/studio/create?workflow=model-generation&saved_model_id=${encodeURIComponent(m.id)}`)}>Use</FsButton>
+                  <a className="fs-btn fs-btn--ghost fs-btn--sm" href={m.image_url} download aria-label="Download model photo"><FsIcon name="download" size={14} /></a>
+                  <button type="button" className="fs-btn fs-btn--ghost fs-btn--sm" aria-label="Delete model" onClick={() => setConfirmDel(m)}><FsIcon name="trash" size={14} /></button>
                 </div>
               </div>
-            </div>
+            </article>
           ))}
         </div>
       )}
 
       {confirmDel && (
-        <div className="d-overlay" onClick={() => setConfirmDel(null)}>
-          <div className="d-modal" onClick={(e) => e.stopPropagation()}>
-            <p style={{fontWeight:700,fontSize:"13px",margin:"0 0 8px"}}>Delete this model?</p>
-            <p style={{fontSize:"12px",color:"#6B7280",margin:"0 0 20px",lineHeight:1.6}}>
-              This will permanently remove this saved model. This cannot be undone.
-            </p>
-            <div style={{display:"flex",gap:"8px",justifyContent:"flex-end"}}>
-              <button className="d-btn-ghost" onClick={() => setConfirmDel(null)}>Cancel</button>
-              <button className="d-btn-danger" disabled={delFetcher.state !== "idle"} onClick={confirmDelete}>
-                {delFetcher.state !== "idle" ? "Deleting…" : "Delete"}
-              </button>
+        <div className="fs-modal-backdrop" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) setConfirmDel(null); }}>
+          <div className="fs-modal" role="dialog" aria-modal="true" aria-label="Delete model" style={{ width: 400, padding: 24 }}>
+            <h3 className="fs-h3">Delete this model?</h3>
+            <p className="fs-sub" style={{ margin: "8px 0 20px", fontSize: 13, lineHeight: 1.6 }}>It&apos;s removed from your saved models. Images you already created stay in your library.</p>
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+              <FsButton variant="ghost" onClick={() => setConfirmDel(null)}>Cancel</FsButton>
+              <button type="button" className="fs-btn fs-btn--danger" disabled={delFetcher.state !== "idle"} onClick={confirmDelete}>{delFetcher.state !== "idle" ? "Deleting…" : "Delete"}</button>
             </div>
           </div>
         </div>
@@ -399,148 +343,125 @@ function ModelsView({ models, loading }) {
   );
 }
 
-// ── Page root ─────────────────────────────────────────────────────────────────
+ModelsView.propTypes = { models: PropTypes.array, loading: PropTypes.bool };
 
-export default function StudioPage() {
-  const { assets, models } = useLoaderData();
-  const navigate = useNavigate();
-  const navigation = useNavigation();
-  const [tab, setTab] = useState("assets");
-  const loading = navigation.state === "loading";
+// ── Default model library ─────────────────────────────────────────────────────
+
+function DefaultModelCard({ model }) {
+  const fetcher = useFetcher();
+  // Optimistic: show the new state while the toggle is saving.
+  const pending = fetcher.state !== "idle" && fetcher.json ? !!fetcher.json.active : null;
+  const activated = pending ?? (fetcher.data?.ok ? !!fetcher.data.active : model.activated);
+  const toggle = () => fetcher.submit(
+    { _action: "toggle-default-model", model_key: model.model_key, active: !activated },
+    { method: "POST", encType: "application/json" },
+  );
 
   return (
-    <>
-      <style>{CSS}</style>
-      <div className="d-page">
-
-        {/* Header */}
-        <div className="d-header">
-          <div>
-            <h1 className="d-title">AI Studio</h1>
-            <p className="d-subtitle">Generate AI-powered product visuals and marketing creatives.</p>
-          </div>
-          <button className="d-btn-primary d-cta" onClick={() => navigate("/app/studio/create")}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{marginRight:"7px"}}><path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/></svg>
-            Create New Asset
-          </button>
-        </div>
-
-        {/* Tabs */}
-        <div className="d-tabs">
-          <button className={`d-tab ${tab==="assets"?"active":""}`} onClick={() => setTab("assets")}>
-            Asset Library
-            <span className="d-tab-badge">{assets.length}</span>
-          </button>
-          <button className={`d-tab ${tab==="models"?"active":""}`} onClick={() => setTab("models")}>
-            Saved Models
-            <span className="d-tab-badge">{models.length}</span>
-          </button>
-        </div>
-
-        {tab === "assets"
-          ? <DashboardView assets={assets} loading={loading} onCreate={() => navigate("/app/studio/create")} />
-          : <ModelsView models={models} loading={loading} />
-        }
+    <article className={`fs-card fs-dm-card${activated ? " is-on" : ""}`}>
+      <div className="fs-dm-img">
+        <AssetImage src={model.thumb_url} alt={`${model.name}, default model`} />
+        {activated && <span className="fs-pill fs-pill--success fs-dm-badge"><FsIcon name="check" size={11} strokeWidth={3} />Activated</span>}
       </div>
-    </>
+      <div className="fs-dm-body">
+        <div className="fs-dm-name">{model.name}</div>
+        <div className="fs-dm-meta">{model.look} · {model.age_group}</div>
+        <button type="button" className={`fs-btn fs-btn--sm ${activated ? "fs-btn--ghost" : "fs-btn--dark"}`} style={{ width: "100%" }} onClick={toggle} disabled={fetcher.state !== "idle"}>
+          {activated ? "Deactivate" : "Activate"}
+        </button>
+      </div>
+    </article>
   );
 }
 
-// ── CSS ───────────────────────────────────────────────────────────────────────
+DefaultModelCard.propTypes = { model: PropTypes.object.isRequired };
 
-const CSS = `
-@keyframes si-spin { to { transform: rotate(360deg); } }
-@keyframes si-shimmer { 0% { background-position: -200px 0; } 100% { background-position: 200px 0; } }
+function DefaultLibrary({ models }) {
+  const [gender, setGender] = useState("all");
+  const [onlyActive, setOnlyActive] = useState(false);
+  const ready = models.filter((m) => m.status === "ready" && m.thumb_url);
+  const activeCount = ready.filter((m) => m.activated).length;
+  const shown = ready.filter((m) => (gender === "all" || m.gender === gender) && (!onlyActive || m.activated));
 
-.d-page { max-width: 1200px; margin: 0 auto; padding: 28px 24px 80px; font-family: Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color: #111827; }
+  return (
+    <section style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 12 }}>
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 12, flexWrap: "wrap" }}>
+        <div style={{ flex: 1, minWidth: 240 }}>
+          <h3 className="fs-h2">Default models</h3>
+          <p className="fs-sub" style={{ fontSize: 13 }}>
+            {ready.length ? `${ready.length} ready-to-use models · ${activeCount} activated. Activated models appear first when you create an asset.` : "Studio-quality models you can use in any workflow."}
+          </p>
+        </div>
+        {ready.length > 0 && (
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {[["all", "All"], ["female", "Women"], ["male", "Men"]].map(([v, l]) => (
+              <button key={v} type="button" className={`fs-chip${gender === v ? " is-on" : ""}`} aria-pressed={gender === v} onClick={() => setGender(v)}>
+                {l} <small className="fs-tabular">{v === "all" ? ready.length : ready.filter((m) => m.gender === v).length}</small>
+              </button>
+            ))}
+            <button type="button" className={`fs-chip${onlyActive ? " is-on" : ""}`} aria-pressed={onlyActive} onClick={() => setOnlyActive((o) => !o)}>
+              Activated <small className="fs-tabular">{activeCount}</small>
+            </button>
+          </div>
+        )}
+      </div>
+      {ready.length === 0 ? (
+        <FsCard><FsEmpty icon="users" text="The default model library is being prepared. Upload your own model above in the meantime." /></FsCard>
+      ) : shown.length === 0 ? (
+        <FsCard><FsEmpty icon="search" text="No models match this filter." cta="Show all" onClick={() => { setGender("all"); setOnlyActive(false); }} /></FsCard>
+      ) : (
+        <div className="fs-dm-grid">
+          {shown.map((m) => <DefaultModelCard key={m.model_key} model={m} />)}
+        </div>
+      )}
+    </section>
+  );
+}
 
-/* Header */
-.d-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:24px; gap:16px; flex-wrap:wrap; }
-.d-title { font-size:18px; font-weight:700; color:#111827; margin:0 0 4px; letter-spacing:-0.3px; }
-.d-subtitle { font-size:11px; color:#6B7280; margin:0; }
+DefaultLibrary.propTypes = { models: PropTypes.array };
 
-/* Tabs */
-.d-tabs { display:flex; gap:2px; border-bottom:1px solid #E5E7EB; margin-bottom:24px; }
-.d-tab { display:inline-flex; align-items:center; gap:6px; padding:10px 16px; font-family:inherit; font-size:12px; font-weight:500; color:#6B7280; background:none; border:none; border-bottom:2px solid transparent; margin-bottom:-1px; cursor:pointer; transition:all 0.15s; }
-.d-tab.active { color:#111827; border-bottom-color:#111827; font-weight:600; }
-.d-tab:hover:not(.active) { color:#374151; }
-.d-tab-badge { font-size:11px; font-weight:600; padding:2px 7px; border-radius:10px; background:#F3F4F6; color:#6B7280; }
-.d-tab.active .d-tab-badge { background:#111827; color:#fff; }
+// ── Page root ─────────────────────────────────────────────────────────────────
 
-/* Toolbar */
-.d-toolbar { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; align-items:center; }
-.d-search-wrap { position:relative; flex:1; min-width:180px; }
-.d-search { width:100%; padding:8px 12px 8px 34px; border:1px solid #E5E7EB; border-radius:8px; font-size:12px; font-family:inherit; color:#111827; background:#fff; outline:none; box-sizing:border-box; transition:border-color 0.15s; }
-.d-search:focus { border-color:#4F46E5; }
-.d-select { padding:8px 10px; border:1px solid #E5E7EB; border-radius:8px; font-size:12px; font-family:inherit; color:#374151; background:#fff; outline:none; cursor:pointer; }
-.d-select:focus { border-color:#4F46E5; }
+export default function StudioPage() {
+  const { assets, models, defaultModels = [] } = useLoaderData();
+  const navigate = useNavigate();
+  const navigation = useNavigation();
+  const [tab, setTab] = useState("assets");
+  const loading = navigation.state === "loading" && navigation.location?.pathname === "/app/studio";
+  const createNew = () => navigate("/app/studio/create");
 
-/* Asset grid */
-.d-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px; margin-bottom:24px; }
-.d-card { background:#fff; border:1px solid #E5E7EB; border-radius:12px; overflow:hidden; display:flex; flex-direction:column; transition:box-shadow 0.15s; }
-.d-card:hover { box-shadow:0 4px 16px rgba(0,0,0,0.08); }
-.d-card-thumb { height:180px; background:#F9FAFB; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
-.d-card-body { padding:12px 14px 8px; flex:1; }
-.d-card-date { font-size:11px; color:#9CA3AF; margin:6px 0 0; }
-.d-card-footer { display:flex; gap:6px; padding:8px 14px 12px; border-top:1px solid #F3F4F6; flex-wrap:wrap; }
+  return (
+    <FsPage
+      title="AI Studio"
+      subtitle="Turn one product photo into on-model images and marketing creatives."
+      actions={<FsButton icon="plus" onClick={createNew}>Create new asset</FsButton>}
+    >
+      <section style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <div>
+          <h3 className="fs-h2">Start a workflow</h3>
+          <p className="fs-sub" style={{ fontSize: 13 }}>Pick what you have — we&apos;ll guide you step by step.</p>
+        </div>
+        <WorkflowCards />
+      </section>
 
-/* Skeleton loaders */
-.d-skel-thumb { height:180px; background:linear-gradient(90deg,#F3F4F6 25%,#E5E7EB 37%,#F3F4F6 63%); background-size:400px 100%; animation:si-shimmer 1.4s ease infinite; }
-.d-skel-line { height:10px; border-radius:4px; margin:8px 0; background:linear-gradient(90deg,#F3F4F6 25%,#E5E7EB 37%,#F3F4F6 63%); background-size:400px 100%; animation:si-shimmer 1.4s ease infinite; }
-
-/* Actions */
-.d-act { font-size:11px; font-weight:600; padding:4px 10px; border-radius:6px; border:none; cursor:pointer; text-decoration:none; font-family:inherit; display:inline-flex; align-items:center; transition:all 0.15s; }
-.d-act-view { background:#EEF2FF; color:#4F46E5; }
-.d-act-view:hover { background:#E0E7FF; }
-.d-act-dl { background:#F0FDF4; color:#059669; }
-.d-act-dl:hover { background:#DCFCE7; }
-.d-act-del { background:#FEF2F2; color:#EF4444; }
-.d-act-del:hover { background:#FEE2E2; }
-
-/* Pagination */
-.d-pager { display:flex; align-items:center; gap:4px; justify-content:center; margin-top:20px; flex-wrap:wrap; }
-.d-page-btn { padding:6px 12px; border:1px solid #E5E7EB; border-radius:7px; background:#fff; font-size:12px; font-weight:500; color:#374151; cursor:pointer; font-family:inherit; transition:all 0.15s; }
-.d-page-btn.active { background:#111827; color:#fff; border-color:#111827; }
-.d-page-btn:hover:not(.active):not(:disabled) { background:#F3F4F6; }
-.d-page-btn:disabled { opacity:0.4; cursor:not-allowed; }
-
-/* Empty */
-.d-empty { text-align:center; padding:72px 24px; }
-.d-empty-icon { width:64px; height:64px; border-radius:16px; background:#EEF2FF; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; }
-.d-empty-title { font-size:14px; font-weight:600; color:#111827; margin:0 0 6px; }
-.d-empty-sub { font-size:11px; color:#6B7280; margin:0 0 20px; line-height:1.6; max-width:360px; margin-left:auto; margin-right:auto; }
-
-/* Models */
-.d-models-top { background:#fff; border:1px solid #E5E7EB; border-radius:12px; padding:20px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
-.d-models-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px; }
-@media(max-width:900px){ .d-models-grid { grid-template-columns:repeat(3,1fr); } }
-@media(max-width:600px){ .d-models-grid { grid-template-columns:repeat(2,1fr); } }
-.d-model-card { background:#fff; border:1px solid #E5E7EB; border-radius:10px; overflow:hidden; transition:box-shadow 0.15s; }
-.d-model-card:hover { box-shadow:0 4px 12px rgba(0,0,0,0.07); }
-.d-model-img { height:160px; background:#F9FAFB; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
-
-/* Buttons */
-.d-btn-primary { display:inline-flex; align-items:center; justify-content:center; background:#111827; color:#fff; font-size:12px; font-weight:600; padding:9px 18px; border-radius:8px; border:none; cursor:pointer; font-family:inherit; transition:all 0.15s; white-space:nowrap; }
-.d-btn-primary:hover:not(:disabled) { background:#1F2937; }
-.d-btn-primary:disabled { opacity:0.4; cursor:not-allowed; }
-.d-btn-ghost { display:inline-flex; align-items:center; justify-content:center; background:#F3F4F6; color:#374151; font-size:12px; font-weight:500; padding:9px 18px; border-radius:8px; border:none; cursor:pointer; font-family:inherit; transition:all 0.15s; }
-.d-btn-ghost:hover { background:#E5E7EB; }
-.d-btn-danger { display:inline-flex; align-items:center; background:#EF4444; color:#fff; font-size:12px; font-weight:600; padding:9px 18px; border-radius:8px; border:none; cursor:pointer; font-family:inherit; transition:all 0.15s; }
-.d-btn-danger:hover:not(:disabled) { background:#DC2626; }
-.d-btn-danger:disabled { opacity:0.6; cursor:not-allowed; }
-.d-cta { font-size:12px; padding:10px 20px; }
-
-/* Banners */
-.d-banner { padding:10px 14px; border-radius:8px; font-size:12px; line-height:1.6; }
-.d-banner-warn { background:#FFFBEB; border:1px solid #FDE68A; color:#92400E; }
-.d-banner-info { background:#EFF6FF; border:1px solid #BFDBFE; color:#1E40AF; }
-
-/* Inline error */
-.d-inline-err { font-size:11px; color:#DC2626; background:#FEF2F2; border:1px solid #FECACA; border-radius:6px; padding:4px 8px; margin-bottom:8px; line-height:1.4; }
-
-/* Modal */
-.d-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center; z-index:9999; }
-.d-modal { background:#fff; border-radius:14px; padding:24px; max-width:380px; width:90%; box-shadow:0 12px 40px rgba(0,0,0,0.18); }
-
-@media(max-width:640px){ .d-page { padding:16px 14px 60px; } }
-`;
+      <section style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 8 }}>
+        <div role="tablist" aria-label="Library" className="fs-tabs">
+          <button type="button" role="tab" aria-selected={tab === "assets"} className={tab === "assets" ? "is-on" : ""} onClick={() => setTab("assets")}>
+            Asset library <span className="fs-pill fs-pill--neutral" style={{ height: 20, padding: "0 7px" }}>{assets.length}</span>
+          </button>
+          <button type="button" role="tab" aria-selected={tab === "models"} className={tab === "models" ? "is-on" : ""} onClick={() => setTab("models")}>
+            Models <span className="fs-pill fs-pill--neutral" style={{ height: 20, padding: "0 7px" }}>{models.length + defaultModels.filter((m) => m.status === "ready").length}</span>
+          </button>
+        </div>
+        {tab === "assets"
+          ? <DashboardView assets={assets} loading={loading} onCreate={createNew} />
+          : (
+            <>
+              <ModelsView models={models} loading={loading} />
+              <DefaultLibrary models={defaultModels} />
+            </>
+          )}
+      </section>
+    </FsPage>
+  );
+}

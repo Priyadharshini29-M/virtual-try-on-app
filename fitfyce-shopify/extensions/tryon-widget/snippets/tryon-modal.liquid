@@ -51,7 +51,7 @@
         </div>
 
         <div class="tryfit-privacy-copy">
-          <h2 id="tryfit-dialog-title" class="tryfit-heading">FitSnap</h2>
+          <h2 id="tryfit-dialog-title" class="tryfit-heading">Brix-TryOn</h2>
           <p id="tryfit-dialog-desc" class="tryfit-subheading">
             See how this item looks on <em>you</em> before you buy.
           </p>
@@ -96,6 +96,16 @@
 
         <!-- Variant selector — populated by JS for multi-variant products -->
         <div id="tryfit-variant-selector" class="tryfit-variant-selector" role="group" aria-label="Select product variant"></div>
+
+        <!-- Saree-only photo tips — shown by JS when the product is a saree -->
+        <div id="tryfit-saree-tips" class="tryfit-saree-tips" style="display:none;">
+          <p class="tryfit-saree-tips-title">For the best saree result</p>
+          <ul class="tryfit-saree-tips-list">
+            <li>Stand straight and face the camera, head to toe in frame</li>
+            <li>Keep your arms relaxed at your sides</li>
+            <li>Wear fitted clothes and take the photo in good light</li>
+          </ul>
+        </div>
 
         <label
           id="tryfit-upload-label"
@@ -304,7 +314,7 @@
 
         <div class="tryfit-processing-copy">
           <h2 class="tryfit-heading">Creating your look&hellip;</h2>
-          <p id="tryfit-progress-msg" class="tryfit-progress-msg">FitSnap is creating your look&hellip;</p>
+          <p id="tryfit-progress-msg" class="tryfit-progress-msg">Brix-TryOn is creating your look&hellip;</p>
         </div>
 
         <p class="tryfit-processing-note">This usually takes 20&ndash;35 seconds</p>
@@ -327,6 +337,33 @@
             alt="Your try-on result"
             loading="lazy"
           >
+
+          <!-- Before/after comparison slider — hidden by default, shown by JS
+               only when before_after_enabled is on AND the user's original
+               photo is available. Sits on top of tryfit-result-img. -->
+          <div id="tryfit-compare" class="tryfit-compare" style="display:none;">
+            <img id="tryfit-compare-before" class="tryfit-compare-img" alt="Your original photo" loading="lazy">
+            <div id="tryfit-compare-after-wrap" class="tryfit-compare-after-wrap">
+              <img id="tryfit-compare-after" class="tryfit-compare-img" alt="Your try-on result" loading="lazy">
+            </div>
+            <span class="tryfit-compare-label tryfit-compare-label--before">Before</span>
+            <span class="tryfit-compare-label tryfit-compare-label--after">After</span>
+            <div
+              id="tryfit-compare-handle"
+              class="tryfit-compare-handle"
+              role="slider"
+              tabindex="0"
+              aria-label="Drag to compare before and after"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="50"
+            >
+              <span class="tryfit-compare-handle-grip" aria-hidden="true">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6-6 6 6 6M15 6l6 6-6 6"/></svg>
+              </span>
+            </div>
+          </div>
+
           <button
             type="button"
             class="tryfit-zoom-btn"
@@ -360,6 +397,61 @@
             </span>
           </div>
 
+          <!-- Flip card: front = lead-capture form, back = purchase controls.
+               Flips once the shopper submits their details. The result image
+               (left) is never gated — only the purchase panel. See
+               tryon-widget.js's _applyLeadGate/_submitLead + LEAD_CAPTURED_KEY. -->
+          <div id="tryfit-flip-card" class="tryfit-flip-card">
+            <div id="tryfit-flip-card-inner" class="tryfit-flip-card-inner">
+
+              <!-- FRONT: lead-capture form -->
+              <div class="tryfit-flip-face tryfit-flip-front">
+                <div class="tryfit-lead-form">
+                  <p class="tryfit-lead-gate-title">Unlock Size &amp; Buy</p>
+                  <p class="tryfit-lead-gate-sub">Enter your details to continue</p>
+
+                  <input
+                    type="email"
+                    id="tryfit-lead-email"
+                    class="tryfit-lead-input"
+                    placeholder="Email address"
+                    autocomplete="email"
+                    inputmode="email"
+                  >
+                  <input
+                    type="tel"
+                    id="tryfit-lead-phone"
+                    class="tryfit-lead-input"
+                    placeholder="Phone number"
+                    autocomplete="tel"
+                    inputmode="tel"
+                  >
+
+                  <label class="tryfit-lead-consent">
+                    <input type="checkbox" id="tryfit-lead-consent">
+                    <span>
+                      I agree to the
+                      <a href="/policies/privacy-policy" target="_blank" rel="noopener">Privacy Policy</a>
+                      and
+                      <a href="/policies/terms-of-service" target="_blank" rel="noopener">Terms of Service</a>
+                    </span>
+                  </label>
+
+                  <div id="tryfit-lead-error" class="tryfit-lead-error" style="display:none;"></div>
+
+                  <button
+                    type="button"
+                    id="tryfit-lead-submit"
+                    class="tryfit-btn tryfit-btn--primary tryfit-btn--full"
+                    data-tryfit-action="lead-submit"
+                  >
+                    Unlock My Look
+                  </button>
+                </div>
+              </div>
+
+              <!-- BACK: purchase controls -->
+              <div class="tryfit-flip-face tryfit-flip-back">
           <!-- Padded content wrapper -->
           <div class="tryfit-result-content">
 
@@ -485,6 +577,10 @@
 
 
           </div><!-- /.tryfit-result-content -->
+              </div><!-- /.tryfit-flip-back -->
+
+            </div><!-- /.tryfit-flip-card-inner -->
+          </div><!-- /.tryfit-flip-card -->
 
         </div><!-- /.tryfit-result-panel -->
 
@@ -522,7 +618,7 @@
     </div>
 
     <!-- Watermark — shown on all steps for free/basic plan merchants -->
-    <p class="tryfit-watermark" id="tryfit-watermark">Powered by <a href="https://thefitsnap.com" target="_blank" rel="noopener" class="tryfit-watermark-link">TheFitSnap</a></p>
+    <p class="tryfit-watermark" id="tryfit-watermark">Powered by <a href="https://thefitsnap.com" target="_blank" rel="noopener" class="tryfit-watermark-link">Brix-TryOn</a></p>
 
   </div><!-- /.tryfit-modal -->
 </div><!-- /#tryfit-overlay -->

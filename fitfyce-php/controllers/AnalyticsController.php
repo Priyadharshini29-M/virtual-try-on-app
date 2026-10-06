@@ -38,6 +38,7 @@ class AnalyticsController
         $prevDaily = $repo->getRange($merchantId, $prevFrom, $prevTo);
 
         $numericCols = [
+            'widget_open_count', 'camera_granted_count',
             'tryon_initiated', 'add_to_cart_count', 'buy_now_count',
             'save_count', 'share_wa_count', 'order_count', 'revenue_inr',
         ];
@@ -67,6 +68,8 @@ class AnalyticsController
             ? ($prev['order_count'] / $prev['tryon_initiated']) * 100 : 0.0;
 
         $summary = [
+            'widget_open_count'   => (int)$cur['widget_open_count'],
+            'camera_granted_count' => (int)$cur['camera_granted_count'],
             'tryon_initiated'   => (int)$cur['tryon_initiated'],
             'add_to_cart_count' => (int)$cur['add_to_cart_count'],
             'order_count'       => (int)$cur['order_count'],

@@ -54,11 +54,13 @@ class ProductRepo
              ON DUPLICATE KEY UPDATE
                shopify_domain       = VALUES(shopify_domain),
                shopify_product_gid  = VALUES(shopify_product_gid),
-               collection_id        = VALUES(collection_id),
-               collection_title     = VALUES(collection_title),
-               collection_handle    = VALUES(collection_handle),
-               collection_products  = VALUES(collection_products),
-               shopify_variants     = VALUES(shopify_variants),
+               -- A sync that omits these (bulk/collection toggles) must not wipe
+               -- the collection link or variants saved by an earlier full sync.
+               collection_id        = COALESCE(VALUES(collection_id), collection_id),
+               collection_title     = COALESCE(VALUES(collection_title), collection_title),
+               collection_handle    = COALESCE(VALUES(collection_handle), collection_handle),
+               collection_products  = COALESCE(VALUES(collection_products), collection_products),
+               shopify_variants     = COALESCE(VALUES(shopify_variants), shopify_variants),
                is_tryon_enabled     = VALUES(is_tryon_enabled),
                handle               = COALESCE(VALUES(handle), handle),
                vendor               = COALESCE(VALUES(vendor), vendor),

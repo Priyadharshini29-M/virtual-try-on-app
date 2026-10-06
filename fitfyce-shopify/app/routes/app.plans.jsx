@@ -6,24 +6,25 @@ import {
   Form,
   useLoaderData,
   useNavigation,
-  useNavigate,
   useActionData,
   useRouteError,
 } from "react-router";
 
 import { useState, useEffect } from "react";
-import { Page } from "@shopify/polaris";
+import PropTypes from "prop-types";
+import { useCelebrate } from "../components/AppShell";
+import { FsPage, FsCard, FsPill, FsIcon } from "../components/fs-ui";
 import { authenticate } from "../shopify.server";
 import phpApiClient from "../lib/php-api.server";
 import { ensureMerchant } from "../lib/merchant.server";
 import { PHP_API_URL, NODE_ENV } from "../lib/env.server";
-import { phpPlanToUi, uiPlanToPhp } from "../lib/plans";
+import { phpPlanToUi, uiPlanToPhp, PLAN_LABELS, PLAN_TRYONS } from "../lib/plans";
 
 // ─── Billing constants ────────────────────────────────────────────────────────
 
 const PLAN_KEY_MAP = {
-  growth: "FitSnap Growth",
-  pro: "FitSnap Pro",
+  growth: "Brix-TryOn Growth",
+  pro: "Brix-TryOn Pro",
 };
 
 // Numeric rank for upgrade vs downgrade label
@@ -142,7 +143,9 @@ export async function action({ request }) {
     try {
       // SDK billing.check / billing.cancel are safe — they return data, never throw Responses
       const billingCheck = await billing.check({
-        plans: ["FitSnap Growth", "FitSnap Pro"],
+        // Both names checked: merchants who subscribed before the Brix-TryOn
+        // rename still have their subscription recorded under the old name.
+        plans: ["Brix-TryOn Growth", "Brix-TryOn Pro", "FitSnap Growth", "FitSnap Pro"],
         isTest: NODE_ENV !== "production",
       });
       for (const sub of billingCheck.appSubscriptions ?? []) {
@@ -371,58 +374,6 @@ const FAQ_ITEMS = [
   },
 ];
 
-// ─── Icons ────────────────────────────────────────────────────────────────────
-
-function FeatureCheck() {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 16 16"
-      fill="none"
-      aria-hidden="true"
-      style={{ flexShrink: 0, marginTop: "1px" }}
-    >
-      <circle cx="8" cy="8" r="8" fill="#EAF3DE" />
-      <path
-        d="M5 8l2 2 4-4"
-        stroke="#1D9E75"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function Chevron({ open }) {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 20 20"
-      fill="none"
-      aria-hidden="true"
-      style={{
-        flexShrink: 0,
-        transform: open ? "rotate(180deg)" : "rotate(0deg)",
-        transition: "transform 0.25s ease",
-        color: "#9CA3AF",
-      }}
-    >
-      <path
-        d="M5 7.5l5 5 5-5"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-// Usage meter removed per request.
-
 // ─── Plan card ────────────────────────────────────────────────────────────────
 
 function PlanCard({ config, isCurrent, currentPlanKey, isSubmitting }) {
@@ -436,86 +387,62 @@ function PlanCard({ config, isCurrent, currentPlanKey, isSubmitting }) {
     if (isDowngrade) ctaLabel = `Downgrade to ${config.name}`;
     else if (isUpgrade) ctaLabel = `Upgrade to ${config.name}`;
   }
+  const variant = isDowngrade ? "ghost" : config.featured ? "primary" : "dark";
+  const [shown, setShown] = useState(6);
+  const moreCount = config.features.length - shown;
 
   return (
-    <div
-      className={`vto-plan-card${config.featured ? " vto-plan-card--featured" : ""}`}
-    >
-      {/* Badge row */}
-      <div className="vto-plan-badge-row">
-        {config.badge ? (
-          <span
-            className={`vto-plan-badge vto-plan-badge--${config.badge.variant}`}
-          >
-            {config.badge.label}
-          </span>
-        ) : (
-          <span className="vto-plan-badge-spacer" />
-        )}
+    <div className={`fs-card fs-plan${config.featured ? " is-featured" : ""}${isCurrent ? " is-current" : ""}`}>
+      <div className="fs-plan-top">
+        <span className="fs-plan-name">{config.name}</span>
+        {isCurrent ? (
+          <FsPill tone="success"><FsIcon name="check" size={12} strokeWidth={3} />Current plan</FsPill>
+        ) : config.badge ? (
+          <FsPill tone={config.featured ? "primary" : "dark"}>{config.badge.variant === "popular" ? "Most popular" : "Premium"}</FsPill>
+        ) : null}
+      </div>
+      <div className="fs-plan-price">
+        <span className="fs-tabular">{config.price}</span>
+        {config.priceSub && <small>{config.priceSub}</small>}
+      </div>
+      <p className="fs-plan-desc">{config.description}</p>
+      <div className="fs-plan-meta">
+        <span><FsIcon name="bolt" size={14} />{PLAN_TRYONS[config.key]} try-ons / month</span>
+        {config.extraRate && <span>{config.extraRate}</span>}
       </div>
 
-      {/* Header */}
-      <div className="vto-plan-header">
-        <p className="vto-plan-name">{config.name}</p>
-        <div style={{ display: "flex", alignItems: "baseline", gap: "4px" }}>
-          <p className="vto-plan-price">{config.price}</p>
-          {config.priceSub && (
-            <span
-              style={{ fontSize: "11px", color: "#6B7280", fontWeight: 400 }}
-            >
-              {config.priceSub}
-            </span>
-          )}
-        </div>
-        {config.extraRate && (
-          <p
-            style={{
-              fontSize: "10px",
-              color: "#9CA3AF",
-              marginTop: "4px",
-              fontWeight: 500,
-            }}
-          >
-            {config.extraRate}
-          </p>
-        )}
-        <p className="vto-plan-desc" style={{ marginTop: "10px" }}>
-          {config.description}
-        </p>
-      </div>
+      {isCurrent ? (
+        <button type="button" className="fs-btn fs-btn--ghost" disabled style={{ width: "100%", height: 42 }}>Your current plan</button>
+      ) : (
+        <Form method="post" style={{ width: "100%" }}>
+          <input type="hidden" name="plan" value={config.key} />
+          <button type="submit" className={`fs-btn fs-btn--${variant}`} disabled={isSubmitting} style={{ width: "100%", height: 42 }}>
+            {isSubmitting ? "Processing…" : ctaLabel}
+          </button>
+        </Form>
+      )}
+      {!isCurrent && isUpgrade && <p className="fs-plan-trial">3-day free trial · cancel anytime</p>}
 
-      {/* Features */}
-      <ul className="vto-plan-features">
-        {config.features.map((f, i) => (
-          <li key={i} className="vto-plan-feature-item">
-            <FeatureCheck />
-            <span>{f}</span>
-          </li>
+      <ul className="fs-plan-features">
+        {config.features.slice(0, shown).map((f) => (
+          <li key={f}><span className="fs-plan-check"><FsIcon name="check" size={11} strokeWidth={3} /></span>{f}</li>
         ))}
       </ul>
-
-      {/* CTA */}
-      <div className="vto-plan-cta">
-        {isCurrent ? (
-          <button className="vto-plan-btn vto-plan-btn--outline" disabled>
-            Current Plan
-          </button>
-        ) : (
-          <Form method="post" style={{ width: "100%" }}>
-            <input type="hidden" name="plan" value={config.key} />
-            <button
-              type="submit"
-              className={`vto-plan-btn vto-plan-btn--${isDowngrade ? "secondary" : config.buttonVariant}`}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Processing…" : ctaLabel}
-            </button>
-          </Form>
-        )}
-      </div>
+      {moreCount > 0 && (
+        <button type="button" className="fs-btn fs-btn--plain" style={{ alignSelf: "flex-start", height: 28 }} onClick={() => setShown(config.features.length)}>
+          + {moreCount} more features
+        </button>
+      )}
     </div>
   );
 }
+
+PlanCard.propTypes = {
+  config: PropTypes.object.isRequired,
+  isCurrent: PropTypes.bool,
+  currentPlanKey: PropTypes.string,
+  isSubmitting: PropTypes.bool,
+};
 
 // ─── FAQ accordion ────────────────────────────────────────────────────────────
 
@@ -523,46 +450,31 @@ function FaqAccordion() {
   const [open, setOpen] = useState(null);
 
   return (
-    <div className="vto-faq">
-      <hr className="vto-faq-divider" />
-      <h2 className="vto-faq-heading">Frequently Asked Questions</h2>
-
-      {FAQ_ITEMS.map((item, i) => (
-        <div key={i} className="vto-faq-item">
-          <button
-            className="vto-faq-question"
-            onClick={() => setOpen(open === i ? null : i)}
-            aria-expanded={open === i}
-          >
-            <span>{item.q}</span>
-            <Chevron open={open === i} />
-          </button>
-          <div
-            className="vto-faq-answer"
-            style={{ maxHeight: open === i ? "300px" : "0" }}
-          >
-            <p>{item.a}</p>
+    <FsCard title="Frequently asked questions" style={{ gap: 0 }}>
+      <div style={{ marginTop: 8 }}>
+        {FAQ_ITEMS.map((item, i) => (
+          <div key={item.q} className="fs-faq-item">
+            <button type="button" className="fs-faq-q" onClick={() => setOpen(open === i ? null : i)} aria-expanded={open === i}>
+              <span>{item.q}</span>
+              <FsIcon name="chevronRight" size={16} style={{ transform: open === i ? "rotate(90deg)" : "none", transition: "transform .2s", color: "#9CA3AF" }} />
+            </button>
+            {open === i && <p className="fs-faq-a">{item.a}</p>}
           </div>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+    </FsCard>
   );
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function Plans() {
-  const {
-    currentPlan,
-    usedTryons,
-    limitTryons,
-    billingDeclined,
-    planUpgraded,
-  } = useLoaderData();
+  const { currentPlan, billingDeclined, planUpgraded } = useLoaderData();
   const actionData = useActionData();
   const navigation = useNavigation();
-  const navigate = useNavigate();
+  const celebrate = useCelebrate();
   const isSubmitting = navigation.state === "submitting";
+  const currentLabel = PLAN_LABELS[currentPlan] ?? currentPlan;
 
   // Navigate top window to Shopify billing confirmation page.
   // Shopify grants allow-top-navigation to the embedded app iframe.
@@ -575,137 +487,61 @@ export default function Plans() {
     }
   }, [actionData?.billingUrl]);
 
+  useEffect(() => {
+    if (planUpgraded) celebrate({ title: `Welcome to ${currentLabel}`, body: "Your new features are active now." });
+  }, [planUpgraded]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // While redirecting to billing, show an interim screen with a manual fallback link
   if (actionData?.billingUrl) {
     return (
-      <Page
-        backAction={{ onAction: () => navigate("/app"), content: "Dashboard" }}
-      >
-        <div style={{ textAlign: "center", padding: "80px 20px" }}>
-          <p
-            style={{ fontSize: "12px", color: "#6B7280", marginBottom: "20px" }}
-          >
-            Redirecting to Shopify billing…
-          </p>
-          <a
-            href={actionData.billingUrl}
-            target="_top"
-            rel="noreferrer"
-            style={{
-              display: "inline-block",
-              background: "#1D9E75",
-              color: "#fff",
-              padding: "14px 32px",
-              borderRadius: "8px",
-              textDecoration: "none",
-              fontWeight: 600,
-              fontSize: "12px",
-            }}
-          >
-            Click here if not redirected automatically →
-          </a>
-        </div>
-      </Page>
+      <FsPage>
+        <FsCard style={{ alignItems: "center", textAlign: "center", padding: "64px 24px" }}>
+          <span className="fs-gate-icon"><FsIcon name="crown" size={24} /></span>
+          <h2 className="fs-h2">Taking you to Shopify billing…</h2>
+          <p className="fs-sub" style={{ marginTop: 0 }}>Approve the subscription there, and you&apos;ll come right back.</p>
+          <a className="fs-btn fs-btn--primary" href={actionData.billingUrl} target="_top" rel="noreferrer">Continue to billing</a>
+        </FsCard>
+      </FsPage>
     );
   }
 
   return (
-    <Page
-      backAction={{ onAction: () => navigate("/app"), content: "Dashboard" }}
-    >
-      <div className="vto-plan-page">
-        {/* Plan upgrade success banner */}
-        {planUpgraded && (
-          <div
-            style={{
-              background: "#D1FAE5",
-              border: "1px solid #6EE7B7",
-              borderRadius: "8px",
-              padding: "14px 18px",
-              marginBottom: "24px",
-              fontSize: "12px",
-              color: "#065F46",
-              fontWeight: 500,
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-            }}
-          >
-            <span style={{ fontSize: "20px" }}>✅</span>
-            <span>
-              Your plan has been upgraded to{" "}
-              <strong>
-                {currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)}
-              </strong>{" "}
-              successfully! Your new features are active now.
-            </span>
-          </div>
-        )}
-
-        {/* Action error banner */}
-        {actionData?.error && (
-          <div
-            style={{
-              background: "#FEE2E2",
-              border: "1px solid #EF4444",
-              borderRadius: "8px",
-              padding: "12px 16px",
-              marginBottom: "24px",
-              fontSize: "12px",
-              color: "#991B1B",
-            }}
-          >
-            ⚠ {actionData.error}
-          </div>
-        )}
-
-        {/* Billing declined notice */}
-        {billingDeclined && (
-          <div
-            style={{
-              background: "#FFF3CD",
-              border: "1px solid #F59E0B",
-              borderRadius: "8px",
-              padding: "12px 16px",
-              marginBottom: "24px",
-              fontSize: "12px",
-              color: "#92400E",
-            }}
-          >
-            The subscription request was declined. You can upgrade again
-            whenever you&apos;re ready.
-          </div>
-        )}
-
-        {/* Header */}
-        <div className="vto-plan-page-header">
-          <span className="vto-pricing-pill">PRICING</span>
-          <h1 className="vto-plan-page-title">Choose Your Plan</h1>
-          <p className="vto-plan-page-subtitle">
-            Simple, transparent pricing that grows with your store. No hidden
-            fees.
-          </p>
+    <FsPage>
+      {planUpgraded && (
+        <div className="fs-banner fs-banner--success">
+          <FsIcon name="check" size={18} strokeWidth={2.6} />
+          <span>You&apos;re now on <strong>{currentLabel}</strong>. Your new features are active.</span>
         </div>
-
-        {/* Usage meter removed */}
-
-        {/* Cards grid */}
-        <div className="vto-plan-grid">
-          {PLAN_CONFIG.map((config) => (
-            <PlanCard
-              key={config.key}
-              config={config}
-              isCurrent={currentPlan === config.key}
-              currentPlanKey={currentPlan}
-              isSubmitting={isSubmitting}
-            />
-          ))}
+      )}
+      {actionData?.error && (
+        <div className="fs-banner fs-banner--critical" role="alert">
+          <FsIcon name="info" size={18} />
+          <span>{actionData.error}</span>
         </div>
+      )}
+      {billingDeclined && (
+        <div className="fs-banner fs-banner--warning">
+          <FsIcon name="info" size={18} />
+          <span>The subscription wasn&apos;t approved. You can upgrade again whenever you&apos;re ready.</span>
+        </div>
+      )}
 
-        {/* FAQ */}
+      <div style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 10, padding: "8px 0 8px" }}>
+        <FsPill tone="primary">Plans</FsPill>
+        <h2 className="fs-h1">Pick the plan that fits your store</h2>
+        <p className="fs-sub" style={{ margin: 0, maxWidth: 560 }}>Simple, transparent pricing that grows with you. You&apos;re on <strong style={{ color: "var(--fs-ink)" }}>{currentLabel}</strong>.</p>
+      </div>
+
+      <div className="fs-plan-grid">
+        {PLAN_CONFIG.map((config) => (
+          <PlanCard key={config.key} config={config} isCurrent={currentPlan === config.key} currentPlanKey={currentPlan} isSubmitting={isSubmitting} />
+        ))}
+      </div>
+
+      <div style={{ maxWidth: 820, width: "100%", margin: "0 auto" }}>
         <FaqAccordion />
       </div>
-    </Page>
+    </FsPage>
   );
 }
 
@@ -723,47 +559,16 @@ export function ErrorBoundary() {
   const stack = typeof error?.stack === "string" ? error.stack : null;
 
   return (
-    <div style={{ padding: "40px 24px", fontFamily: "system-ui, sans-serif" }}>
-      <h2 style={{ color: "#dc2626", marginBottom: "16px" }}>
-        Plans Page Error
-      </h2>
-      <pre
-        style={{
-          background: "#fee2e2",
-          border: "1px solid #fca5a5",
-          padding: "16px",
-          borderRadius: "8px",
-          whiteSpace: "pre-wrap",
-          wordBreak: "break-all",
-          fontSize: "11px",
-          color: "#7f1d1d",
-          marginBottom: "12px",
-        }}
-      >
-        {message}
-      </pre>
-      {stack && (
-        <details>
-          <summary
-            style={{ cursor: "pointer", fontSize: "11px", color: "#6b7280" }}
-          >
-            Stack trace
-          </summary>
-          <pre
-            style={{
-              background: "#f9fafb",
-              padding: "12px",
-              borderRadius: "6px",
-              fontSize: "12px",
-              whiteSpace: "pre-wrap",
-              wordBreak: "break-all",
-              marginTop: "8px",
-            }}
-          >
-            {stack}
-          </pre>
-        </details>
-      )}
-    </div>
+    <FsPage>
+      <FsCard title="We couldn't load your plans" subtitle="Refresh the page to try again. If it keeps happening, send the details below to support.">
+        <pre className="fs-error-pre">{message}</pre>
+        {stack && (
+          <details>
+            <summary style={{ cursor: "pointer", fontSize: 12, color: "var(--fs-muted)" }}>Technical details</summary>
+            <pre className="fs-error-pre" style={{ marginTop: 8 }}>{stack}</pre>
+          </details>
+        )}
+      </FsCard>
+    </FsPage>
   );
 }

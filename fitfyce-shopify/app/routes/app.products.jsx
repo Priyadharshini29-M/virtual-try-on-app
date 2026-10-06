@@ -1,19 +1,14 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
+import PropTypes from "prop-types";
 import {
   useLoaderData,
   useSubmit,
   useNavigate,
   useNavigation,
+  useActionData,
 } from "react-router";
-import { Page, Text, Button, Icon } from "@shopify/polaris";
-import {
-  SearchIcon,
-  ProductIcon,
-  CheckCircleIcon,
-  MagicIcon,
-  ChevronRightIcon,
-  MenuHorizontalIcon,
-} from "@shopify/polaris-icons";
+import { useCelebrate } from "../components/AppShell";
+import { FsPage, FsCard, FsButton, FsPill, FsEmpty, FsIcon } from "../components/fs-ui";
 import { authenticate } from "../shopify.server";
 import phpApiClient from "../lib/php-api.server";
 import { ensureMerchant } from "../lib/merchant.server";
@@ -38,7 +33,7 @@ const COLLECTIONS_QUERY = `#graphql
                 vendor
                 productType
                 tags
-                featuredImage { url altText }
+                featuredImage { url altText width height }
                 priceRange {
                   minVariantPrice { amount currencyCode }
                   maxVariantPrice { amount currencyCode }
@@ -370,6 +365,76 @@ export async function action({ request }) {
     return { ok: true };
   }
 
+  if (intent === "bulk_toggle_products") {
+    // Bulk enable/disable from the product grid's selection bar — same writes as
+    // a single toggle_product (PHP sync + Shopify metafield), one per product.
+    const enabled = formData.get("enabled") === "true";
+    const productsJson = formData.get("products_json");
+    const products = productsJson ? JSON.parse(productsJson) : [];
+
+    // Each PHP sync rebuilds the merchant's products JSON on one shared row, so
+    // firing every product at once makes them block each other and time out.
+    // Work through the list a few at a time, with one retry per product.
+    const syncOne = async (p) => {
+      const payload = {
+        shopify_product_id: p.numericId,
+        shopify_product_gid: p.id,
+        handle: p.handle || null,
+        // Keep the product's collection link (PHP overwrites these columns).
+        collection_id: p.collectionId || null,
+        collection_title: p.collectionTitle || null,
+        collection_handle: p.collectionHandle || null,
+        is_tryon_enabled: enabled ? 1 : 0,
+        vendor: p.vendor || null,
+        product_type: p.productType || null,
+        tags: p.tags || [],
+      };
+      let phpRes = await api.syncProduct(payload, 30_000);
+      if (!phpRes.ok) phpRes = await api.syncProduct(payload, 30_000);
+      if (!phpRes.ok) throw new Error(phpRes.error ?? "PHP sync failed");
+      await admin.graphql(
+          `#graphql
+            mutation SetProductTryonMetafield($input: ProductInput!) {
+              productUpdate(input: $input) { product { id } }
+            }
+          `,
+          {
+            variables: {
+              input: {
+                id: p.id,
+                metafields: [
+                  {
+                    namespace: "tryfit",
+                    key: "tryon_enabled",
+                    value: enabled ? "true" : "false",
+                    type: "single_line_text_field",
+                  },
+                ],
+              },
+            },
+          },
+        );
+    };
+
+    const BATCH = 3;
+    const failedIds = [];
+    let firstError = null;
+    for (let i = 0; i < products.length; i += BATCH) {
+      const batch = products.slice(i, i + BATCH);
+      const results = await Promise.allSettled(batch.map(syncOne));
+      results.forEach((r, j) => {
+        if (r.status === "rejected") {
+          failedIds.push(batch[j].id);
+          firstError = firstError ?? (r.reason?.message ?? String(r.reason));
+          console.error("[products] bulk toggle failed for", batch[j].id, r.reason?.message ?? r.reason);
+        }
+      });
+    }
+
+    const failed = failedIds.length;
+    return { ok: failed === 0, bulk: true, enabled, updated: products.length - failed, failed, failedIds, error: firstError };
+  }
+
   if (intent === "delete_collection") {
     const collectionGid = formData.get("collection_gid");
 
@@ -391,219 +456,26 @@ export async function action({ request }) {
   return { ok: false };
 }
 
-// ─── Helper Components ────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const CustomToggle = ({ checked, onChange, disabled }) => (
-  <div
-    onClick={() => !disabled && onChange()}
-    style={{
-      width: "44px",
-      height: "24px",
-      borderRadius: "12px",
-      background: checked ? "var(--vto-primary)" : "#E2E8F0",
-      position: "relative",
-      cursor: disabled ? "not-allowed" : "pointer",
-      transition: "background 0.3s ease",
-      opacity: disabled ? 0.6 : 1,
-      flexShrink: 0,
-    }}
-  >
-    <div
-      style={{
-        width: "18px",
-        height: "18px",
-        borderRadius: "50%",
-        background: "white",
-        position: "absolute",
-        top: "3px",
-        left: checked ? "23px" : "3px",
-        transition: "left 0.3s ease",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-      }}
-    />
-  </div>
-);
-
-const menuItemStyle = {
-  display: "block",
-  width: "100%",
-  padding: "10px 16px",
-  background: "none",
-  border: "none",
-  textAlign: "left",
-  cursor: "pointer",
-  fontSize: "11px",
-  color: "#1E293B",
-  transition: "background 0.15s",
-};
-
-function CollectionDropdown({ collection, shop, submit, onClose }) {
-  const ref = useRef(null);
-  const [confirmDelete, setConfirmDelete] = useState(false);
-
-  useEffect(() => {
-    function handleOutside(e) {
-      if (ref.current && !ref.current.contains(e.target)) onClose();
+function formatPrice(price, currency) {
+  if (price === null || price === undefined || price === "") return "—";
+  const fmt = (v) => {
+    const n = Number(v);
+    if (Number.isNaN(n)) return String(v);
+    try {
+      return n.toLocaleString(undefined, { style: "currency", currency: currency || "USD", minimumFractionDigits: 2 });
+    } catch {
+      return `${n.toFixed(2)} ${currency ?? ""}`.trim();
     }
-    document.addEventListener("mousedown", handleOutside);
-    return () => document.removeEventListener("mousedown", handleOutside);
-  }, [onClose]);
-
-  function handleView() {
-    window.open(`https://${shop}/collections/${collection.handle}`, "_blank");
-    onClose();
-  }
-
-  function handleEdit() {
-    window.open(
-      `https://${shop}/admin/collections/${collection.numericId}`,
-      "_blank",
-    );
-    onClose();
-  }
-
-  function handleDeleteConfirm() {
-    const fd = new FormData();
-    fd.set("intent", "delete_collection");
-    fd.set("collection_gid", collection.id);
-    submit(fd, { method: "post" });
-    onClose();
-  }
-
-  const baseDropdownStyle = {
-    position: "absolute",
-    right: 0,
-    top: "calc(100% + 4px)",
-    zIndex: 1000,
-    background: "white",
-    borderRadius: "8px",
-    boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
   };
-
-  if (confirmDelete) {
-    return (
-      <div
-        ref={ref}
-        style={{
-          ...baseDropdownStyle,
-          border: "1px solid #FCA5A5",
-          padding: "16px",
-          width: "220px",
-        }}
-      >
-        <div
-          style={{
-            fontSize: "12px",
-            fontWeight: "600",
-            color: "#1E293B",
-            marginBottom: "4px",
-          }}
-        >
-          Delete &ldquo;{collection.title}&rdquo;?
-        </div>
-        <div
-          style={{ fontSize: "11px", color: "#64748B", marginBottom: "12px" }}
-        >
-          Products will not be deleted.
-        </div>
-        <div style={{ display: "flex", gap: "8px" }}>
-          <button
-            onClick={() => setConfirmDelete(false)}
-            style={{
-              flex: 1,
-              padding: "7px",
-              borderRadius: "6px",
-              border: "1px solid var(--vto-border)",
-              background: "white",
-              cursor: "pointer",
-              fontSize: "11px",
-            }}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleDeleteConfirm}
-            style={{
-              flex: 1,
-              padding: "7px",
-              borderRadius: "6px",
-              border: "none",
-              background: "#EF4444",
-              color: "white",
-              cursor: "pointer",
-              fontSize: "11px",
-              fontWeight: "600",
-            }}
-          >
-            Delete
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div
-      ref={ref}
-      style={{
-        ...baseDropdownStyle,
-        border: "1px solid var(--vto-border)",
-        minWidth: "175px",
-        overflow: "hidden",
-      }}
-    >
-      <button
-        style={menuItemStyle}
-        onMouseEnter={(e) => (e.currentTarget.style.background = "#F8FAFC")}
-        onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
-        onClick={handleView}
-      >
-        View on store
-      </button>
-      <button
-        style={menuItemStyle}
-        onMouseEnter={(e) => (e.currentTarget.style.background = "#F8FAFC")}
-        onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
-        onClick={handleEdit}
-      >
-        Edit in admin
-      </button>
-      <div
-        style={{
-          height: "1px",
-          background: "var(--vto-border)",
-          margin: "4px 0",
-        }}
-      />
-      <button
-        style={{ ...menuItemStyle, color: "#EF4444" }}
-        onMouseEnter={(e) => (e.currentTarget.style.background = "#FFF5F5")}
-        onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
-        onClick={() => setConfirmDelete(true)}
-      >
-        Delete collection
-      </button>
-    </div>
-  );
+  const parts = String(price).split("–").map((s) => s.trim());
+  return parts.length === 2 ? `${fmt(parts[0])} – ${fmt(parts[1])}` : fmt(parts[0]);
 }
 
-function CollectionRow({
-  collection,
-  shop,
-  submit,
-  isSubmitting,
-  navigate,
-  openDropdown,
-  setOpenDropdown,
-}) {
-  const [expanded, setExpanded] = useState(false);
-  const isDropdownOpen = openDropdown === collection.id;
-  const enabledCount = collection.products.filter(
-    (p) => p.isTryonEnabled,
-  ).length;
-
-  const collectionProductsPayload = JSON.stringify(
-    collection.products.map((p) => ({
+function collectionPayload(products, overrideId, overrideEnabled) {
+  return JSON.stringify(
+    products.map((p) => ({
       shopify_product_id: p.numericId,
       shopify_product_gid: p.id,
       title: p.title,
@@ -613,9 +485,75 @@ function CollectionRow({
       featured_image: p.featuredImage?.url ?? null,
       price: p.price ?? null,
       currency: p.currency ?? null,
-      is_tryon_enabled: p.isTryonEnabled ? 1 : 0,
+      is_tryon_enabled: p.id === overrideId ? (overrideEnabled ? 1 : 0) : (p.isTryonEnabled ? 1 : 0),
     })),
   );
+}
+
+const variantsUrl = (p) =>
+  `/app/variants?product_id=${p.numericId}&product_gid=${encodeURIComponent(p.id)}&title=${encodeURIComponent(p.title)}`;
+
+function Switch({ checked, onChange, disabled, label }) {
+  return (
+    <button type="button" role="switch" aria-checked={checked} aria-label={label} className="fs-switch" onClick={onChange} disabled={disabled}>
+      <span />
+    </button>
+  );
+}
+
+Switch.propTypes = { checked: PropTypes.bool, onChange: PropTypes.func, disabled: PropTypes.bool, label: PropTypes.string };
+
+function Menu({ label, items }) {
+  const [open, setOpen] = useState(false);
+  const [confirm, setConfirm] = useState(null);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const onDown = (e) => { if (ref.current && !ref.current.contains(e.target)) { setOpen(false); setConfirm(null); } };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [open]);
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button type="button" className="fs-btn fs-btn--ghost fs-btn--sm" style={{ width: 28, padding: 0 }} aria-label={label} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+        <FsIcon name="dots" size={14} filled />
+      </button>
+      {open && (
+        <div className="fs-menu" role="menu">
+          {confirm ? (
+            <div style={{ padding: 14, width: 230 }}>
+              <div style={{ fontSize: 13, fontWeight: 600 }}>{confirm.confirmTitle}</div>
+              <div style={{ fontSize: 12, color: "var(--fs-muted)", margin: "4px 0 12px" }}>{confirm.confirmText}</div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <FsButton variant="ghost" size="sm" style={{ flex: 1 }} onClick={() => setConfirm(null)}>Cancel</FsButton>
+                <button type="button" className="fs-btn fs-btn--sm fs-btn--danger" style={{ flex: 1 }} onClick={() => { confirm.onSelect(); setOpen(false); setConfirm(null); }}>{confirm.confirmCta}</button>
+              </div>
+            </div>
+          ) : (
+            items.map((it, i) =>
+              it.divider ? <div key={`d${i}`} className="fs-menu-divider" /> : (
+                <button key={it.label} type="button" role="menuitem" className={`fs-menu-item${it.danger ? " is-danger" : ""}`}
+                  onClick={() => { if (it.confirmTitle) setConfirm(it); else { it.onSelect(); setOpen(false); } }}>
+                  {it.label}
+                </button>
+              ),
+            )
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+Menu.propTypes = { label: PropTypes.string, items: PropTypes.array.isRequired };
+
+// ─── Collections ──────────────────────────────────────────────────────────────
+
+function CollectionRow({ collection, shop, submit, isSubmitting, onViewProducts }) {
+  const enabledCount = collection.products.filter((p) => p.isTryonEnabled).length;
+  const pct = collection.productCount ? Math.round((enabledCount / collection.productCount) * 100) : 0;
 
   function handleToggleCollection() {
     const fd = new FormData();
@@ -624,7 +562,7 @@ function CollectionRow({
     fd.set("collection_id", collection.numericId);
     fd.set("collection_title", collection.title);
     fd.set("collection_handle", collection.handle);
-    fd.set("collection_products", collectionProductsPayload);
+    fd.set("collection_products", collectionPayload(collection.products));
     fd.set("enabled", String(!collection.isTryonEnabled));
     fd.set(
       "products_json",
@@ -642,1166 +580,396 @@ function CollectionRow({
     submit(fd, { method: "post" });
   }
 
-  function handleToggleProduct(product) {
+  function handleDelete() {
+    const fd = new FormData();
+    fd.set("intent", "delete_collection");
+    fd.set("collection_gid", collection.id);
+    submit(fd, { method: "post" });
+  }
+
+  return (
+    <tr>
+      <td>
+        <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+          <span className="fs-thumb" style={{ width: 30, height: 30, borderRadius: 6 }}>
+            {collection.image ? <img src={collection.image.url} alt="" /> : <FsIcon name="grid" size={13} />}
+          </span>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 600 }}>{collection.title}</div>
+            <div style={{ fontSize: 11, color: "var(--fs-muted)", marginTop: 1 }}>/{collection.handle}</div>
+          </div>
+        </div>
+      </td>
+      <td className="fs-tabular">{collection.productCount} products</td>
+      <td style={{ width: 200 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div className="fs-progress fs-progress--primary" style={{ height: 5, flex: 1 }}><span style={{ width: `${pct}%` }} /></div>
+          <span className="fs-tabular" style={{ fontSize: 11, color: "#4B5563", width: 48 }}>{enabledCount} of {collection.productCount}</span>
+        </div>
+      </td>
+      <td>
+        <FsButton variant="plain" size="sm" onClick={() => onViewProducts(collection.id)}>View products</FsButton>
+      </td>
+      <td className="num">
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: collection.isTryonEnabled ? "var(--fs-success-ink)" : "var(--fs-muted)", width: 18 }}>{collection.isTryonEnabled ? "On" : "Off"}</span>
+          <Switch checked={collection.isTryonEnabled} onChange={handleToggleCollection} disabled={isSubmitting} label={`Try-on for ${collection.title} collection`} />
+          <Menu
+            label={`More actions for ${collection.title}`}
+            items={[
+              { label: "View on store", onSelect: () => window.open(`https://${shop}/collections/${collection.handle}`, "_blank") },
+              { label: "Edit in Shopify admin", onSelect: () => window.open(`https://${shop}/admin/collections/${collection.numericId}`, "_blank") },
+              { divider: true },
+              { label: "Delete collection", danger: true, confirmTitle: `Delete “${collection.title}”?`, confirmText: "The collection is removed from Shopify. Products are not deleted.", confirmCta: "Delete", onSelect: handleDelete },
+            ]}
+          />
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+CollectionRow.propTypes = {
+  collection: PropTypes.object.isRequired,
+  shop: PropTypes.string,
+  submit: PropTypes.func,
+  isSubmitting: PropTypes.bool,
+  onViewProducts: PropTypes.func,
+};
+
+// ─── Product row ──────────────────────────────────────────────────────────────
+
+function ProductRow({ product, shop, selected, onSelect, onToggle, isSubmitting, pendingEnabled }) {
+  const navigate = useNavigate();
+  const enabled = pendingEnabled ?? product.isTryonEnabled;
+
+  return (
+    <tr className={selected ? "is-selected" : undefined}>
+      <td style={{ width: 36 }}>
+        <button type="button" className={`fs-check${selected ? " is-on" : ""}`} aria-pressed={selected} aria-label={`Select ${product.title}`} onClick={onSelect}>
+          {selected && <FsIcon name="check" size={13} strokeWidth={3.2} />}
+        </button>
+      </td>
+      <td>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <span className="fs-thumb" style={{ width: 40, height: 40, borderRadius: 8 }}>
+            {product.featuredImage?.url ? <img src={product.featuredImage.url} alt="" /> : <FsIcon name="image" size={16} />}
+          </span>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontWeight: 600 }} title={product.title}>{product.title}</div>
+            {product.vendor && <div style={{ fontSize: 12, color: "var(--fs-muted)", marginTop: 2 }}>{product.vendor}</div>}
+          </div>
+        </div>
+      </td>
+      <td>
+        {enabled ? (
+          <span className="fs-pill fs-product-status is-on"><span className="fs-dot" />Try-on active</span>
+        ) : (
+          <span className="fs-pill fs-product-status">Off</span>
+        )}
+      </td>
+      <td className="fs-tabular">{formatPrice(product.price, product.currency)}</td>
+      <td className="num">
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+          <button type="button" className="fs-btn fs-btn--ghost fs-btn--sm" aria-label={`Preview ${product.title} on store`} onClick={() => window.open(`https://${shop}/products/${product.handle}`, "_blank")}>
+            <FsIcon name="eye" size={14} />
+          </button>
+          <button type="button" className="fs-btn fs-btn--ghost fs-btn--sm" aria-label={`Edit variants for ${product.title}`} onClick={() => navigate(variantsUrl(product))}>
+            <FsIcon name="pencil" size={14} />
+          </button>
+          <Switch checked={enabled} onChange={onToggle} disabled={isSubmitting} label={`Try-on for ${product.title}`} />
+          <Menu
+            label={`More actions for ${product.title}`}
+            items={[
+              { label: "Edit in Shopify admin", onSelect: () => window.open(`https://${shop}/admin/products/${product.numericId}`, "_blank") },
+              { label: "Create AI model photo", onSelect: () => navigate("/app/studio/create") },
+              ...(enabled
+                ? [{ divider: true }, { label: "Turn off try-on", danger: true, confirmTitle: "Turn off try-on?", confirmText: "Shoppers won't see the try-on button on this product.", confirmCta: "Turn off", onSelect: onToggle }]
+                : []),
+            ]}
+          />
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+ProductRow.propTypes = {
+  product: PropTypes.object.isRequired,
+  shop: PropTypes.string,
+  selected: PropTypes.bool,
+  onSelect: PropTypes.func,
+  onToggle: PropTypes.func,
+  isSubmitting: PropTypes.bool,
+  pendingEnabled: PropTypes.bool,
+};
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
+
+const COLLECTIONS_PER_PAGE = 8;
+const PRODUCTS_PER_PAGE = 20;
+
+export default function Products() {
+  const { collections, shop } = useLoaderData();
+  const submit = useSubmit();
+  const navigation = useNavigation();
+  const actionData = useActionData();
+  const celebrate = useCelebrate();
+  const isSubmitting = navigation.state === "submitting";
+
+  const [collectionQuery, setCollectionQuery] = useState("");
+  const [collectionPage, setCollectionPage] = useState(1);
+  const [query, setQuery] = useState("");
+  const [status, setStatus] = useState("all");
+  const [collectionFilter, setCollectionFilter] = useState("all");
+  const [shown, setShown] = useState(PRODUCTS_PER_PAGE);
+  const [selected, setSelected] = useState(() => new Set());
+  const gridRef = useRef(null);
+  const lastEnable = useRef(null);
+
+  // Unique products, each remembering the first collection it belongs to
+  // (that collection is sent as context on toggle, as before).
+  const allProducts = useMemo(() => {
+    const map = new Map();
+    for (const c of collections) {
+      for (const p of c.products) {
+        if (!map.has(p.id)) map.set(p.id, { ...p, collection: c, collectionIds: [c.id] });
+        else map.get(p.id).collectionIds.push(c.id);
+      }
+    }
+    return Array.from(map.values());
+  }, [collections]);
+
+  const total = allProducts.length;
+  const enabledCount = allProducts.filter((p) => p.isTryonEnabled).length;
+
+  // Optimistic state for the single product currently being saved
+  const pending = navigation.formData?.get("intent") === "toggle_product"
+    ? { id: navigation.formData.get("shopify_product_gid"), enabled: navigation.formData.get("enabled") === "true" }
+    : null;
+
+  useEffect(() => {
+    if (!actionData?.ok || !lastEnable.current) return;
+    const n = lastEnable.current;
+    lastEnable.current = null;
+    celebrate({ title: "Try-on is live", body: n === 1 ? "Shoppers can now try this product on." : `${n} products are now try-on ready.` });
+  }, [actionData]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (actionData?.bulk) setSelected(new Set());
+  }, [actionData]);
+
+  const filteredCollections = collections.filter((c) => c.title.toLowerCase().includes(collectionQuery.toLowerCase()));
+  const collectionPages = Math.max(1, Math.ceil(filteredCollections.length / COLLECTIONS_PER_PAGE));
+  const colPage = Math.min(collectionPage, collectionPages);
+  const pagedCollections = filteredCollections.slice((colPage - 1) * COLLECTIONS_PER_PAGE, colPage * COLLECTIONS_PER_PAGE);
+
+  const filteredProducts = allProducts.filter((p) => {
+    if (collectionFilter !== "all" && !p.collectionIds.includes(collectionFilter)) return false;
+    if (status === "active" && !p.isTryonEnabled) return false;
+    if (status === "off" && p.isTryonEnabled) return false;
+    const q = query.trim().toLowerCase();
+    return !q || p.title.toLowerCase().includes(q) || (p.vendor ?? "").toLowerCase().includes(q);
+  });
+  const visibleProducts = filteredProducts.slice(0, shown);
+
+  function toggleProduct(product) {
     const newEnabled = !product.isTryonEnabled;
-    const updatedCollectionProducts = JSON.stringify(
-      collection.products.map((p) => ({
-        shopify_product_id: p.numericId,
-        shopify_product_gid: p.id,
-        title: p.title,
-        handle: p.handle,
-        vendor: p.vendor ?? null,
-        product_type: p.productType ?? null,
-        featured_image: p.featuredImage?.url ?? null,
-        price: p.price ?? null,
-        currency: p.currency ?? null,
-        is_tryon_enabled: p.id === product.id ? (newEnabled ? 1 : 0) : (p.isTryonEnabled ? 1 : 0),
-      })),
-    );
+    const c = product.collection;
     const fd = new FormData();
     fd.set("intent", "toggle_product");
     fd.set("shopify_product_id", product.numericId);
     fd.set("shopify_product_gid", product.id);
     fd.set("handle", product.handle);
-    fd.set("collection_id", collection.numericId);
-    fd.set("collection_title", collection.title);
-    fd.set("collection_handle", collection.handle);
-    fd.set("collection_products", updatedCollectionProducts);
+    fd.set("collection_id", c.numericId);
+    fd.set("collection_title", c.title);
+    fd.set("collection_handle", c.handle);
+    fd.set("collection_products", collectionPayload(c.products, product.id, newEnabled));
     fd.set("enabled", String(newEnabled));
     fd.set("vendor", product.vendor || "");
     fd.set("product_type", product.productType || "");
     fd.set("tags", JSON.stringify(product.tags || []));
+    lastEnable.current = newEnabled ? 1 : null;
     submit(fd, { method: "post" });
   }
 
-  return (
-    <>
-      <tr style={{ background: "white" }}>
-        {/* Collection cell */}
-        <td>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <button
-              onClick={() => setExpanded(!expanded)}
-              aria-label={expanded ? "Collapse" : "Expand"}
-              style={{
-                width: "28px",
-                height: "28px",
-                background: expanded ? "var(--vto-primary-light)" : "#F8FAFC",
-                border: `1px solid ${expanded ? "var(--vto-primary)" : "var(--vto-border)"}`,
-                borderRadius: "6px",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-                color: expanded ? "var(--vto-primary)" : "#64748B",
-                transition: "all 0.2s",
-              }}
-            >
-              <span
-                style={{
-                  display: "inline-block",
-                  transform: expanded ? "rotate(90deg)" : "rotate(0deg)",
-                  transition: "transform 0.2s",
-                  lineHeight: 1,
-                }}
-              >
-                <Icon source={ChevronRightIcon} />
-              </span>
-            </button>
-
-            {collection.image ? (
-              <img
-                src={collection.image.url}
-                alt={collection.image.altText ?? collection.title}
-                style={{
-                  width: "44px",
-                  height: "44px",
-                  borderRadius: "8px",
-                  objectFit: "cover",
-                  flexShrink: 0,
-                  border: "1px solid var(--vto-border)",
-                }}
-              />
-            ) : (
-              <div
-                style={{
-                  width: "44px",
-                  height: "44px",
-                  borderRadius: "8px",
-                  background: "var(--vto-primary-light)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "var(--vto-primary)",
-                  flexShrink: 0,
-                }}
-              >
-                <Icon source={ProductIcon} />
-              </div>
-            )}
-
-            <div>
-              <div
-                style={{
-                  fontWeight: "600",
-                  color: "#1E293B",
-                  fontSize: "12px",
-                }}
-              >
-                {collection.title}
-              </div>
-              <div
-                style={{ fontSize: "12px", color: "#94A3B8", marginTop: "2px" }}
-              >
-                /{collection.handle}
-              </div>
-            </div>
-          </div>
-        </td>
-
-        {/* Product count */}
-        <td>
-          <span
-            style={{ fontWeight: "600", fontSize: "13px", color: "#1E293B" }}
-          >
-            {collection.productCount}
-          </span>
-          <span
-            style={{ fontSize: "12px", color: "#64748B", marginLeft: "4px" }}
-          >
-            products
-          </span>
-        </td>
-
-        {/* Try-on enabled count */}
-        <td>
-          <span
-            style={{
-              fontWeight: "600",
-              fontSize: "13px",
-              color: enabledCount > 0 ? "#10B981" : "#64748B",
-            }}
-          >
-            {enabledCount}
-          </span>
-          <span
-            style={{ fontSize: "12px", color: "#64748B", marginLeft: "4px" }}
-          >
-            enabled
-          </span>
-        </td>
-
-        {/* Try-on toggle */}
-        <td>
-          <CustomToggle
-            checked={collection.isTryonEnabled}
-            onChange={handleToggleCollection}
-            disabled={isSubmitting}
-          />
-        </td>
-
-        {/* Three-dot actions */}
-        <td>
-          <div style={{ position: "relative", display: "inline-block" }}>
-            <button
-              onClick={() =>
-                setOpenDropdown(isDropdownOpen ? null : collection.id)
-              }
-              style={{
-                width: "32px",
-                height: "32px",
-                background: isDropdownOpen ? "#F1F5F9" : "none",
-                border: "1px solid var(--vto-border)",
-                borderRadius: "6px",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#64748B",
-              }}
-            >
-              <Icon source={MenuHorizontalIcon} />
-            </button>
-            {isDropdownOpen && (
-              <CollectionDropdown
-                collection={collection}
-                shop={shop}
-                submit={submit}
-                onClose={() => setOpenDropdown(null)}
-              />
-            )}
-          </div>
-        </td>
-      </tr>
-
-      {/* Nested products row */}
-      {expanded && (
-        <tr>
-          <td colSpan={5} style={{ padding: 0 }}>
-            <div
-              style={{
-                borderTop: "2px solid var(--vto-primary-light)",
-                background: "#F8FAFC",
-              }}
-            >
-              {/* Header */}
-              <div
-                style={{
-                  padding: "10px 20px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  borderBottom: "1px solid var(--vto-border)",
-                }}
-              >
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
-                >
-                  <span
-                    style={{
-                      fontSize: "11px",
-                      fontWeight: "700",
-                      color: "var(--vto-primary)",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.05em",
-                    }}
-                  >
-                    Products in {collection.title}
-                  </span>
-                  <span
-                    style={{
-                      background: "var(--vto-primary-light)",
-                      color: "var(--vto-primary)",
-                      fontSize: "11px",
-                      fontWeight: "700",
-                      padding: "1px 8px",
-                      borderRadius: "10px",
-                    }}
-                  >
-                    {collection.productCount}
-                  </span>
-                </div>
-                {isSubmitting && (
-                  <span
-                    style={{
-                      fontSize: "11px",
-                      color: "#F97316",
-                      fontWeight: "600",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "5px",
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: "6px",
-                        height: "6px",
-                        borderRadius: "50%",
-                        background: "#F97316",
-                        display: "inline-block",
-                        animation: "pulse 1s infinite",
-                      }}
-                    />
-                    Updating…
-                  </span>
-                )}
-                {!isSubmitting && (
-                  <span style={{ fontSize: "11px", color: "#64748B" }}>
-                    Toggle collection above to enable/disable all at once
-                  </span>
-                )}
-              </div>
-
-              {/* Products table */}
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr style={{ background: "#F1F5F9" }}>
-                    <th
-                      style={{
-                        padding: "8px 20px",
-                        textAlign: "left",
-                        fontSize: "11px",
-                        color: "#64748B",
-                        fontWeight: "700",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.04em",
-                      }}
-                    >
-                      Product
-                    </th>
-                    <th
-                      style={{
-                        padding: "8px 16px",
-                        textAlign: "left",
-                        fontSize: "11px",
-                        color: "#64748B",
-                        fontWeight: "700",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.04em",
-                      }}
-                    >
-                      Vendor / Type
-                    </th>
-                    <th
-                      style={{
-                        padding: "8px 16px",
-                        textAlign: "left",
-                        fontSize: "11px",
-                        color: "#64748B",
-                        fontWeight: "700",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.04em",
-                      }}
-                    >
-                      Preview
-                    </th>
-                    <th
-                      style={{
-                        padding: "8px 16px",
-                        textAlign: "left",
-                        fontSize: "11px",
-                        color: "#64748B",
-                        fontWeight: "700",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.04em",
-                      }}
-                    >
-                      Try-On
-                    </th>
-                    <th
-                      style={{
-                        padding: "8px 16px",
-                        textAlign: "left",
-                        fontSize: "11px",
-                        color: "#64748B",
-                        fontWeight: "700",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.04em",
-                      }}
-                    >
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {collection.products.map((product, i) => (
-                    <tr
-                      key={product.id}
-                      style={{
-                        borderTop: "1px solid var(--vto-border)",
-                        background: i % 2 === 0 ? "white" : "#FAFBFC",
-                      }}
-                    >
-                      {/* Product */}
-                      <td style={{ padding: "12px 20px" }}>
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "12px",
-                          }}
-                        >
-                          {product.featuredImage ? (
-                            <img
-                              src={product.featuredImage.url}
-                              alt={
-                                product.featuredImage.altText ?? product.title
-                              }
-                              style={{
-                                width: "44px",
-                                height: "44px",
-                                borderRadius: "6px",
-                                objectFit: "cover",
-                                flexShrink: 0,
-                                border: "1px solid var(--vto-border)",
-                              }}
-                            />
-                          ) : (
-                            <div
-                              style={{
-                                width: "44px",
-                                height: "44px",
-                                borderRadius: "6px",
-                                background: "#E2E8F0",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                color: "#94A3B8",
-                                flexShrink: 0,
-                              }}
-                            >
-                              <Icon source={ProductIcon} />
-                            </div>
-                          )}
-                          <div>
-                            <div
-                              style={{
-                                fontWeight: "600",
-                                fontSize: "12px",
-                                color: "#1E293B",
-                              }}
-                            >
-                              {product.title}
-                            </div>
-                            <div
-                              style={{
-                                fontSize: "10px",
-                                color: "#94A3B8",
-                                marginTop: "2px",
-                              }}
-                            >
-                              /{product.handle}
-                            </div>
-                            {product.tags.length > 0 && (
-                              <div
-                                style={{
-                                  display: "flex",
-                                  gap: "4px",
-                                  flexWrap: "wrap",
-                                  marginTop: "4px",
-                                }}
-                              >
-                                {product.tags.slice(0, 3).map((tag) => (
-                                  <span
-                                    key={tag}
-                                    style={{
-                                      fontSize: "10px",
-                                      padding: "1px 6px",
-                                      borderRadius: "4px",
-                                      background: "#F1F5F9",
-                                      color: "#64748B",
-                                      fontWeight: "500",
-                                    }}
-                                  >
-                                    {tag}
-                                  </span>
-                                ))}
-                                {product.tags.length > 3 && (
-                                  <span
-                                    style={{
-                                      fontSize: "10px",
-                                      color: "#94A3B8",
-                                    }}
-                                  >
-                                    +{product.tags.length - 3}
-                                  </span>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      {/* Vendor / Type */}
-                      <td style={{ padding: "12px 16px" }}>
-                        {product.vendor ? (
-                          <div
-                            style={{
-                              fontSize: "12px",
-                              fontWeight: "500",
-                              color: "#1E293B",
-                            }}
-                          >
-                            {product.vendor}
-                          </div>
-                        ) : null}
-                        {product.productType ? (
-                          <div
-                            style={{
-                              fontSize: "10px",
-                              color: "#64748B",
-                              marginTop: product.vendor ? "2px" : 0,
-                            }}
-                          >
-                            {product.productType}
-                          </div>
-                        ) : null}
-                        {!product.vendor && !product.productType && (
-                          <span style={{ fontSize: "12px", color: "#CBD5E1" }}>
-                            —
-                          </span>
-                        )}
-                      </td>
-                      {/* Preview */}
-                      <td style={{ padding: "12px 16px" }}>
-                        <button
-                          onClick={() =>
-                            window.open(
-                              `https://${shop}/products/${product.handle}`,
-                              "_blank",
-                            )
-                          }
-                          style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "6px",
-                            padding: "6px 14px",
-                            borderRadius: "6px",
-                            border: "1px solid var(--vto-border)",
-                            background: "white",
-                            color: "#3B5BDB",
-                            fontSize: "12px",
-                            fontWeight: "600",
-                            cursor: "pointer",
-                            transition: "all 0.15s",
-                            whiteSpace: "nowrap",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background =
-                              "var(--vto-primary-light)";
-                            e.currentTarget.style.borderColor =
-                              "var(--vto-primary)";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = "white";
-                            e.currentTarget.style.borderColor =
-                              "var(--vto-border)";
-                          }}
-                        >
-                          <svg
-                            width="13"
-                            height="13"
-                            viewBox="0 0 20 20"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z"
-                              fill="currentColor"
-                            />
-                            <path
-                              d="M10 3C5.5 3 1.73 5.61 0 9.5 1.73 13.39 5.5 16 10 16s8.27-2.61 10-6.5C18.27 5.61 14.5 3 10 3zm0 10.5a4 4 0 110-8 4 4 0 010 8z"
-                              fill="currentColor"
-                            />
-                          </svg>
-                          Preview
-                        </button>
-                      </td>
-                      {/* Try-On */}
-                      <td style={{ padding: "12px 16px" }}>
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
-                          }}
-                        >
-                          <CustomToggle
-                            checked={product.isTryonEnabled}
-                            onChange={() => handleToggleProduct(product)}
-                            disabled={isSubmitting}
-                          />
-                          <span
-                            style={{
-                              fontSize: "11px",
-                              color: product.isTryonEnabled
-                                ? "#10B981"
-                                : "#94A3B8",
-                              fontWeight: "600",
-                            }}
-                          >
-                            {product.isTryonEnabled ? "On" : "Off"}
-                          </span>
-                        </div>
-                      </td>
-                      {/* Action */}
-                      <td style={{ padding: "12px 16px" }}>
-                        <Button
-                          size="slim"
-                          variant="primary"
-                          onClick={() =>
-                            navigate(
-                              `/app/variants?product_id=${product.numericId}&product_gid=${encodeURIComponent(product.id)}&title=${encodeURIComponent(product.title)}`,
-                            )
-                          }
-                        >
-                          Map Variants
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </td>
-        </tr>
-      )}
-    </>
-  );
-}
-
-function EnabledProductCard({ product, shop, submit, isSubmitting, navigate }) {
-  const [showConfirm, setShowConfirm] = useState(false);
-
-  function handleToggle(enabled) {
+  function bulkToggle(enabled) {
+    const chosen = allProducts.filter((p) => selected.has(p.id) && p.isTryonEnabled !== enabled);
+    if (!chosen.length) { setSelected(new Set()); return; }
     const fd = new FormData();
-    fd.set("intent", "toggle_product");
-    fd.set("shopify_product_id", product.numericId);
-    fd.set("shopify_product_gid", product.id);
-    fd.set("title", product.title);
-    fd.set("handle", product.handle);
+    fd.set("intent", "bulk_toggle_products");
     fd.set("enabled", String(enabled));
+    fd.set("products_json", JSON.stringify(chosen.map((p) => ({
+      id: p.id, numericId: p.numericId, handle: p.handle, vendor: p.vendor, productType: p.productType, tags: p.tags,
+      collectionId: p.collection?.numericId, collectionTitle: p.collection?.title, collectionHandle: p.collection?.handle,
+    }))));
+    lastEnable.current = enabled ? chosen.length : null;
     submit(fd, { method: "post" });
-    setShowConfirm(false);
   }
 
+  const toggleSelect = (id) => setSelected((prev) => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
+  const allVisibleSelected = visibleProducts.length > 0 && visibleProducts.every((p) => selected.has(p.id));
+  const selectAllVisible = () => setSelected((prev) => {
+    const next = new Set(prev);
+    if (allVisibleSelected) visibleProducts.forEach((p) => next.delete(p.id));
+    else visibleProducts.forEach((p) => next.add(p.id));
+    return next;
+  });
+
+  const viewCollectionProducts = (id) => {
+    setCollectionFilter(id);
+    setStatus("all");
+    setShown(PRODUCTS_PER_PAGE);
+    gridRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const chips = [
+    ["all", "All", total],
+    ["active", "Try-on active", enabledCount],
+    ["off", "Not enabled", total - enabledCount],
+  ];
+
   return (
-    <div
-      className="vto-card"
-      style={{
-        padding: "0",
-        overflow: "hidden",
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
-        position: "relative",
-      }}
+    <FsPage
+      title="Products"
+      subtitle="Choose which products show the try-on button in your store."
+      actions={<a className="fs-btn fs-btn--ghost" href={`https://${shop}`} target="_blank" rel="noopener noreferrer"><FsIcon name="store" size={16} />View store</a>}
     >
-      <div
-        style={{
-          position: "relative",
-          aspectRatio: "1/1",
-          background: "#F1F5F9",
-        }}
-      >
-        {product.featuredImage ? (
-          <img
-            src={product.featuredImage.url}
-            alt={product.title}
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-          />
-        ) : (
-          <div
-            style={{
-              width: "100%",
-              height: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#CBD5E1",
-            }}
-          >
-            <Icon source={ProductIcon} size="large" />
-          </div>
-        )}
-        <div
-          style={{
-            position: "absolute",
-            top: "12px",
-            right: "12px",
-            display: "flex",
-            gap: "6px",
-          }}
-        >
-          <div
-            style={{
-              background: "#10B981",
-              color: "white",
-              fontSize: "10px",
-              fontWeight: "700",
-              padding: "4px 10px",
-              borderRadius: "20px",
-              boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-            }}
-          >
-            TRY-ON ACTIVE
-          </div>
-        </div>
-      </div>
-
-      <div
-        style={{
-          padding: "16px",
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          gap: "4px",
-        }}
-      >
-        <div
-          style={{
-            fontWeight: "600",
-            fontSize: "13px",
-            color: "#1E293B",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
-          {product.title}
-        </div>
-        <div style={{ fontSize: "12px", color: "#64748B" }}>
-          {product.vendor || "No Vendor"} • {product.productType || "Standard"}
-        </div>
-        <div
-          style={{
-            marginTop: "8px",
-            fontWeight: "700",
-            color: "var(--vto-primary)",
-            fontSize: "13px",
-          }}
-        >
-          {product.price} {product.currency}
-        </div>
-
-        <div
-          style={{
-            marginTop: "auto",
-            paddingTop: "16px",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-          }}
-        >
-          <Button
-            size="slim"
-            onClick={() =>
-              window.open(
-                `https://${shop}/products/${product.handle}`,
-                "_blank",
-              )
-            }
-          >
-            Preview
-          </Button>
-          <Button
-            size="slim"
-            variant="primary"
-            onClick={() =>
-              navigate(
-                `/app/variants?product_id=${product.numericId}&product_gid=${encodeURIComponent(product.id)}&title=${encodeURIComponent(product.title)}`,
-              )
-            }
-          >
-            Edit
-          </Button>
-
-          <button
-            onClick={() => setShowConfirm(true)}
-            style={{
-              width: "32px",
-              height: "32px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: "6px",
-              border: "1px solid #FCA5A5",
-              background: "#FEF2F2",
-              color: "#EF4444",
-              cursor: "pointer",
-              transition: "all 0.2s",
-              marginLeft: "auto",
-            }}
-            title="Delete Try-On"
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2m-6 9l4 4m0-4l-4 4" />
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      {showConfirm && (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background: "rgba(255, 255, 255, 0.96)",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "20px",
-            textAlign: "center",
-            zIndex: 100,
-            backdropFilter: "blur(2px)",
-          }}
-        >
-          <div style={{ color: "#EF4444", marginBottom: "12px" }}>
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-          </div>
-          <Text variant="bodyMd" fontWeight="bold">
-            Delete Try-On?
-          </Text>
-          <p style={{ fontSize: "11px", color: "#64748B", marginTop: "4px" }}>
-            This will disable the try-on button for this product.
-          </p>
-          <div
-            style={{
-              marginTop: "20px",
-              display: "flex",
-              gap: "10px",
-              width: "100%",
-            }}
-          >
-            <button
-              onClick={() => setShowConfirm(false)}
-              style={{
-                flex: 1,
-                padding: "8px",
-                borderRadius: "6px",
-                border: "1px solid var(--vto-border)",
-                background: "white",
-                cursor: "pointer",
-                fontSize: "11px",
-                fontWeight: "600",
-              }}
-            >
-              Cancel
-            </button>
-            <button
-              onClick={() => handleToggle(false)}
-              style={{
-                flex: 1,
-                padding: "8px",
-                borderRadius: "6px",
-                border: "none",
-                background: "#EF4444",
-                color: "white",
-                cursor: "pointer",
-                fontSize: "11px",
-                fontWeight: "600",
-              }}
-            >
-              Delete
-            </button>
-          </div>
-        </div>
+      {actionData && actionData.ok === false && actionData.bulk && (
+        <div className="fs-banner fs-banner--warning" role="alert"><FsIcon name="info" size={16} /><span>{actionData.updated} updated, {actionData.failed} couldn&apos;t be saved. Try those again.</span></div>
       )}
-    </div>
-  );
-}
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
-
-const ITEMS_PER_PAGE = 10;
-
-export default function Products() {
-  const { collections, shop, stats } = useLoaderData();
-  const submit = useSubmit();
-  const navigate = useNavigate();
-  const navigation = useNavigation();
-  const isSubmitting = navigation.state === "submitting";
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [enabledSearchQuery, setEnabledSearchQuery] = useState("");
-  const [openDropdown, setOpenDropdown] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const filtered = collections.filter((c) =>
-    c.title.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
-
-  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
-  const start = (currentPage - 1) * ITEMS_PER_PAGE;
-  const paginated = filtered.slice(start, start + ITEMS_PER_PAGE);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery]);
-
-  const allEnabledProducts = Array.from(
-    new Map(
-      collections
-        .flatMap((c) => c.products)
-        .filter((p) => p.isTryonEnabled)
-        .map((p) => [p.id, p]),
-    ).values(),
-  );
-
-  const filteredEnabledProducts = allEnabledProducts.filter((p) =>
-    p.title.toLowerCase().includes(enabledSearchQuery.toLowerCase()),
-  );
-
-  return (
-    <Page
-      fullWidth
-      backAction={{ onAction: () => navigate("/app"), content: "Dashboard" }}
-    >
-      {/* Header */}
-      <div className="vto-header" style={{ marginBottom: "24px" }}>
-        <div>
-          <h1 className="vto-title">Product Catalog</h1>
-          <p className="vto-subtitle">
-            Manage AI try-on availability across your live collections.
-          </p>
-        </div>
-      </div>
-
-      {/* KPI Cards */}
-      <div className="vto-grid-3col" style={{ marginBottom: "32px" }}>
-        <div
-          className="vto-card"
-          style={{ display: "flex", alignItems: "center", padding: "20px" }}
-        >
-          <div className="vto-stat-icon-wrapper vto-stat-icon-blue">
-            <Icon source={ProductIcon} />
-          </div>
-          <div>
-            <div className="vto-kpi-label">Live Collections</div>
-            <div
-              className="vto-kpi-value"
-              style={{ color: "#1E293B" }}
-            >
-              {stats.totalCollections}
+      {total === 0 ? (
+        <FsCard>
+          <FsEmpty icon="box" text="No active products in published collections yet. Add products to a collection in Shopify to get started." cta="Open Shopify products" onClick={() => window.open(`https://${shop}/admin/products`, "_blank")} />
+        </FsCard>
+      ) : (
+        <>
+          {/* Collections */}
+          <FsCard style={{ padding: 0, gap: 0, overflow: "visible" }}>
+            <div className="fs-card-head" style={{ padding: "20px 24px", flexWrap: "wrap" }}>
+              <div style={{ flex: 1, minWidth: 220 }}>
+                <h3 className="fs-h3">Collections</h3>
+                <p className="fs-card-sub">Switch on a whole collection at once — every product in it gets try-on.</p>
+              </div>
+              <label className="fs-search">
+                <FsIcon name="search" size={16} />
+                <input type="search" placeholder="Search collections" aria-label="Search collections" value={collectionQuery} onChange={(e) => { setCollectionQuery(e.target.value); setCollectionPage(1); }} />
+              </label>
             </div>
-          </div>
-        </div>
-
-        <div
-          className="vto-card"
-          style={{ display: "flex", alignItems: "center", padding: "20px" }}
-        >
-          <div className="vto-stat-icon-wrapper vto-stat-icon-green">
-            <Icon source={CheckCircleIcon} />
-          </div>
-          <div>
-            <div className="vto-kpi-label">Try-On Enabled</div>
-            <div
-              className="vto-kpi-value"
-              style={{ color: "#1E293B" }}
-            >
-              {stats.tryonEnabledCount}
-            </div>
-          </div>
-        </div>
-
-        <div
-          className="vto-card"
-          style={{ display: "flex", alignItems: "center", padding: "20px" }}
-        >
-          <div className="vto-stat-icon-wrapper vto-stat-icon-purple">
-            <Icon source={MagicIcon} />
-          </div>
-          <div>
-            <div className="vto-kpi-label">Active Products</div>
-            <div
-              className="vto-kpi-value"
-              style={{ color: "#1E293B" }}
-            >
-              {stats.totalProducts}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Collections Table */}
-      <div className="vto-card" style={{ padding: "0" }}>
-        <div
-          style={{
-            padding: "20px",
-            borderBottom: "1px solid var(--vto-border)",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <div>
-            <h2
-              style={{
-                fontSize: "12px",
-                fontWeight: "700",
-                color: "#1E293B",
-                margin: 0,
-              }}
-            >
-              Live Collections
-            </h2>
-            <p
-              style={{ fontSize: "11px", color: "#64748B", margin: "3px 0 0" }}
-            >
-              {filtered.length} published collection
-              {filtered.length !== 1 ? "s" : ""} with active products
-            </p>
-          </div>
-          <div className="vto-search-wrapper" style={{ width: "280px" }}>
-            <div className="vto-search-icon">
-              <Icon source={SearchIcon} />
-            </div>
-            <input
-              type="text"
-              className="vto-search-input"
-              placeholder="Search collections..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-        </div>
-
-        {filtered.length === 0 ? (
-          <div style={{ padding: "60px 24px", textAlign: "center" }}>
-            <div style={{ color: "#CBD5E1", marginBottom: "12px" }}>
-              <Icon source={ProductIcon} />
-            </div>
-            <div
-              style={{
-                fontWeight: "600",
-                color: "#1E293B",
-                marginBottom: "4px",
-              }}
-            >
-              No collections found
-            </div>
-            <div style={{ fontSize: "11px", color: "#64748B" }}>
-              {searchQuery
-                ? `No collections match "${searchQuery}".`
-                : "No published collections with active products were found in your store."}
-            </div>
-          </div>
-        ) : (
-          <>
-            <div style={{ overflowX: "auto" }}>
-              <table className="vto-table">
-                <thead>
-                  <tr>
-                    <th>Collection</th>
-                    <th>Products</th>
-                    <th>Try-On Enabled</th>
-                    <th>Try-On Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginated.map((collection) => (
-                    <CollectionRow
-                      key={collection.id}
-                      collection={collection}
-                      shop={shop}
-                      submit={submit}
-                      isSubmitting={isSubmitting}
-                      navigate={navigate}
-                      openDropdown={openDropdown}
-                      setOpenDropdown={setOpenDropdown}
-                    />
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div
-                style={{
-                  padding: "16px 20px",
-                  borderTop: "1px solid var(--vto-border)",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <Text variant="bodySm" tone="subdued">
-                  Showing {start + 1}–
-                  {Math.min(start + ITEMS_PER_PAGE, filtered.length)} of{" "}
-                  {filtered.length} collections
-                </Text>
-                <div className="vto-pagination">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                    (page) => (
-                      <button
-                        key={page}
-                        className={`vto-page-btn${page === currentPage ? " active" : ""}`}
-                        onClick={() => setCurrentPage(page)}
-                      >
-                        {page}
-                      </button>
-                    ),
-                  )}
+            {filteredCollections.length === 0 ? (
+              <FsEmpty icon="search" text={`No collections match “${collectionQuery}”.`} cta="Clear search" onClick={() => setCollectionQuery("")} />
+            ) : (
+              <>
+                <div className="fs-table-wrap" style={{ overflow: "visible" }}>
+                  <table className="fs-table">
+                    <thead><tr><th>Collection</th><th>Products</th><th>Try-on coverage</th><th /><th className="num">Try-on</th></tr></thead>
+                    <tbody>
+                      {pagedCollections.map((collection) => (
+                        <CollectionRow key={collection.id} collection={collection} shop={shop} submit={submit} isSubmitting={isSubmitting} onViewProducts={viewCollectionProducts} />
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
+                {collectionPages > 1 && (
+                  <div className="fs-pager">
+                    <span className="fs-tabular">Showing {(colPage - 1) * COLLECTIONS_PER_PAGE + 1}–{Math.min(colPage * COLLECTIONS_PER_PAGE, filteredCollections.length)} of {filteredCollections.length}</span>
+                    <nav aria-label="Collections pagination" style={{ display: "flex", gap: 6 }}>
+                      {Array.from({ length: collectionPages }, (_, i) => i + 1).map((n) => (
+                        <button key={n} type="button" className={`fs-page-btn${n === colPage ? " is-on" : ""}`} aria-current={n === colPage ? "page" : undefined} onClick={() => setCollectionPage(n)}>{n}</button>
+                      ))}
+                    </nav>
+                  </div>
+                )}
+              </>
+            )}
+          </FsCard>
+
+          {/* Product grid */}
+          <div ref={gridRef} style={{ display: "flex", flexDirection: "column", gap: 16, scrollMarginTop: 84 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+              <label className="fs-search">
+                <FsIcon name="search" size={16} />
+                <input type="search" placeholder="Search products or vendors" aria-label="Search products" value={query} onChange={(e) => { setQuery(e.target.value); setShown(PRODUCTS_PER_PAGE); }} />
+              </label>
+              <div role="group" aria-label="Filter products" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {chips.map(([v, l, n]) => (
+                  <button key={v} type="button" className={`fs-chip${status === v ? " is-on" : ""}`} aria-pressed={status === v} onClick={() => { setStatus(v); setShown(PRODUCTS_PER_PAGE); }}>
+                    {l} <small className="fs-tabular">{n}</small>
+                  </button>
+                ))}
+              </div>
+              <div style={{ flex: 1 }} />
+              <select className="fs-select" style={{ width: 220 }} aria-label="Filter by collection" value={collectionFilter} onChange={(e) => { setCollectionFilter(e.target.value); setShown(PRODUCTS_PER_PAGE); }}>
+                <option value="all">All collections</option>
+                {collections.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
+              </select>
+            </div>
+
+            {selected.size > 0 && (
+              <div className="fs-bulk-bar" role="region" aria-label="Bulk actions">
+                <button type="button" className="fs-check is-on" aria-label={allVisibleSelected ? "Deselect all" : "Select all shown"} onClick={selectAllVisible}>
+                  <FsIcon name={allVisibleSelected ? "check" : "plus"} size={12} strokeWidth={3.2} />
+                </button>
+                <span style={{ fontSize: 14, fontWeight: 600 }}>{selected.size} selected</span>
+                <div style={{ flex: 1 }} />
+                <button type="button" className="fs-btn fs-btn--sm fs-btn--primary" disabled={isSubmitting} onClick={() => bulkToggle(true)}>Enable try-on</button>
+                <button type="button" className="fs-btn fs-btn--sm" style={{ background: "#1F2937", color: "#FFFFFF", borderColor: "#374151" }} disabled={isSubmitting} onClick={() => bulkToggle(false)}>Disable try-on</button>
+                <button type="button" className="fs-btn fs-btn--sm" style={{ background: "transparent", color: "#D1D5DB" }} onClick={() => setSelected(new Set())}>Clear</button>
               </div>
             )}
-          </>
-        )}
-      </div>
 
-      {/* Enabled Products Cards Section */}
-      <div style={{ marginTop: "48px" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-end",
-            marginBottom: "24px",
-          }}
-        >
-          <div>
-            <h2
-              style={{
-                fontSize: "12px",
-                fontWeight: "700",
-                color: "#1E293B",
-                margin: 0,
-              }}
-            >
-              Try-On Enabled Products
-            </h2>
-            <p style={{ fontSize: "12px", color: "#64748B", marginTop: "4px" }}>
-              Quickly manage products with virtual try-on active
-            </p>
+            {filteredProducts.length === 0 ? (
+              <FsCard>
+                <FsEmpty icon="search" text="No products match these filters." cta="Clear filters" onClick={() => { setQuery(""); setStatus("all"); setCollectionFilter("all"); }} />
+              </FsCard>
+            ) : (
+              <FsCard style={{ padding: 0, gap: 0 }}>
+                <div className="fs-table-wrap">
+                  <table className="fs-table">
+                    <thead>
+                      <tr>
+                        <th style={{ width: 36 }}>
+                          <button type="button" className={`fs-check${allVisibleSelected ? " is-on" : ""}`} aria-label={allVisibleSelected ? "Deselect all" : "Select all shown"} onClick={selectAllVisible}>
+                            {allVisibleSelected && <FsIcon name="check" size={12} strokeWidth={3.2} />}
+                          </button>
+                        </th>
+                        <th>Product</th>
+                        <th>Status</th>
+                        <th>Price</th>
+                        <th className="num">Try-on</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {visibleProducts.map((product) => (
+                        <ProductRow
+                          key={product.id}
+                          product={product}
+                          shop={shop}
+                          selected={selected.has(product.id)}
+                          onSelect={() => toggleSelect(product.id)}
+                          onToggle={() => toggleProduct(product)}
+                          isSubmitting={isSubmitting}
+                          pendingEnabled={pending?.id === product.id ? pending.enabled : undefined}
+                        />
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </FsCard>
+            )}
+            {filteredProducts.length > shown && (
+              <div style={{ display: "flex", justifyContent: "center" }}>
+                <FsButton variant="ghost" onClick={() => setShown((s) => s + PRODUCTS_PER_PAGE)}>Show {Math.min(PRODUCTS_PER_PAGE, filteredProducts.length - shown)} more</FsButton>
+              </div>
+            )}
           </div>
-          <div className="vto-search-wrapper" style={{ width: "320px" }}>
-            <div className="vto-search-icon">
-              <Icon source={SearchIcon} />
-            </div>
-            <input
-              type="text"
-              className="vto-search-input"
-              placeholder="Search enabled products..."
-              value={enabledSearchQuery}
-              onChange={(e) => setEnabledSearchQuery(e.target.value)}
-            />
-          </div>
-        </div>
-
-        {filteredEnabledProducts.length === 0 ? (
-          <div
-            className="vto-card"
-            style={{ padding: "80px 24px", textAlign: "center" }}
-          >
-            <div style={{ color: "#CBD5E1", marginBottom: "16px" }}>
-              <Icon source={CheckCircleIcon} size="large" />
-            </div>
-            <Text variant="headingMd">No enabled products found</Text>
-            <p style={{ fontSize: "12px", color: "#64748B", marginTop: "8px" }}>
-              {enabledSearchQuery
-                ? `No active products match "${enabledSearchQuery}"`
-                : "Enable try-on for products in the collections table above to see them here."}
-            </p>
-          </div>
-        ) : (
-          <div className="vto-grid-auto">
-            {filteredEnabledProducts.map((product) => (
-              <EnabledProductCard
-                key={product.id}
-                product={product}
-                shop={shop}
-                submit={submit}
-                isSubmitting={isSubmitting}
-                navigate={navigate}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-    </Page>
+        </>
+      )}
+    </FsPage>
   );
 }

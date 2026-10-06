@@ -1,0 +1,29 @@
+{%- comment -%}
+  Brix-TryOn Promo Video — a position marker, not a content editor.
+  Target: section — merchants drag this anywhere on the page via the theme
+  editor. It has no settings of its own: the video URL and heading are
+  configured in the app's Widget Settings → Media → Promo video, and
+  injected here by tryon-widget.js's _applyPromoVideoBlockAnchors() once
+  settings load. This block only marks WHERE on the page that content
+  should render.
+{%- endcomment -%}
+
+<div class="tryfit-pv-block" {{ block.shopify_attributes }}>
+  {%- if request.design_mode -%}
+    <div class="tryfit-pv-empty">
+      Content for this block comes from the app's Widget Settings → Media →
+      Promo video — set the video URL there.
+    </div>
+  {%- endif -%}
+</div>
+
+{{ 'tryon-widget.js' | asset_url | script_tag }}
+{{ 'tryon-modal.css' | asset_url | stylesheet_tag }}
+
+{% schema %}
+{
+  "name": "Brix-TryOn Promo Video",
+  "target": "section",
+  "settings": []
+}
+{% endschema %}

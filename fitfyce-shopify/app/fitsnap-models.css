@@ -1,0 +1,13 @@
+/* AI Studio — default model library (app.studio._index.jsx) and wizard picker */
+.fs-dm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 18px; }
+.fs-dm-card { padding: 0; gap: 0; overflow: hidden; transition: border-color .15s, box-shadow .15s; }
+.fs-dm-card.is-on { border-color: #A7E3CB; }
+.fs-dm-img { position: relative; aspect-ratio: 3 / 4; background: #F3F4F6; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.fs-dm-img img { width: 100%; height: 100%; object-fit: cover; }
+.fs-dm-badge { position: absolute; top: 10px; left: 10px; height: 22px; font-size: 11px; box-shadow: 0 1px 2px rgba(0, 0, 0, .08); }
+.fs-dm-body { padding: 12px; display: flex; flex-direction: column; gap: 4px; }
+.fs-dm-name { font-size: 14px; font-weight: 600; }
+.fs-dm-meta { font-size: 12px; color: var(--fs-muted); margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Wizard picker: star on activated models */
+.cr-model-fav { position: absolute; top: 6px; left: 6px; width: 22px; height: 22px; border-radius: 50%; background: rgba(255, 255, 255, .92); color: #C98A00; font-size: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(0, 0, 0, .12); }

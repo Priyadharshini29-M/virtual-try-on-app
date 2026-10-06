@@ -1,4 +1,5 @@
 import "@shopify/polaris/build/esm/styles.css";
+import "../app/design-tokens.css";
 import "../app/tailwind.css";
 import "../app/vto-design.css";
 

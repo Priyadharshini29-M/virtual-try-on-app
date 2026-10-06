@@ -1,79 +1,27 @@
+import PropTypes from "prop-types";
 import { Link } from "react-router";
 import { planAtLeast, PLAN_LABELS, PLAN_PRICES } from "../lib/plans";
-
-function LockIcon() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <rect x="5" y="11" width="14" height="10" rx="2" stroke="#6B7280" strokeWidth="1.5" />
-      <path d="M8 11V7a4 4 0 0 1 8 0v4" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  );
-}
+import { FsButton, FsIcon } from "./fs-ui";
 
 function UpgradeCard({ label, price, featureName }) {
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: "16px",
-        padding: "40px 32px",
-        textAlign: "center",
-        background: "#fff",
-        borderRadius: "16px",
-        border: "1px solid #E5E7EB",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-        maxWidth: "420px",
-        margin: "0 auto",
-        width: "100%",
-      }}
-    >
-      <div
-        style={{
-          width: "56px",
-          height: "56px",
-          borderRadius: "14px",
-          background: "#F3F4F6",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <LockIcon />
-      </div>
+    <div className="fs-card fs-gate-card">
+      <span className="fs-gate-icon"><FsIcon name="lock" size={18} /></span>
       <div>
-        <p style={{ fontSize: "13px", fontWeight: 700, color: "#111827", margin: 0 }}>
-          {featureName ?? "This feature"} requires the {label} plan
-        </p>
-        <p style={{ fontSize: "11px", color: "#6B7280", marginTop: "6px", lineHeight: 1.5 }}>
-          Upgrade to {label} ({price}) to unlock this feature and more.
-        </p>
+        <p className="fs-gate-title">{featureName ?? "This feature"} is part of the {label} plan</p>
+        <p className="fs-gate-sub">Upgrade to {label} ({price}) to unlock it, plus more try-ons every month.</p>
       </div>
-      <Link
-        to="/app/plans"
-        style={{
-          display: "inline-block",
-          padding: "10px 28px",
-          background: "#111827",
-          color: "#fff",
-          borderRadius: "8px",
-          textDecoration: "none",
-          fontSize: "12px",
-          fontWeight: 600,
-          letterSpacing: "0.01em",
-        }}
-      >
-        View Plans
-      </Link>
+      <FsButton to="/app/plans">See plans</FsButton>
     </div>
   );
 }
 
+UpgradeCard.propTypes = { label: PropTypes.string, price: PropTypes.string, featureName: PropTypes.string };
+
 /**
- * Renders children when the plan qualifies, otherwise shows an upgrade prompt.
- * mode="replace" — replaces content entirely (for full-page or tab gates).
- * mode="overlay" — blurs children and overlays the prompt (for inline section gates).
+ * Renders children when the plan qualifies, otherwise shows a locked prompt.
+ * mode="replace" — swaps content entirely for a full upgrade card (for full-page or tab gates).
+ * mode="overlay" — shows the real field disabled, with a small lock badge (for inline section gates).
  */
 export default function PlanGate({
   currentPlan,
@@ -91,38 +39,31 @@ export default function PlanGate({
 
   if (mode === "overlay") {
     return (
-      <div style={{ position: "relative" }}>
-        <div
-          style={{
-            filter: "blur(4px)",
-            pointerEvents: "none",
-            userSelect: "none",
-            opacity: 0.35,
-          }}
+      <div className="fs-gate-wrap">
+        <div aria-hidden="true" className="fs-gate-dim">{children}</div>
+        <Link
+          to="/app/plans"
+          className="fs-gate-lock"
+          title={`${featureName ?? "This feature"} requires the ${label} plan`}
+          aria-label={`${featureName ?? "This feature"} is locked — part of the ${label} plan. See plans.`}
         >
-          {children}
-        </div>
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "rgba(255,255,255,0.7)",
-            borderRadius: "12px",
-            padding: "16px",
-          }}
-        >
-          <UpgradeCard label={label} price={price} featureName={featureName} />
-        </div>
+          <FsIcon name="lock" size={13} />
+        </Link>
       </div>
     );
   }
 
   return (
-    <div style={{ padding: "48px 16px" }}>
+    <div style={{ padding: "64px 16px" }}>
       <UpgradeCard label={label} price={price} featureName={featureName} />
     </div>
   );
 }
+
+PlanGate.propTypes = {
+  currentPlan: PropTypes.string,
+  requiredPlan: PropTypes.string.isRequired,
+  featureName: PropTypes.string,
+  children: PropTypes.node,
+  mode: PropTypes.oneOf(["replace", "overlay"]),
+};

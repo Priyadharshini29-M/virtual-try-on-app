@@ -1,0 +1,28 @@
+{%- comment -%}
+  Brix-TryOn Size Chart — App Embed Block
+  Target: body — enable once in Theme Settings → App Embeds.
+  Separate module from the Try On widget: independently toggleable here in
+  the theme editor, and gated by its own admin on/off switch (Size Chart
+  page) plus a per-product chart assignment — shows nothing unless both are
+  set.
+{%- endcomment -%}
+
+{%- if request.page_type == 'product' -%}
+  <div id="fitfyce-size-chart-root"
+    data-proxy-url="https://{{ shop.permanent_domain }}/apps/tryfit"
+    data-shop="{{ shop.permanent_domain }}"
+    data-product-id="{{ product.id }}"
+    style="display:none"
+  ></div>
+
+  {{ 'size-chart-widget.css' | asset_url | stylesheet_tag }}
+  {{ 'size-chart-widget.js' | asset_url | script_tag }}
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Brix-TryOn Size Chart",
+  "target": "body",
+  "settings": []
+}
+{% endschema %}

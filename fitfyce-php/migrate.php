@@ -349,6 +349,150 @@ runSQL($pdo, '014: create vector_index_status',
         KEY idx_vector_merchant (merchant_id)
     ) ENGINE=InnoDB CHARACTER SET utf8mb4", $log);
 
+runSQL($pdo, '015: create customer_leads',
+    "CREATE TABLE IF NOT EXISTS customer_leads (
+        id                  CHAR(36) PRIMARY KEY,
+        merchant_id         INT NOT NULL,
+        session_id          CHAR(36) DEFAULT NULL,
+        email               VARCHAR(255) NOT NULL,
+        phone               VARCHAR(30) NOT NULL,
+        consent_marketing   TINYINT(1) NOT NULL DEFAULT 0,
+        created_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_leads_merchant (merchant_id),
+        INDEX idx_leads_merchant_email (merchant_id, email),
+        INDEX idx_leads_created (merchant_id, created_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci", $log);
+
+runSQL($pdo, '016: create merchant_onboarding',
+    "CREATE TABLE IF NOT EXISTS merchant_onboarding (
+        merchant_id     INT UNSIGNED PRIMARY KEY,
+        shopify_domain  VARCHAR(255) DEFAULT NULL,
+        goals           JSON DEFAULT NULL,
+        heard_from      VARCHAR(60) DEFAULT NULL,
+        store_type      VARCHAR(60) DEFAULT NULL,
+        catalog_size    VARCHAR(30) DEFAULT NULL,
+        product_scope   VARCHAR(30) DEFAULT NULL,
+        contact_name    VARCHAR(120) DEFAULT NULL,
+        contact_email   VARCHAR(255) DEFAULT NULL,
+        contact_phone   VARCHAR(30) DEFAULT NULL,
+        selected_plan   VARCHAR(20) DEFAULT NULL,
+        current_step    TINYINT UNSIGNED NOT NULL DEFAULT 0,
+        xp              SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+        answers_json    LONGTEXT DEFAULT NULL,
+        completed_at    DATETIME DEFAULT NULL,
+        skipped_at      DATETIME DEFAULT NULL,
+        created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_onboarding_heard (heard_from),
+        INDEX idx_onboarding_completed (completed_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci", $log);
+
+runSQL($pdo, '017a: merchant_onboarding.products_enabled',
+    "ALTER TABLE merchant_onboarding ADD COLUMN IF NOT EXISTS products_enabled INT UNSIGNED NOT NULL DEFAULT 0 AFTER product_scope", $log);
+runSQL($pdo, '017b: merchant_onboarding.embed_confirmed',
+    "ALTER TABLE merchant_onboarding ADD COLUMN IF NOT EXISTS embed_confirmed TINYINT(1) NOT NULL DEFAULT 0 AFTER products_enabled", $log);
+runSQL($pdo, '017c: merchant_onboarding.block_confirmed',
+    "ALTER TABLE merchant_onboarding ADD COLUMN IF NOT EXISTS block_confirmed TINYINT(1) NOT NULL DEFAULT 0 AFTER embed_confirmed", $log);
+
+runSQL($pdo, '018a: create default_models',
+    "CREATE TABLE IF NOT EXISTS default_models (
+        model_key     VARCHAR(40) PRIMARY KEY,
+        name          VARCHAR(60) NOT NULL,
+        gender        ENUM('female','male') NOT NULL,
+        look          VARCHAR(40) DEFAULT NULL,
+        skin_tone     VARCHAR(30) DEFAULT NULL,
+        body_type     VARCHAR(30) DEFAULT NULL,
+        age_group     VARCHAR(10) DEFAULT NULL,
+        hair          VARCHAR(80) DEFAULT NULL,
+        prompt        TEXT NOT NULL,
+        seed          INT UNSIGNED NOT NULL DEFAULT 42,
+        sort_order    SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+        status        ENUM('pending','generating','ready','failed') NOT NULL DEFAULT 'pending',
+        attempts      TINYINT UNSIGNED NOT NULL DEFAULT 0,
+        last_error    VARCHAR(500) DEFAULT NULL,
+        image_path    VARCHAR(255) DEFAULT NULL,
+        thumb_path    VARCHAR(255) DEFAULT NULL,
+        generated_at  DATETIME DEFAULT NULL,
+        updated_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_default_models_status (status),
+        INDEX idx_default_models_gender (gender, sort_order)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci", $log);
+
+runSQL($pdo, '018b: create merchant_active_models',
+    "CREATE TABLE IF NOT EXISTS merchant_active_models (
+        merchant_id   INT UNSIGNED NOT NULL,
+        model_key     VARCHAR(40) NOT NULL,
+        activated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (merchant_id, model_key),
+        INDEX idx_active_models_model (model_key)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci", $log);
+
+runSQL($pdo, '019: analytics_daily add widget_open_count',
+    "ALTER TABLE analytics_daily ADD COLUMN widget_open_count INT UNSIGNED NOT NULL DEFAULT 0 AFTER date", $log);
+runSQL($pdo, '019: analytics_daily add camera_granted_count',
+    "ALTER TABLE analytics_daily ADD COLUMN camera_granted_count INT UNSIGNED NOT NULL DEFAULT 0 AFTER widget_open_count", $log);
+
+// ── 020: Size Chart module ────────────────────────────────────────────────────
+runSQL($pdo, '020: create size_charts',
+    "CREATE TABLE IF NOT EXISTS size_charts (
+      id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+      merchant_id   INT UNSIGNED NOT NULL,
+      name          VARCHAR(120) NOT NULL,
+      unit          ENUM('cm','in') NOT NULL DEFAULT 'in',
+      columns_json  TEXT NOT NULL,
+      rows_json     TEXT NOT NULL,
+      created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      INDEX idx_size_charts_merchant (merchant_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci", $log);
+
+runSQL($pdo, '020b: size_charts add rules_json',
+    "ALTER TABLE size_charts ADD COLUMN rules_json TEXT NULL AFTER rows_json", $log);
+
+runSQL($pdo, '020: create product_size_charts',
+    "CREATE TABLE IF NOT EXISTS product_size_charts (
+      merchant_id         INT UNSIGNED NOT NULL,
+      shopify_product_id  BIGINT UNSIGNED NOT NULL,
+      chart_id            INT UNSIGNED NOT NULL,
+      created_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (merchant_id, shopify_product_id),
+      INDEX idx_psc_chart (chart_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci", $log);
+
+runSQL($pdo, '020: merchants add size_chart_enabled',
+    "ALTER TABLE merchants ADD COLUMN size_chart_enabled TINYINT(1) NOT NULL DEFAULT 0", $log);
+
+// ── 021: Complete Your Look module ────────────────────────────────────────────
+runSQL($pdo, '021: create product_pairings',
+    "CREATE TABLE IF NOT EXISTS product_pairings (
+      id                        INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+      merchant_id               INT UNSIGNED NOT NULL,
+      shopify_product_id        BIGINT UNSIGNED NOT NULL,
+      paired_shopify_product_id BIGINT UNSIGNED NOT NULL,
+      sort_order                SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+      created_at                DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE KEY uq_pairing (merchant_id, shopify_product_id, paired_shopify_product_id),
+      INDEX idx_pairing_source (merchant_id, shopify_product_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci", $log);
+
+runSQL($pdo, '021: merchants add complete_look_enabled',
+    "ALTER TABLE merchants ADD COLUMN complete_look_enabled TINYINT(1) NOT NULL DEFAULT 0", $log);
+
+// ── 022: fix generations.product_id to hold real Shopify product IDs ─────────
+// It was created as plain INT (max ~2.1B) — Shopify product IDs are much
+// larger (e.g. 8288607305914) and would silently truncate/corrupt on insert.
+// shopify_variant_id in the same table was already correctly BIGINT.
+runSQL($pdo, '022: generations.product_id -> BIGINT',
+    "ALTER TABLE generations MODIFY COLUMN product_id BIGINT NULL", $log);
+
+// ── 023: fix garment_studio_sessions.product_id to hold real Shopify product IDs
+// Same INT-overflow bug as 022, but for the table the live AI Studio Create
+// wizard actually writes to (GarmentStudioController -> GarmentStudioRepo),
+// which was missed in 022 because that migration targeted GenerationRepo's
+// 'generations' table instead — a different, unused-by-the-wizard table.
+runSQL($pdo, '023: garment_studio_sessions.product_id -> BIGINT',
+    "ALTER TABLE garment_studio_sessions MODIFY COLUMN product_id BIGINT NULL", $log);
+
 // ── Final: show merchant_settings with domain populated ──────────────────────
 $rows = $pdo->query(
     "SELECT id, merchant_id, shopify_domain, shopify_store_id, created_at FROM merchant_settings ORDER BY id"

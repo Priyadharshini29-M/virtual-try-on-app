@@ -1,5 +1,5 @@
 /**
- * FitSnap virtual try-on widget  v2.1
+ * Brix-TryOn virtual try-on widget  v2.1
  * Enterprise production build — universal Shopify theme compatibility
  *
  * Architecture
@@ -38,6 +38,9 @@
   // ── Free-tier usage limit ────────────────────────────────────────────────────
   var MAX_FREE_TRYONS = 3;
   var USAGE_KEY       = "tryfit_usage";
+
+  // ── Lead capture — once per browser, gated behind the blurred result ───────
+  var LEAD_CAPTURED_KEY = "tryfit_lead_captured";
 
   // ── Polyfill: Element.closest for IE / old Android ──────────────────────────
   if (typeof Element !== "undefined" && !Element.prototype.closest) {
@@ -123,6 +126,7 @@
             }
             _self._applySettings(_self._settingsCache);
           }
+          _self._syncFlipCardHeight();
         }, 150);
       }
       window.addEventListener("resize", _onViewportChange);
@@ -321,6 +325,7 @@
         "tryfit-share-wa": "share-wa",
         "tryfit-retry": "retry",
         "tryfit-retry-error": "retry",
+        "tryfit-lead-submit": "lead-submit",
       };
       return map[el.id] || null;
     },
@@ -361,6 +366,10 @@
           if (img && img.src) self.saveImage(img.src);
           break;
         }
+
+        case "lead-submit":
+          this._submitLead();
+          break;
 
         case "share-wa": {
           var ri = document.getElementById("tryfit-result-img");
@@ -728,9 +737,9 @@
         button_border_radius: 8,
         button_width: 0,
         button_height: 0,
-        button_padding_top: 10,
+        button_padding_top: 14,
         button_padding_right: 24,
-        button_padding_bottom: 10,
+        button_padding_bottom: 14,
         button_padding_left: 24,
         button_margin_top: 0,
         button_margin_right: 0,
@@ -738,12 +747,12 @@
         button_margin_left: 0,
         widget_title: "Try On This Look",
         widget_subtitle: "See how it fits before you buy",
-        title_font_size: 20,
-        subtitle_font_size: 14,
+        title_font_size: 16,
+        subtitle_font_size: 12,
         title_font_weight: "600",
         title_font_family: "Inter, sans-serif",
         subtitle_font_family: "Inter, sans-serif",
-        desktop_title_font_size: 20,
+        desktop_title_font_size: 16,
         mobile_title_font_size: 14,
         desktop_widget_width: 0,
         desktop_widget_width_unit: "px",
@@ -753,9 +762,9 @@
         mobile_widget_width_unit: "%",
         mobile_widget_height: 0,
         mobile_widget_height_unit: "auto",
-        desktop_padding_top: 10,
+        desktop_padding_top: 14,
         desktop_padding_right: 24,
-        desktop_padding_bottom: 10,
+        desktop_padding_bottom: 14,
         desktop_padding_left: 24,
         mobile_padding_top: 8,
         mobile_padding_right: 16,
@@ -855,6 +864,14 @@
           "fitfyce-embed";
         this._ensureWidgetVars(widgetId, s);
       } catch (ignore) {}
+
+      // ── Standalone theme blocks (Brix-TryOn Before/After, Brix-TryOn Promo
+      // Video) — merchant drags these anywhere on the page via the theme
+      // editor; all content (images/video/title/sizing) comes from these
+      // same settings, not from block-level settings. Runs independently of
+      // the Try On button's own presence/position on this page. ───────────
+      this._applyExampleBlockAnchors(s);
+      this._applyPromoVideoBlockAnchors(s.promo_video_url);
 
       // Product pages: use live API data (enabled_product_ids) as the primary
       // source of truth so that a disabled product's button is removed even when
@@ -1088,7 +1105,7 @@
             ? s.desktop_title_font_size
             : s.title_font_size != null
               ? s.title_font_size
-              : 18;
+              : 16;
         titleEl.style.setProperty("font-size", titleFs + "px", "important");
         titleEl.style.setProperty(
           "font-weight",
@@ -1112,7 +1129,7 @@
           subtitleEl.style.setProperty("display", "block", "important");
           subtitleEl.style.setProperty(
             "font-size",
-            (s.subtitle_font_size || 14) + "px",
+            (s.subtitle_font_size || 12) + "px",
             "important",
           );
           if (s.subtitle_font_family) {
@@ -1155,9 +1172,377 @@
       btn.style.setProperty("opacity", "1", "important");
       btn.style.setProperty("visibility", "visible", "important");
 
+      // ── 13. Before/after result slider ────────────────────────────────────
+      // (promo_video_url is applied in _injectProductButton — it renders
+      // below the button on the page, not inside this modal.)
+      this._beforeAfterEnabled = toBool(s.before_after_enabled, false);
+
     },
 
-    _matchThemeBuyButton: function (btn) {
+    // Builds and places the optional demo/promo video directly below the
+    // injected Try On button on the product page (not inside the modal —
+    // Fire-and-forget engagement ping for the Analytics "Engagement Funnel"
+    // (widget_open / camera_granted) — these happen before a tryon_sessions
+    // row exists, so they can't go through the session-scoped /session/track
+    // endpoint; this hits a separate public route keyed by shop domain only.
+    // Never blocks or surfaces errors — a dropped analytics ping is fine.
+    _trackWidgetEvent: function (eventName) {
+      try {
+        var proxyUrl = (this.config && this.config.proxyUrl) || "";
+        var shop = (this.config && this.config.shop) || window.location.hostname;
+        if (!proxyUrl) return;
+        fetch(proxyUrl + "/api/widget-event", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ shop: shop, event: eventName }),
+          keepalive: true,
+        }).catch(function () {});
+      } catch (ignore) {}
+    },
+
+    // it's a page-level teaser, shown whether or not the shopper ever opens
+    // the try-on flow). Direct video URLs get a plain <video> tag; YouTube/
+    // Vimeo links get an <iframe> embed since <video src> can't play those.
+    // Builds the promo video element (not inserted anywhere) — shared by the
+    // button-relative insertion (_applyPromoVideo) and the standalone
+    // "Brix-TryOn Promo Video" theme block (_applyPromoVideoBlockAnchors).
+    _buildPromoVideoEl: function (url) {
+      if (!url) return null;
+
+      var wrap = document.createElement("div");
+      wrap.className = "tryfit-page-promo-video tryfit-app-block";
+
+      var embedUrl = this._toEmbeddableVideoUrl(url);
+      if (embedUrl) {
+        var iframe = document.createElement("iframe");
+        iframe.src = embedUrl;
+        iframe.setAttribute(
+          "allow",
+          "autoplay; encrypted-media; picture-in-picture",
+        );
+        iframe.setAttribute("allowfullscreen", "");
+        iframe.setAttribute("title", "Try-on demo video");
+        wrap.appendChild(iframe);
+      } else {
+        var video = document.createElement("video");
+        video.src = url;
+        video.controls = true;
+        video.playsInline = true;
+        video.preload = "none";
+        wrap.appendChild(video);
+      }
+
+      return wrap;
+    },
+
+    // Button-relative insertion — above/below the Try On button, per Widget
+    // Settings' Position field. Used when the merchant hasn't dragged the
+    // standalone block onto the page.
+    _applyPromoVideo: function (url, afterEl, position) {
+      var existing = document.getElementById("tryfit-page-promo-video");
+      if (existing && existing.parentNode) {
+        existing.parentNode.removeChild(existing);
+      }
+      if (!afterEl) return;
+
+      var el = this._buildPromoVideoEl(url);
+      if (!el) return;
+      el.id = "tryfit-page-promo-video";
+
+      if (position === "above_button") {
+        afterEl.insertAdjacentElement("beforebegin", el);
+      } else {
+        afterEl.insertAdjacentElement("afterend", el);
+      }
+    },
+
+    // Standalone "Brix-TryOn Promo Video" theme block — a plain marker div
+    // (.tryfit-pv-block) the merchant drags anywhere via the theme editor.
+    // Populated here instead of via block-level settings, so all
+    // customization stays in the admin. Supports multiple instances on one
+    // page. Clears each anchor first so a settings change (or the video URL
+    // being cleared) doesn't leave a stale embed behind.
+    _applyPromoVideoBlockAnchors: function (url) {
+      var anchors = document.querySelectorAll(".tryfit-pv-block");
+      for (var i = 0; i < anchors.length; i++) {
+        var anchor = anchors[i];
+        anchor.innerHTML = "";
+        var el = this._buildPromoVideoEl(url);
+        if (el) anchor.appendChild(el);
+      }
+    },
+
+    _toEmbeddableVideoUrl: function (url) {
+      var yt = url.match(
+        /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/i,
+      );
+      if (yt) return "https://www.youtube.com/embed/" + yt[1];
+      var vimeo = url.match(/vimeo\.com\/(?:video\/)?(\d+)/i);
+      if (vimeo) return "https://player.vimeo.com/video/" + vimeo[1];
+      return null;
+    },
+
+    // Populates and reveals the before/after slider for the current result,
+    // or hides it and falls back to the plain result image when the feature
+    // is off or the user's original photo isn't available (e.g. re-run from
+    // a saved session where only the result was kept).
+    _applyCompareSlider: function (resultUrl) {
+      var wrap = document.getElementById("tryfit-compare");
+      var mainImg = document.getElementById("tryfit-result-img");
+      if (!wrap) return;
+
+      var beforeUrl = this._lastAvatarBase64;
+      if (!this._beforeAfterEnabled || !beforeUrl) {
+        wrap.style.display = "none";
+        if (mainImg) mainImg.style.display = "";
+        return;
+      }
+
+      var beforeImg = document.getElementById("tryfit-compare-before");
+      var afterImg = document.getElementById("tryfit-compare-after");
+      if (beforeImg) beforeImg.src = beforeUrl;
+      if (afterImg) afterImg.src = resultUrl;
+
+      wrap.style.display = "";
+      // The comparison overlay sits on top of tryfit-result-frame; hide the
+      // plain image underneath (its .src stays set — save/share/zoom actions
+      // read it directly) so it doesn't show through at the slider's edges.
+      if (mainImg) mainImg.style.display = "none";
+
+      var refs = {
+        wrap: wrap,
+        afterWrap: document.getElementById("tryfit-compare-after-wrap"),
+        afterImg: afterImg,
+        handle: document.getElementById("tryfit-compare-handle"),
+      };
+      this._setSliderPos(refs, 50);
+      this._bindSliderDrag(refs);
+    },
+
+    // Generic drag-slider math shared by the modal's result comparison and
+    // the page-level example slider — pct is the after-layer's reveal width.
+    _setSliderPos: function (refs, pct) {
+      pct = Math.max(0, Math.min(100, pct));
+      if (!refs.wrap || !refs.afterWrap || !refs.handle) return;
+
+      var w = refs.wrap.offsetWidth;
+      var h = refs.wrap.offsetHeight;
+      refs.afterWrap.style.width = pct + "%";
+      if (refs.afterImg) {
+        refs.afterImg.style.width = w + "px";
+        refs.afterImg.style.height = h + "px";
+      }
+      refs.handle.style.left = pct + "%";
+      refs.handle.setAttribute("aria-valuenow", String(Math.round(pct)));
+    },
+
+    // Binds drag/keyboard interaction for one slider instance. Guards on the
+    // wrap element itself (not `this`) so multiple independent sliders (the
+    // modal's result compare + the page-level example slider) can each bind
+    // exactly once without stepping on each other.
+    _bindSliderDrag: function (refs) {
+      if (!refs.wrap || !refs.handle || refs.wrap._tryfitDragBound) return;
+      refs.wrap._tryfitDragBound = true;
+
+      var self = this;
+      var wrap = refs.wrap;
+      var handle = refs.handle;
+      var dragging = false;
+
+      var move = function (clientX) {
+        var rect = wrap.getBoundingClientRect();
+        if (!rect.width) return;
+        self._setSliderPos(refs, ((clientX - rect.left) / rect.width) * 100);
+      };
+
+      var onPointerDown = function (e) {
+        dragging = true;
+        var x = e.touches ? e.touches[0].clientX : e.clientX;
+        move(x);
+        e.preventDefault();
+      };
+      var onPointerMove = function (e) {
+        if (!dragging) return;
+        var x = e.touches ? e.touches[0].clientX : e.clientX;
+        move(x);
+      };
+      var onPointerUp = function () {
+        dragging = false;
+      };
+
+      handle.addEventListener("mousedown", onPointerDown);
+      wrap.addEventListener("mousedown", onPointerDown);
+      document.addEventListener("mousemove", onPointerMove);
+      document.addEventListener("mouseup", onPointerUp);
+
+      handle.addEventListener("touchstart", onPointerDown, { passive: false });
+      wrap.addEventListener("touchstart", onPointerDown, { passive: false });
+      document.addEventListener("touchmove", onPointerMove, { passive: true });
+      document.addEventListener("touchend", onPointerUp);
+
+      handle.addEventListener("keydown", function (e) {
+        var cur = parseFloat(handle.getAttribute("aria-valuenow")) || 50;
+        if (e.key === "ArrowLeft") {
+          self._setSliderPos(refs, cur - 5);
+          e.preventDefault();
+        } else if (e.key === "ArrowRight") {
+          self._setSliderPos(refs, cur + 5);
+          e.preventDefault();
+        }
+      });
+
+      window.addEventListener("resize", function () {
+        var cur = parseFloat(handle.getAttribute("aria-valuenow"));
+        if (!isNaN(cur) && wrap.style.display !== "none") self._setSliderPos(refs, cur);
+      });
+    },
+
+    // Builds the before/after example card's DOM (not inserted anywhere) —
+    // shared by the button-relative insertion (_applyExampleSlider) and the
+    // standalone "Brix-TryOn Before/After" theme block (_applyExampleBlockAnchors).
+    // All content (images/title/sizing) comes from Widget Settings → Media →
+    // Before/after images — fully manual, no product or AI Studio data.
+    // Returns null when not enabled or either image is missing.
+    //
+    // DOM shape: an outer `wrap` carries the merchant's width/margin/padding
+    // and optional title (plain flow, so the title never overlaps the
+    // images); an inner `box` carries the actual compare slider (position:
+    // relative, aspect-ratio/height, overflow:hidden) — kept separate so the
+    // title can sit above it without being covered by the absolutely
+    // positioned before/after images.
+    _buildExampleCard: function (s) {
+      var beforeUrl = s.example_before_image || "";
+      var afterUrl = s.example_after_image || "";
+      if (!s.example_before_after_enabled || !beforeUrl || !afterUrl) return null;
+
+      var wrap = document.createElement("div");
+      wrap.className = "tryfit-page-example-slider tryfit-app-block";
+      wrap.style.width = (parseInt(s.example_width, 10) || 320) + "px";
+      wrap.style.margin =
+        (parseInt(s.example_margin_top, 10) || 0) + "px " +
+        (parseInt(s.example_margin_right, 10) || 0) + "px " +
+        (parseInt(s.example_margin_bottom, 10) || 0) + "px " +
+        (parseInt(s.example_margin_left, 10) || 0) + "px";
+      wrap.style.padding =
+        (parseInt(s.example_padding_top, 10) || 0) + "px " +
+        (parseInt(s.example_padding_right, 10) || 0) + "px " +
+        (parseInt(s.example_padding_bottom, 10) || 0) + "px " +
+        (parseInt(s.example_padding_left, 10) || 0) + "px";
+
+      if (s.example_title) {
+        var title = document.createElement("p");
+        title.className = "tryfit-page-example-title";
+        title.textContent = s.example_title;
+        wrap.appendChild(title);
+      }
+
+      var box = document.createElement("div");
+      box.className = "tryfit-page-example-box";
+      var heightPx = parseInt(s.example_height, 10) || 0;
+      if (heightPx > 0) {
+        box.style.height = heightPx + "px";
+        box.style.aspectRatio = "auto";
+      }
+
+      var beforeImg = document.createElement("img");
+      beforeImg.className = "tryfit-compare-img";
+      beforeImg.src = beforeUrl;
+      beforeImg.alt = "Before";
+      beforeImg.loading = "lazy";
+
+      var afterWrap = document.createElement("div");
+      afterWrap.className = "tryfit-compare-after-wrap";
+      var afterImg = document.createElement("img");
+      afterImg.className = "tryfit-compare-img";
+      afterImg.src = afterUrl;
+      afterImg.alt = "After";
+      afterImg.loading = "lazy";
+      afterWrap.appendChild(afterImg);
+
+      var handle = document.createElement("div");
+      handle.className = "tryfit-compare-handle";
+      handle.setAttribute("role", "slider");
+      handle.setAttribute("tabindex", "0");
+      handle.setAttribute("aria-label", "Drag to compare before and after");
+      handle.setAttribute("aria-valuemin", "0");
+      handle.setAttribute("aria-valuemax", "100");
+      handle.setAttribute("aria-valuenow", "50");
+      var grip = document.createElement("span");
+      grip.className = "tryfit-compare-handle-grip";
+      grip.innerHTML =
+        '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6-6 6 6 6M15 6l6 6-6 6"/></svg>';
+      handle.appendChild(grip);
+
+      var labelBefore = document.createElement("span");
+      labelBefore.className = "tryfit-compare-label tryfit-compare-label--before";
+      labelBefore.textContent = "Before";
+      var labelAfter = document.createElement("span");
+      labelAfter.className = "tryfit-compare-label tryfit-compare-label--after";
+      labelAfter.textContent = "After";
+
+      box.appendChild(beforeImg);
+      box.appendChild(afterWrap);
+      box.appendChild(labelBefore);
+      box.appendChild(labelAfter);
+      box.appendChild(handle);
+      wrap.appendChild(box);
+
+      return { wrap: wrap, refs: { wrap: box, afterWrap: afterWrap, afterImg: afterImg, handle: handle } };
+    },
+
+    // Button-relative insertion — above/below the Try On button, per Widget
+    // Settings' Position field. Used when the merchant hasn't dragged the
+    // standalone block onto the page.
+    _applyExampleSlider: function (s, buttonEl) {
+      var existing = document.getElementById("tryfit-page-example-slider");
+      if (existing && existing.parentNode) {
+        existing.parentNode.removeChild(existing);
+      }
+      if (!buttonEl) return;
+
+      var built = this._buildExampleCard(s);
+      if (!built) return;
+      built.wrap.id = "tryfit-page-example-slider";
+
+      if (s.example_slider_position === "above_button") {
+        buttonEl.insertAdjacentElement("beforebegin", built.wrap);
+      } else {
+        buttonEl.insertAdjacentElement("afterend", built.wrap);
+      }
+
+      this._setSliderPos(built.refs, 50);
+      this._bindSliderDrag(built.refs);
+    },
+
+    // Standalone "Brix-TryOn Before/After" theme block — a plain marker div
+    // (.tryfit-ba-block) the merchant drags anywhere via the theme editor.
+    // Populated here instead of via block-level settings, so all
+    // customization stays in the admin. Supports multiple instances on one
+    // page. Clears each anchor first so a settings change (or the feature
+    // being turned off) doesn't leave a stale card behind.
+    _applyExampleBlockAnchors: function (s) {
+      var anchors = document.querySelectorAll(".tryfit-ba-block");
+      for (var i = 0; i < anchors.length; i++) {
+        var anchor = anchors[i];
+        anchor.innerHTML = "";
+        var built = this._buildExampleCard(s);
+        if (!built) continue;
+        anchor.appendChild(built.wrap);
+        this._setSliderPos(built.refs, 50);
+        this._bindSliderDrag(built.refs);
+      }
+    },
+
+    // Matches the injected Try On button's rendered width to the theme's own
+    // Add to Cart / Buy button, so the two line up visually even when the
+    // Try On wrap ends up in a differently-padded parent than the cart form
+    // (the insertion point is a best-effort selector chain, not guaranteed
+    // to match the cart form's own container on every theme). Only called
+    // when the merchant hasn't set an explicit custom width in Widget
+    // Settings — an explicit width is a deliberate choice and is never
+    // overridden here. Height/font-size are left alone; nothing reported
+    // those as mismatched.
+    _matchThemeBuyButtonWidth: function (btn) {
       if (!btn) return;
 
       var selectors = [
@@ -1176,24 +1561,13 @@
       }
       if (!buyBtn) return;
 
-      var h = buyBtn.offsetHeight;
-      var computed = window.getComputedStyle(buyBtn);
-      var fs = computed.fontSize;
+      var w = buyBtn.offsetWidth;
+      if (w <= 0) return;
 
-      if (h > 0) {
-        btn.style.setProperty("height", h + "px", "important");
-        btn.style.setProperty("min-height", h + "px", "important");
-        btn.style.setProperty("padding-top", "0", "important");
-        btn.style.setProperty("padding-bottom", "0", "important");
-        // Hide subtitle so content fits cleanly within the matched height
-        var subEl = btn.querySelector(".tryfit-btn-subtitle");
-        if (subEl) subEl.style.setProperty("display", "none", "important");
-      }
-
-      if (fs) {
-        var titleEl = btn.querySelector(".tryfit-btn-title");
-        if (titleEl) titleEl.style.setProperty("font-size", fs, "important");
-      }
+      var wrapEl = btn.closest("#tryfit-btn-wrap");
+      btn.style.setProperty("width", w + "px", "important");
+      btn.style.setProperty("max-width", "100%", "important");
+      if (wrapEl) wrapEl.style.setProperty("max-width", w + "px", "important");
     },
 
     _removeInjectedProductButton: function () {
@@ -1325,10 +1699,10 @@
       var s = settings || this._settingsCache || {};
       var bg = s.button_color || "#111827";
       var fg = s.button_text_color || "#ffffff";
-      var radius = s.button_border_radius != null ? s.button_border_radius : 4;
-      var pt = s.button_padding_top != null ? s.button_padding_top : 12;
+      var radius = s.button_border_radius != null ? s.button_border_radius : 8;
+      var pt = s.button_padding_top != null ? s.button_padding_top : 14;
       var pr = s.button_padding_right != null ? s.button_padding_right : 24;
-      var pb = s.button_padding_bottom != null ? s.button_padding_bottom : 12;
+      var pb = s.button_padding_bottom != null ? s.button_padding_bottom : 14;
       var pl = s.button_padding_left != null ? s.button_padding_left : 24;
       var isMobileInit = window.innerWidth <= 768;
       var initW = isMobileInit
@@ -1466,6 +1840,15 @@
         container.insertAdjacentElement("afterend", wrap);
       }
       log("product button injected");
+
+      // Only auto-match width when the merchant left it at the default
+      // ("fill container") — an explicit custom width is left untouched.
+      if (initW <= 0) {
+        this._matchThemeBuyButtonWidth(btn);
+      }
+
+      this._applyPromoVideo(s.promo_video_url, wrap, s.promo_video_position);
+      this._applyExampleSlider(s, wrap);
     },
 
     _parseJsonDataset: function (value, fallback) {
@@ -1984,6 +2367,7 @@
     // ══════════════════════════════════════════════════════════════════════
 
     openModal: function () {
+      this._trackWidgetEvent("widget_open");
       this._ensureOverlayInBody();
 
       var overlay = document.getElementById("tryfit-overlay");
@@ -2137,6 +2521,7 @@
           el.style.display = steps[i] === step ? "block" : "none";
         }
       }
+      if (step === "upload") this._applyUploadGuidance();
       log("step:", step);
     },
 
@@ -2218,6 +2603,24 @@
         return;
       }
 
+      // Sarees need the whole body in frame to drape correctly. Catch clearly
+      // unsuitable photos (cropped, square, tiny) here, before a generation
+      // is spent on them. Other products skip straight to processing.
+      if (this._isSareeProduct()) {
+        var checkSelf = this;
+        this._checkSareePhoto(file).then(function (problem) {
+          if (problem) {
+            checkSelf.showError(problem);
+            return;
+          }
+          checkSelf._processPhoto(file);
+        });
+        return;
+      }
+      this._processPhoto(file);
+    },
+
+    _processPhoto: function (file) {
       var self = this;
       this._showStep("processing");
       this.showProgress("Resizing your photo…");
@@ -2240,7 +2643,7 @@
 
       this.toJpegBlob(file)
         .then(function (blob) {
-          self.showProgress("FitSnap is creating your look…");
+          self.showProgress("Brix-TryOn is creating your look…");
           self.startProgressAnimation(28);
           return self._createSession().then(function () {
             return self.runTryOn(blob);
@@ -2254,6 +2657,77 @@
           );
           log("photo error:", err);
         });
+    },
+
+    // ── Saree photo guidance ────────────────────────────────────────────────
+
+    _isSareeProduct: function () {
+      var title = (this.config && this.config.productTitle) || "";
+      return /\b(sarees?|saris?)\b/i.test(title);
+    },
+
+    // Shows the "full-length photo" tips on the upload step for saree products.
+    _applyUploadGuidance: function () {
+      var tips = document.getElementById("tryfit-saree-tips");
+      if (tips) tips.style.display = this._isSareeProduct() ? "block" : "none";
+    },
+
+    // Resolves with a shopper-facing message when the photo is clearly not
+    // suitable for a saree, or null when it looks fine. Never rejects — if
+    // the photo can't be inspected, the normal pipeline handles it.
+    _checkSareePhoto: function (file) {
+      var MIN_SIDE = 300;      // px — smaller photos lose the drape detail
+      var MIN_RATIO = 1.15;    // height / width — full-length photos are portrait
+      var MAX_FACE = 0.22;     // face height / image height — bigger means cropped
+      var NOT_FULL =
+        "For a saree we need your full length. Please upload a photo of you " +
+        "standing, front-facing, showing head to toe.";
+
+      return new Promise(function (resolve) {
+        var url;
+        try {
+          url = URL.createObjectURL(file);
+        } catch (e) {
+          resolve(null);
+          return;
+        }
+        var img = new Image();
+        function done(result) {
+          try { URL.revokeObjectURL(url); } catch (ignore) {}
+          resolve(result);
+        }
+        img.onerror = function () { done(null); };
+        img.onload = function () {
+          var w = img.naturalWidth;
+          var h = img.naturalHeight;
+          if (!w || !h) { done(null); return; }
+          if (Math.min(w, h) < MIN_SIDE) {
+            done("This photo is too small. Please choose a larger photo, at least " + MIN_SIDE + " pixels wide.");
+            return;
+          }
+          if (h / w < MIN_RATIO) { done(NOT_FULL); return; }
+
+          // Where the browser supports it (Chrome), a large face relative to
+          // the frame means a waist-up or close-up shot.
+          if (typeof window.FaceDetector === "function") {
+            try {
+              new window.FaceDetector({ fastMode: true, maxDetectedFaces: 1 })
+                .detect(img)
+                .then(function (faces) {
+                  if (faces && faces.length && faces[0].boundingBox.height / h > MAX_FACE) {
+                    done(NOT_FULL);
+                  } else {
+                    done(null);
+                  }
+                })
+                .catch(function () { done(null); });
+              return;
+            } catch (e) { /* fall through */ }
+          }
+          done(null);
+        };
+        img.src = url;
+      });
     },
 
     _createSession: function () {
@@ -2404,80 +2878,97 @@
         self._lastAvatarBase64 = avatarBase64;
         self._lastClothingImageUrl = clothingImage;
 
-        var controller = window.AbortController ? new AbortController() : null;
-        var timeoutId = controller
-          ? setTimeout(function () {
-              controller.abort();
-            }, 95000)
-          : null;
-        var shop = self.config.shop || window.location.hostname;
-
-        var opts = {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
+        return self
+          ._submitAndPollTryOn({
             clothing_image: clothingImage, // URL — PHP downloads it server-side
             avatar_image: avatarBase64, // User photo must be base64
             shopify_variant_id: variant.id,
             shopify_product_id: self.config.productId,
+            product_title: self.config.productTitle || "", // free zero-config signal for garment-category inference
             session_id: self.sessionId,
-          }),
-        };
-        if (controller) opts.signal = controller.signal;
-
-        return fetch(
-          self.config.proxyUrl + "/api/tryon?shop=" + encodeURIComponent(shop),
-          opts,
-        )
-          .then(function (r) {
-            if (timeoutId) clearTimeout(timeoutId);
-            if (!r.ok) {
-              // Read the actual error body so the user sees a helpful message
-              return r
-                .json()
-                .catch(function () {
-                  return {};
-                })
-                .then(function (errBody) {
-                  if (errBody.raw_error || errBody.status_code !== undefined) {
-                    log(
-                      "try-on API error — status:",
-                      errBody.status_code,
-                      "detail:",
-                      errBody.raw_error,
-                    );
-                  }
-                  return Promise.reject(
-                    new Error(
-                      errBody.error || "Something went wrong. Please try again.",
-                    ),
-                  );
-                });
-            }
-            return r.json();
           })
           .then(function (data) {
             self._stopProgress();
-            if (data.result_image) {
-              self.showResult(data.result_image);
-            } else {
-              self.showError(data.error || "Try-on failed. Please try again.");
-            }
+            self.showResult(data.result_image);
           })
           .catch(function (err) {
-            if (timeoutId) clearTimeout(timeoutId);
             self._stopProgress();
-            var msg;
-            if (err && err.name === "AbortError") {
-              msg = "This is taking longer than expected. Please try again.";
-            } else if (err && err.message && err.message.length < 200) {
-              msg = err.message;
-            } else {
-              msg = "Something went wrong. Please try again.";
-            }
+            var msg = err && err.message && err.message.length < 200
+              ? err.message
+              : "Something went wrong. Please try again.";
             self.showError(msg);
             log("runTryOn error:", err);
           });
+      });
+    },
+
+    // Submits a try-on job then polls for its result, instead of one long
+    // blocking request. Each individual network call (submit, each status
+    // check) stays fast — the polling loop, not any single request, is what
+    // waits out the actual generation time. This is what keeps every request
+    // safely under Shopify App Proxy's own ~60s timeout regardless of how
+    // long RunPod actually takes, which a single long-lived request cannot
+    // do no matter how high its own client/server timeouts are raised.
+    // Resolves with {result_image, seed} or rejects with an Error.
+    _submitAndPollTryOn: function (body) {
+      var self = this;
+      var shop = self.config.shop || window.location.hostname;
+      var deadline = Date.now() + 190000; // overall safety net, same ceiling as before
+      var pollIntervalMs = 2500;
+
+      function submit() {
+        return fetch(
+          self.config.proxyUrl + "/api/tryon?shop=" + encodeURIComponent(shop),
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          },
+        ).then(function (r) {
+          return r.json().catch(function () { return {}; }).then(function (data) {
+            if (!r.ok || !data.job_id) {
+              return Promise.reject(new Error(data.error || "Something went wrong. Please try again."));
+            }
+            return data;
+          });
+        });
+      }
+
+      function poll(jobId, seed) {
+        if (Date.now() > deadline) {
+          return Promise.reject(new Error("This is taking longer than expected. Please try again."));
+        }
+        var qs =
+          "job_id=" + encodeURIComponent(jobId) +
+          "&shop=" + encodeURIComponent(shop) +
+          "&seed=" + encodeURIComponent(seed == null ? -1 : seed) +
+          (self.sessionId ? "&session_id=" + encodeURIComponent(self.sessionId) : "");
+
+        return fetch(self.config.proxyUrl + "/api/tryon-status?" + qs)
+          .then(function (r) {
+            return r.json().catch(function () { return {}; }).then(function (data) {
+              if (!r.ok && data.status !== "failed") {
+                return Promise.reject(new Error(data.error || "Something went wrong. Please try again."));
+              }
+              return data;
+            });
+          })
+          .then(function (data) {
+            if (data.status === "completed") return data;
+            if (data.status === "failed") {
+              return Promise.reject(new Error(data.error || "Try-on failed. Please try again."));
+            }
+            // still processing — wait, then check again
+            return new Promise(function (resolve) {
+              setTimeout(resolve, pollIntervalMs);
+            }).then(function () {
+              return poll(jobId, seed);
+            });
+          });
+      }
+
+      return submit().then(function (submitData) {
+        return poll(submitData.job_id, submitData.seed);
       });
     },
 
@@ -2526,6 +3017,7 @@
         img.src = imageUrl;
         img.alt = "Your virtual try-on result";
       }
+      this._applyCompareSlider(imageUrl);
 
       var titleEl = document.getElementById("tryfit-result-product-title");
       if (titleEl) titleEl.textContent = this.config.productTitle || "";
@@ -2549,6 +3041,10 @@
       this._startCountdown(600);
       this._applyResultCoupon();
       this._showStep("result");
+      // Front face (form) for a fresh browser; back face (purchase controls)
+      // for one that already submitted — instant=true so a returning shopper
+      // doesn't see an unprompted flip animation play on load.
+      this._applyLeadGate(true);
     },
 
     showProgress: function (msg) {
@@ -2587,6 +3083,183 @@
       } catch (e) {
         // localStorage unavailable (incognito quota, etc.) — silently skip
       }
+    },
+
+    // ── Lead capture helpers ─────────────────────────────────────────────────
+
+    _hasCapturedLead: function () {
+      try {
+        return localStorage.getItem(LEAD_CAPTURED_KEY) === "1";
+      } catch (e) {
+        // localStorage unavailable — treat as not-yet-captured (fresher gate
+        // shows every time, which is the safe default) rather than crash.
+        return false;
+      }
+    },
+
+    _markLeadCaptured: function () {
+      try {
+        localStorage.setItem(LEAD_CAPTURED_KEY, "1");
+      } catch (e) {
+        // localStorage unavailable (incognito quota, etc.) — silently skip
+      }
+    },
+
+    // The purchase panel flips between the lead form (front) and the actual
+    // purchase controls (back); the result image + product title blur/hide
+    // alongside it via _setResultGate.
+    //
+    // instant=true skips the CSS transition (used when the result step first
+    // renders, so a returning shopper who already submitted doesn't see an
+    // unprompted flip animation play on load — the flip should only animate
+    // in response to an actual submit).
+    _applyLeadGate: function (instant) {
+      var gated = this._hasCapturedLead() === false;
+      if (gated) {
+        this._showLeadGate(instant);
+      } else {
+        this._hideLeadGate(instant);
+      }
+      this._syncFlipCardHeight();
+    },
+
+    // Both faces of the flip card are absolutely positioned on top of each
+    // other (standard flip-card technique), so neither contributes to
+    // normal document flow — the card's own height has to be set explicitly,
+    // sized to whichever face is taller. Re-run whenever content that could
+    // change either face's height loads (variants/prices) or the viewport
+    // resizes.
+    _syncFlipCardHeight: function () {
+      var card = document.getElementById("tryfit-flip-card");
+      if (!card) return;
+      var front = card.querySelector(".tryfit-flip-front");
+      var back = card.querySelector(".tryfit-flip-back");
+      var frontH = front ? front.scrollHeight : 0;
+      var backH = back ? back.scrollHeight : 0;
+      var h = Math.max(frontH, backH);
+      if (h > 0) card.style.height = h + "px";
+    },
+
+    _setFlipped: function (flipped, instant) {
+      var card = document.getElementById("tryfit-flip-card");
+      if (!card) return;
+      var inner = card.querySelector(".tryfit-flip-card-inner");
+      if (instant && inner) {
+        inner.style.transition = "none";
+        void inner.offsetHeight; // force reflow before the class change below
+      }
+      card.classList[flipped ? "add" : "remove"]("tryfit-flipped");
+      if (instant && inner) {
+        requestAnimationFrame(function () {
+          inner.style.transition = "";
+        });
+      }
+    },
+
+    // Blurs the result image and hides the product title until the lead is
+    // submitted — separate from the flip card, which only covers the
+    // purchase panel.
+    _setResultGate: function (gated) {
+      var frame = document.querySelector("#tryfit-step-result .tryfit-result-frame");
+      var titleHeader = document.querySelector("#tryfit-step-result .tryfit-result-product-header");
+      if (frame) frame.classList[gated ? "add" : "remove"]("tryfit-blurred");
+      if (titleHeader) titleHeader.classList[gated ? "add" : "remove"]("tryfit-hidden");
+    },
+
+    // Front face (lead form) showing.
+    _showLeadGate: function (instant) {
+      this._setFlipped(false, instant);
+      this._setResultGate(true);
+
+      // Reset the form each time it's shown (e.g. re-upload → new result).
+      var emailEl = document.getElementById("tryfit-lead-email");
+      var phoneEl = document.getElementById("tryfit-lead-phone");
+      var consentEl = document.getElementById("tryfit-lead-consent");
+      var errEl = document.getElementById("tryfit-lead-error");
+      if (emailEl) emailEl.value = "";
+      if (phoneEl) phoneEl.value = "";
+      if (consentEl) consentEl.checked = false;
+      if (errEl) {
+        errEl.style.display = "none";
+        errEl.textContent = "";
+      }
+    },
+
+    // Back face (purchase controls) showing.
+    _hideLeadGate: function (instant) {
+      this._setFlipped(true, instant);
+      this._setResultGate(false);
+    },
+
+    _showLeadError: function (msg) {
+      var errEl = document.getElementById("tryfit-lead-error");
+      if (errEl) {
+        errEl.textContent = msg;
+        errEl.style.display = "block";
+      }
+    },
+
+    _submitLead: function () {
+      var self = this;
+      var email = (document.getElementById("tryfit-lead-email") || {}).value || "";
+      var phone = (document.getElementById("tryfit-lead-phone") || {}).value || "";
+      var consent = !!(document.getElementById("tryfit-lead-consent") || {}).checked;
+      email = email.trim();
+      phone = phone.trim();
+
+      var emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      if (!emailOk) {
+        this._showLeadError("Please enter a valid email address.");
+        return;
+      }
+      if (phone.length < 6) {
+        this._showLeadError("Please enter a valid phone number.");
+        return;
+      }
+      if (!consent) {
+        this._showLeadError("Please agree to the Privacy Policy and Terms of Service to continue.");
+        return;
+      }
+
+      var shop = this.config.shop || window.location.hostname;
+
+      // Unlock immediately — the result is already generated and paid for by
+      // the time this form shows, so don't make the shopper sit through a
+      // network round-trip to see it. The save to the backend happens in the
+      // background; if it fails we log it but the shopper still gets their
+      // result (matches the "don't block the frontend on the backend" call).
+      self._markLeadCaptured();
+      self._hideLeadGate();
+      self.showToast("Saving your details…", 4000);
+
+      fetch(
+        this.config.proxyUrl + "/api/lead/capture?shop=" + encodeURIComponent(shop),
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: email,
+            phone: phone,
+            consent: true,
+            session_id: self.sessionId || null,
+          }),
+        },
+      )
+        .then(function (r) {
+          return r.json().then(function (d) { return { ok: r.ok, data: d }; });
+        })
+        .then(function (res) {
+          if (!res.ok) {
+            log("lead capture rejected:", res.data && res.data.error);
+            self.showToast("Could not save your details — you can still use your result.", 4000);
+            return;
+          }
+          self.showToast("Details saved ✓", 2500);
+        })
+        .catch(function (err) {
+          log("lead capture error:", err.message);
+          self.showToast("Could not save your details — you can still use your result.", 4000);
+        });
     },
 
     _showLimitReached: function () {
@@ -3111,56 +3784,28 @@
       if (clothingImage.indexOf("//") === 0) clothingImage = "https:" + clothingImage;
 
       this._showStep("processing");
-      this.showProgress("FitSnap is creating your look…");
+      this.showProgress("Brix-TryOn is creating your look…");
 
       this.startProgressAnimation(28);
 
-      var controller = window.AbortController ? new AbortController() : null;
-      var timeoutId = controller ? setTimeout(function () { controller.abort(); }, 95000) : null;
-      var shop = self.config.shop || window.location.hostname;
-
-      var opts = {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      self
+        ._submitAndPollTryOn({
           clothing_image: clothingImage,
           avatar_image: avatarBase64,
           shopify_variant_id: variant.id,
           shopify_product_id: self.config.productId,
+          product_title: self.config.productTitle || "",
           session_id: self.sessionId,
-        }),
-      };
-      if (controller) opts.signal = controller.signal;
-
-      fetch(self.config.proxyUrl + "/api/tryon?shop=" + encodeURIComponent(shop), opts)
-        .then(function (r) {
-          if (timeoutId) clearTimeout(timeoutId);
-          if (!r.ok) {
-            return r.json().catch(function () { return {}; }).then(function (errBody) {
-              return Promise.reject(new Error(errBody.error || "Something went wrong. Please try again."));
-            });
-          }
-          return r.json();
         })
         .then(function (data) {
           self._stopProgress();
-          if (data.result_image) {
-            self.showResult(data.result_image);
-          } else {
-            self.showError(data.error || "Try-on failed. Please try again.");
-          }
+          self.showResult(data.result_image);
         })
         .catch(function (err) {
-          if (timeoutId) clearTimeout(timeoutId);
           self._stopProgress();
-          var msg;
-          if (err && err.name === "AbortError") {
-            msg = "This is taking longer than expected. Please try again.";
-          } else if (err && err.message && err.message.length < 200) {
-            msg = err.message;
-          } else {
-            msg = "Something went wrong. Please try again.";
-          }
+          var msg = err && err.message && err.message.length < 200
+            ? err.message
+            : "Something went wrong. Please try again.";
           self.showError(msg);
           log("_rerunTryOnForVariant error:", err);
         });
@@ -3621,6 +4266,7 @@
       this._getCameraStream(this._facingMode)
         .then(function (stream) {
           self._cameraStream = stream;
+          self._trackWidgetEvent("camera_granted");
           var video = document.getElementById("tryfit-camera-video");
           if (!video) {
             self._closeCameraStream();

@@ -18,13 +18,15 @@ class AnalyticsRepo
     /**
      * Atomic increments via INSERT ... ON DUPLICATE KEY UPDATE.
      *
-     * $increments keys: tryon_initiated, tryon_completed, tryon_failed,
+     * $increments keys: widget_open_count, camera_granted_count,
+     *   tryon_initiated, tryon_completed, tryon_failed,
      *   add_to_cart_count, buy_now_count, save_count, share_wa_count,
      *   order_count, revenue_inr
      */
     public function upsertDaily(int $merchantId, string $date, array $increments): void
     {
         $allowed = [
+            'widget_open_count', 'camera_granted_count',
             'tryon_initiated', 'tryon_completed', 'tryon_failed',
             'add_to_cart_count', 'buy_now_count', 'save_count',
             'share_wa_count', 'order_count', 'revenue_inr',

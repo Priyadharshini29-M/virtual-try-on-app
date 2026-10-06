@@ -1,0 +1,85 @@
+/* FitSnap Complete Your Look — standalone widget styles. Namespaced under
+   .fitfyce-cl-* so it never collides with the try-on widget's tryfit-* CSS. */
+
+.fitfyce-cl-section {
+  max-width: 1200px;
+  margin: 32px auto;
+  padding: 0 20px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.fitfyce-cl-heading {
+  margin: 0 0 16px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.fitfyce-cl-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fitfyce-cl-track {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding: 2px;
+}
+.fitfyce-cl-track::-webkit-scrollbar { display: none; }
+
+.fitfyce-cl-card {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.fitfyce-cl-img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: 10px;
+  background: #F3F4F6;
+  overflow: hidden;
+}
+.fitfyce-cl-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.fitfyce-cl-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fitfyce-cl-price { font-size: 13px; color: #4B5563; }
+
+.fitfyce-cl-nav {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid #E5E7EB;
+  background: #fff;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.fitfyce-cl-nav:hover { background: #F9FAFB; }
+
+@media (max-width: 640px) {
+  .fitfyce-cl-nav { display: none; }
+  .fitfyce-cl-card { width: 130px; }
+}

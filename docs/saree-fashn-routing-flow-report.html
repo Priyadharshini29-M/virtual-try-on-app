@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Saree Try-On Routing — Flow Report</title>
+<meta name="description" content="How saree try-ons are routed to Fashn.ai while every other garment stays on RunPod, across the storefront widget and the Studio module.">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --bg:#EEF1F5; --surface:#FFFFFF; --surface-2:#F5F7FA;
+    --text-1:#14213D; --text-2:#4B5768; --text-3:#8996A8;
+    --accent:#2E5EAA; --accent-soft:#E3ECF9;
+    --fashn:#8A3FA0; --fashn-soft:#F1E4F5;
+    --warn:#C4622D; --warn-soft:#FAE6D9;
+    --good:#1F7A5C; --good-soft:#DFF0E9;
+    --border:#DAE0E9;
+    --shadow:0 1px 2px rgba(20,33,61,0.04), 0 8px 24px rgba(20,33,61,0.06);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0F1520; --surface:#171F2E; --surface-2:#1D2739;
+      --text-1:#EDF1F7; --text-2:#A9B4C4; --text-3:#6C7789;
+      --accent:#7DA6EE; --accent-soft:#223052;
+      --fashn:#D08BE4; --fashn-soft:#35213D;
+      --warn:#E8935F; --warn-soft:#3A2A1E;
+      --good:#4FCB9B; --good-soft:#16332A;
+      --border:#2A3446;
+      --shadow:0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0F1520; --surface:#171F2E; --surface-2:#1D2739;
+    --text-1:#EDF1F7; --text-2:#A9B4C4; --text-3:#6C7789;
+    --accent:#7DA6EE; --accent-soft:#223052;
+    --fashn:#D08BE4; --fashn-soft:#35213D;
+    --warn:#E8935F; --warn-soft:#3A2A1E;
+    --good:#4FCB9B; --good-soft:#16332A;
+    --border:#2A3446;
+    --shadow:0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{
+    background:var(--bg); color:var(--text-1);
+    font-family:'IBM Plex Sans',system-ui,sans-serif;
+    padding-inline:16px; padding-block:40px;
+  }
+  .page{max-width:840px; margin:0 auto;}
+
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.08em;
+    text-transform:uppercase; color:var(--accent); font-weight:600; margin:0 0 10px;
+  }
+  h1{
+    font-family:'Fraunces',serif; font-weight:600; font-size:clamp(28px,5vw,40px);
+    line-height:1.1; margin:0 0 12px; text-wrap:balance;
+  }
+  .lede{color:var(--text-2); font-size:16px; line-height:1.6; max-width:62ch; margin:0 0 32px;}
+  h2{font-family:'Fraunces',serif; font-weight:600; font-size:22px; margin:0 0 6px;}
+  h3{font-size:14px; font-weight:600; margin:0 0 10px;}
+  .section-sub{color:var(--text-2); font-size:14px; margin:0 0 20px; line-height:1.55; max-width:62ch;}
+  section{margin-bottom:44px;}
+  code{font-family:'IBM Plex Mono',monospace; font-size:0.9em; background:var(--surface-2); padding:1px 5px; border-radius:4px;}
+
+  .card{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    box-shadow:var(--shadow); padding:24px;
+  }
+
+  /* stat strip */
+  .stat-strip{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:1px;
+    background:var(--border); border:1px solid var(--border); border-radius:14px; overflow:hidden;
+  }
+  .stat{background:var(--surface); padding:20px 18px;}
+  .stat .num{
+    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
+    font-size:28px; font-weight:600; line-height:1.1;
+  }
+  .stat .label{margin-top:6px; font-size:12.5px; color:var(--text-2); line-height:1.4;}
+
+  /* flow diagram */
+  .flow{display:flex; flex-direction:column; align-items:center; gap:0;}
+  .node{
+    width:100%; max-width:520px; background:var(--surface-2); border:1px solid var(--border);
+    border-radius:10px; padding:12px 16px; font-size:13.5px; line-height:1.45; text-align:center;
+  }
+  .node b{display:block; font-size:13.5px;}
+  .node small{display:block; color:var(--text-2); font-size:12px; margin-top:2px;}
+  .node.start{background:var(--accent-soft); border-color:color-mix(in srgb, var(--accent) 40%, transparent);}
+  .node.decision{
+    background:var(--surface); border:2px solid var(--accent); border-radius:999px; padding:14px 22px;
+  }
+  .node.fashn{background:var(--fashn-soft); border-color:color-mix(in srgb, var(--fashn) 45%, transparent);}
+  .node.runpod{background:var(--good-soft); border-color:color-mix(in srgb, var(--good) 45%, transparent);}
+  .node.end{background:var(--surface); border-color:var(--text-3);}
+  .arrow{color:var(--text-3); font-size:18px; line-height:1; padding:5px 0; font-family:'IBM Plex Mono',monospace;}
+  .arrow.label{font-size:11.5px; letter-spacing:0.04em;}
+  .branch{
+    width:100%; display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start;
+  }
+  .branch .col{display:flex; flex-direction:column; align-items:center;}
+  .branch .col-head{
+    font-family:'IBM Plex Mono',monospace; font-size:11.5px; font-weight:600;
+    letter-spacing:0.05em; text-transform:uppercase; margin-bottom:6px;
+  }
+  .col-head.f{color:var(--fashn);} .col-head.r{color:var(--good);}
+  .branch .node{max-width:none;}
+
+  /* step list */
+  .steps{list-style:none; margin:0; padding:0; counter-reset:step;}
+  .steps li{
+    counter-increment:step; display:grid; grid-template-columns:34px 1fr; gap:12px;
+    padding:12px 0; border-bottom:1px solid var(--border); font-size:13.5px; line-height:1.55;
+  }
+  .steps li:last-child{border-bottom:none;}
+  .steps li::before{
+    content:counter(step); font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:12px;
+    width:26px; height:26px; border-radius:50%; background:var(--accent-soft); color:var(--accent);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .steps .lane{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; letter-spacing:0.04em;
+    color:var(--text-3); text-transform:uppercase; display:block;
+  }
+  .steps li.fashn::before{background:var(--fashn-soft); color:var(--fashn);}
+  .steps li.runpod::before{background:var(--good-soft); color:var(--good);}
+
+  /* tables */
+  table{width:100%; border-collapse:collapse; font-size:13.5px;}
+  th,td{text-align:left; padding:10px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
+  th{font-size:11.5px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-2); font-weight:600;}
+  tbody tr:last-child td{border-bottom:none;}
+  .table-wrap{overflow-x:auto;}
+  td.mono{font-family:'IBM Plex Mono',monospace; font-size:12.5px;}
+
+  .pill{
+    display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600;
+    padding:2px 8px; border-radius:999px;
+  }
+  .pill.fashn{background:var(--fashn-soft); color:var(--fashn);}
+  .pill.runpod{background:var(--good-soft); color:var(--good);}
+  .pill.warn{background:var(--warn-soft); color:var(--warn);}
+
+  .idbox{
+    display:grid; grid-template-columns:1fr 1fr; gap:16px;
+  }
+  .idbox .id{
+    font-family:'IBM Plex Mono',monospace; font-size:13px; padding:12px 14px; border-radius:10px;
+    word-break:break-all;
+  }
+  .idbox .id.f{background:var(--fashn-soft); color:var(--fashn);}
+  .idbox .id.r{background:var(--good-soft); color:var(--good);}
+  .idbox .cap{font-size:12px; color:var(--text-2); margin-top:6px; line-height:1.45;}
+
+  .callout{
+    display:flex; gap:14px; background:var(--warn-soft);
+    border:1px solid color-mix(in srgb, var(--warn) 35%, transparent);
+    border-radius:12px; padding:16px 18px; margin-top:18px;
+  }
+  .callout .mark{font-family:'Fraunces',serif; font-weight:700; font-size:18px; color:var(--warn); flex-shrink:0; line-height:1.4;}
+  .callout p{margin:0; font-size:13.5px; line-height:1.6;}
+  .callout strong{color:var(--warn);}
+  .callout.good{background:var(--good-soft); border-color:color-mix(in srgb, var(--good) 35%, transparent);}
+  .callout.good .mark, .callout.good strong{color:var(--good);}
+
+  ul.plain{margin:0; padding-left:18px; font-size:13.5px; line-height:1.7; color:var(--text-1);}
+  footer{font-size:12px; color:var(--text-3); margin-top:8px;}
+
+  @media (max-width:640px){
+    .stat-strip{grid-template-columns:1fr;}
+    .branch, .idbox{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <p class="eyebrow">Flow Report · Try-On Engine Routing</p>
+  <h1>Saree try-ons on Fashn.ai, everything else on RunPod</h1>
+  <p class="lede">Sarees are routed to the hosted Fashn.ai API in the storefront widget and both Studio flows. Every other garment keeps using the RunPod FASHN VTON 1.5 endpoint, and no other flow (including OpenAI infographics) is changed.</p>
+
+  <section>
+    <div class="stat-strip">
+      <div class="stat"><div class="num">3</div><div class="label">flows routed: widget, AI Studio, Garment Studio</div></div>
+      <div class="stat"><div class="num">0</div><div class="label">database migrations or widget / Shopify app changes</div></div>
+      <div class="stat"><div class="num">1</div><div class="label">required setting: <code>FASHN_API_KEY</code> (without it, saree try-ons fail; they never use RunPod)</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>1. Routing decision</h2>
+    <p class="section-sub">The same decision runs at submit time in all three flows. It is made once, then carried by the job ID.</p>
+    <div class="card">
+      <div class="flow">
+        <div class="node start"><b>Try-on request</b><small>widget, AI Studio or Garment Studio</small></div>
+        <div class="arrow">↓</div>
+        <div class="node decision"><b>Prompt or product title mentions saree / sari?</b></div>
+        <div class="arrow">↓</div>
+        <div class="branch">
+          <div class="col">
+            <div class="col-head f">Yes</div>
+            <div class="node fashn"><b>Fashn.ai only</b><small><code>tryon-max</code> + nivi-drape prompt, retry once on 429 / 5xx / network error. Never RunPod.</small></div>
+          </div>
+          <div class="col">
+            <div class="col-head r">No</div>
+            <div class="node runpod"><b>RunPod (unchanged)</b><small>tops, bottoms, dresses, lehenga, everything else</small></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="section-sub" style="margin-top:14px">In the Studio wizard, choosing <b>Saree</b> under "What are you selling?" sends <code>product_type=saree</code> and decides the engine; any other choice stays on RunPod. Where no product type is sent (widget, older callers) detection is a case-insensitive match on <code>sarees?</code> / <code>saris?</code> in the prompt or product title. The Accessories workflow never goes to Fashn.</p>
+  </section>
+
+  <section>
+    <h2>2. Storefront widget flow</h2>
+    <p class="section-sub">Submit and poll are separate short requests, so no single call risks the Shopify App Proxy timeout. The widget passes <code>job_id</code> through without reading it.</p>
+    <div class="card">
+      <ol class="steps">
+        <li><div><span class="lane">Shopper · widget</span>Shopper uploads a photo and clicks Try On. Widget POSTs to <code>/api/tryon</code>.</div></li>
+        <li><div><span class="lane">Shopify app · api.tryon.jsx</span>Verifies the proxy signature and forwards to PHP <code>POST /tryon</code>. Unchanged.</div></li>
+        <li><div><span class="lane">PHP · TryOnController::submit</span>Merchant auth and plan limit check, then image prep. Runs <code>shouldUseFashn()</code> on the clothing prompt and <code>product_title</code>.</div></li>
+        <li class="fashn"><div><span class="lane">Saree → Fashn</span><code>SareeRouting::submitFashn()</code> sends the person and garment images to Fashn <code>tryon-max</code> with a nivi-style drape prompt. Returns <code>fs_&lt;id&gt;</code>.</div></li>
+        <li class="runpod"><div><span class="lane">Other → RunPod</span>Existing <code>RunpodVtonClient::submitRun()</code>. Returns the plain RunPod job ID.</div></li>
+        <li><div><span class="lane">Widget</span>Receives <code>{status: processing, job_id}</code> and polls <code>/api/tryon-status</code> every 2.5s, up to 190s.</div></li>
+        <li><div><span class="lane">PHP · TryOnController::pollStatus</span><code>SareeRouting::checkStatus(job_id)</code> checks the right engine exactly once per request.</div></li>
+        <li><div><span class="lane">PHP</span>On completion: save the image, mark the session complete, increment the merchant's count, log analytics. Responds <code>{status: completed, result_image}</code>. Identical for both engines.</div></li>
+      </ol>
+    </div>
+  </section>
+
+  <section>
+    <h2>3. Studio flows</h2>
+    <p class="section-sub">Both Studio controllers follow the same submit → store job ID → poll pattern, with the ID stored in the existing <code>fashn_prediction_id</code> column.</p>
+    <div class="card table-wrap">
+      <table>
+        <thead><tr><th>Step</th><th>AI Studio</th><th>Garment Studio</th></tr></thead>
+        <tbody>
+          <tr><td>Submit</td><td class="mono">StudioV2Controller::generate</td><td class="mono">GarmentStudioController::generate → prepareAndSubmit</td></tr>
+          <tr><td>Saree signal</td><td>Prompt, plus <code>product_title</code> if sent</td><td>Wizard <code>product_type</code> (Saree); falls back to prompt / <code>product_title</code></td></tr>
+          <tr><td>Garment image</td><td>Product photo</td><td>Front photo only for Fashn (no front/back/detail composite)</td></tr>
+          <tr><td>Fashn photo type</td><td><code>auto</code></td><td>As selected in the workflow (<code>auto</code> / <code>flat-lay</code>)</td></tr>
+          <tr><td>Job ID stored</td><td class="mono">generations.fashn_prediction_id</td><td class="mono">garment_studio_sessions.fashn_prediction_id</td></tr>
+          <tr><td>Poll</td><td class="mono">checkGenerationStatus → SareeRouting::checkStatus</td><td class="mono">checkGenerationStatus → SareeRouting::checkStatus</td></tr>
+          <tr><td>After completion</td><td>Save image, then the existing OpenAI infographic chain (untouched)</td><td>Save image, mark session done</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>4. Job ID lifecycle</h2>
+    <p class="section-sub">The engine is encoded in the job ID, so the stateless poll endpoints know who to ask without new query params, columns or widget changes.</p>
+    <div class="card">
+      <div class="idbox">
+        <div>
+          <div class="id f">fs_123a87r9-4129-4bb3-…-u1</div>
+          <div class="cap"><span class="pill fashn">Fashn</span> prefix <code>fs_</code> is stripped before calling Fashn's status API.</div>
+        </div>
+        <div>
+          <div class="id r">a1b2c3d4-….-u1</div>
+          <div class="cap"><span class="pill runpod">RunPod</span> no prefix. Jobs already running at rollout keep resolving.</div>
+        </div>
+      </div>
+      <p class="section-sub" style="margin:16px 0 0">Both engines return the same <code>{job_status, image_bytes, error_details}</code> shape from a status check, so the existing save, analytics and infographic code is engine-agnostic.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>5. Failure handling</h2>
+    <div class="card table-wrap">
+      <table>
+        <thead><tr><th>Situation</th><th>Behavior</th></tr></thead>
+        <tbody>
+          <tr><td>Fashn submit fails with network error, 429 or 5xx</td><td>Retry once after 1.5s. If it still fails, the user sees the normal try-on error (429 → "temporarily unavailable").</td></tr>
+          <tr><td>Fashn rejects the request (4xx)</td><td>No retry. Session marked failed with the raw error logged.</td></tr>
+          <tr><td>Fashn job fails during generation</td><td>Poll returns <code>failed</code>. Session marked failed, analytics logs <code>tryon_failed</code>.</td></tr>
+          <tr><td>Status check has a transient error</td><td>Treated as still processing. The client polls again.</td></tr>
+          <tr><td>Studio job never resolves</td><td>Existing 3-minute timeout marks it failed.</td></tr>
+          <tr><td><code>FASHN_API_KEY</code> blank</td><td>Saree try-ons fail with a "not configured" error and are logged. They never fall back to RunPod.</td></tr>
+          <tr><td>Fashn enabled, RunPod not configured</td><td>Sarees still work. Non-sarees get the existing "not configured" 503.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout"><span class="mark">!</span><p><strong>No fallback to RunPod for sarees.</strong> RunPod cannot process <code>category=saree</code> and drapes sarees poorly, as a stitched one-piece dress, so a Fashn failure surfaces as an error instead of a silently worse result.</p></div>
+  </section>
+
+  <section>
+    <h2>6. Files changed</h2>
+    <div class="card table-wrap">
+      <table>
+        <thead><tr><th>File (under fitfyce-php/)</th><th>Change</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">src/SareeRouting.php</td><td>New. Detection, <code>submitFashn()</code>, <code>checkStatus()</code>, <code>fs_</code> handling.</td></tr>
+          <tr><td class="mono">config/AppConfig.php</td><td><code>fashnApiKey()</code>, <code>fashnMode()</code> (default quality), <code>useFashn()</code>.</td></tr>
+          <tr><td class="mono">router.php</td><td>Loads <code>FashnClient.php</code> and <code>SareeRouting.php</code>.</td></tr>
+          <tr><td class="mono">.env</td><td><code>FASHN_API_KEY</code>, <code>FASHN_MODE=quality</code> and <code>FASHN_SAREE_MODEL=tryon-max</code>.</td></tr>
+          <tr><td class="mono">src/FashnClient.php</td><td>SSL verification re-enabled.</td></tr>
+          <tr><td class="mono">controllers/TryOnController.php</td><td>Saree branch at submit; engine dispatch at poll.</td></tr>
+          <tr><td class="mono">controllers/StudioV2Controller.php</td><td>Same, for AI Studio.</td></tr>
+          <tr><td class="mono">controllers/GarmentStudioController.php</td><td>Same, for Garment Studio. Reads the wizard's <code>product_type</code>.</td></tr>
+          <tr><td class="mono">fitfyce-shopify/app/routes/app.studio.create.jsx, api.studio.jsx</td><td>Wizard sends its chosen product type to PHP.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>7. Status and next steps</h2>
+    <div class="card">
+      <h3>Verified</h3>
+      <ul class="plain">
+        <li>PHP syntax check passes on every edited file.</li>
+        <li>Saree detection and the enable / job-prefix helpers checked with a script: "Saree", "Sarees" and "sari" match; "Cotton kurti" and "assaree" do not.</li>
+      </ul>
+      <h3 style="margin-top:16px">Not yet tested</h3>
+      <ul class="plain">
+        <li>Live submit and poll against Fashn, and the three controllers end to end. This needs a real <code>FASHN_API_KEY</code>.</li>
+      </ul>
+      <h3 style="margin-top:16px">Rollout</h3>
+      <ul class="plain">
+        <li>Add <code>FASHN_API_KEY</code>, then test a saree in the widget, AI Studio and Garment Studio, and confirm a kurti still goes to RunPod.</li>
+        <li>Look for <code>Saree try-on routed to Fashn</code> in <code>logs/app.log</code>, and watch failure rate and cost per engine for a week.</li>
+      </ul>
+    </div>
+    <div class="callout"><span class="mark">!</span><p><strong>Open items.</strong> Drape quality on real sarees is unverified: <code>tryon-max</code> is accepted by Fashn but no real saree result has been reviewed. <code>FASHN_SAREE_MODEL=tryon-v1.6</code> switches back to the category-based model. <code>fitfyce-php/.env</code> holds live keys and shows as modified in git, so confirm it is ignored and rotate the RunPod key if it was ever pushed. With SSL verification on, a local XAMPP without a CA bundle may fail Fashn calls.</p></div>
+  </section>
+
+  <footer>Source plan: docs/saree-fashn-routing-plan.md</footer>
+</div>
+</body>
+</html>

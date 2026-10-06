@@ -7,8 +7,8 @@ import { uiPlanToPhp } from "../lib/plans";
 
 // Maps URL slug → Shopify subscription name (for verification)
 const PLAN_KEY_MAP = {
-  growth: "FitSnap Growth",
-  pro:    "FitSnap Pro",
+  growth: "Brix-TryOn Growth",
+  pro:    "Brix-TryOn Pro",
 };
 
 export async function loader({ request }) {

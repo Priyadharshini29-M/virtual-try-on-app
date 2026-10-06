@@ -1,8 +1,10 @@
 import PropTypes from "prop-types";
-import { useLoaderData, useFetcher, useNavigate } from "react-router";
+import { useLoaderData, useFetcher } from "react-router";
 import PlanGate from "../components/PlanGate";
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import { useCelebrate } from "../components/AppShell";
+import { FsPage, FsCard, FsButton, FsPill, FsEmpty, FsIcon } from "../components/fs-ui";
 import { authenticate } from "../shopify.server";
 import phpApiClient from "../lib/php-api.server";
 import { ensureMerchant } from "../lib/merchant.server";
@@ -448,1253 +450,635 @@ const FONT_FAMILY_OPTIONS = [
 
 // ─── Primitives ───────────────────────────────────────────────────────────────
 
-function SectionCard({ title, description, children }) {
+const HEX = /^#[0-9A-Fa-f]{6}$/;
+
+function Section({ id, title, description, action, children }) {
   return (
-    <div
-      className="vto-card"
-      style={{ padding: 0, overflow: "hidden", marginBottom: "24px" }}
-    >
-      <div
-        style={{
-          padding: "20px 24px",
-          borderBottom: "1px solid var(--vto-border)",
-        }}
-      >
-        <h3 className="vto-title" style={{ fontSize: "0.875rem" }}>
-          {title}
-        </h3>
-        {description && (
-          <p
-            className="vto-subtitle"
-            style={{ fontSize: "0.6875rem", marginTop: "4px" }}
-          >
-            {description}
-          </p>
-        )}
+    <div id={id} className="fs-set-section">
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+        <div style={{ flex: 1 }}>
+          <h3 className="fs-h3">{title}</h3>
+          {description && <p className="fs-help" style={{ marginTop: 4 }}>{description}</p>}
+        </div>
+        {action}
       </div>
-      <div style={{ padding: "24px" }}>{children}</div>
+      {children}
     </div>
   );
 }
-SectionCard.propTypes = {
-  title: PropTypes.string.isRequired,
-  description: PropTypes.string,
-  children: PropTypes.node,
-};
+Section.propTypes = { id: PropTypes.string, title: PropTypes.string.isRequired, description: PropTypes.string, action: PropTypes.node, children: PropTypes.node };
 
 function ViewToggle({ value, onChange }) {
   return (
-    <div
-      style={{
-        display: "inline-flex",
-        background: "#F3F4F6",
-        borderRadius: "20px",
-        padding: "3px",
-        gap: "2px",
-      }}
-    >
-      {["desktop", "mobile"].map((v) => (
-        <button
-          key={v}
-          type="button"
-          onClick={() => onChange(v)}
-          style={{
-            background: value === v ? "#1a1a1a" : "transparent",
-            color: value === v ? "#ffffff" : "#9CA3AF",
-            borderRadius: "20px",
-            fontSize: "10px",
-            fontWeight: 600,
-            height: "28px",
-            padding: "0 14px",
-            border: "none",
-            cursor: "pointer",
-            transition: "all 0.15s",
-            lineHeight: "28px",
-            whiteSpace: "nowrap",
-          }}
-        >
-          {v === "desktop" ? "Desktop" : "Mobile"}
+    <div className="fs-seg" role="group" aria-label="Device">
+      {[["desktop", "Desktop", "monitor"], ["mobile", "Mobile", "phone"]].map(([v, l, icon]) => (
+        <button key={v} type="button" className={value === v ? "is-on" : ""} aria-pressed={value === v} onClick={() => onChange(v)} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <FsIcon name={icon} size={14} />{l}
         </button>
       ))}
     </div>
   );
 }
-ViewToggle.propTypes = {
-  value: PropTypes.string.isRequired,
-  onChange: PropTypes.func.isRequired,
-};
+ViewToggle.propTypes = { value: PropTypes.string.isRequired, onChange: PropTypes.func.isRequired };
 
-function PositionCard({ id, label, sub, icon, active, onClick }) {
-  const icons = {
-    monitor: (
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-        <line x1="8" y1="21" x2="16" y2="21" />
-        <line x1="12" y1="17" x2="12" y2="21" />
-      </svg>
-    ),
-    cart: (
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <circle cx="9" cy="21" r="1" />
-        <circle cx="20" cy="21" r="1" />
-        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-      </svg>
-    ),
+function TextInput({ label, value, onChange, placeholder, max, help }) {
+  const id = `set_${label.toLowerCase().replace(/[^a-z0-9]+/g, "_")}`;
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <label className="fs-label" htmlFor={id}>{label}</label>
+        {max && <span className="fs-tabular" style={{ fontSize: 12, color: "var(--fs-muted)" }}>{value.length} / {max}</span>}
+      </div>
+      <input id={id} className="fs-input" value={value} maxLength={max} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} autoComplete="off" />
+      {help && <p className="fs-help">{help}</p>}
+    </div>
+  );
+}
+TextInput.propTypes = { label: PropTypes.string.isRequired, value: PropTypes.string.isRequired, onChange: PropTypes.func.isRequired, placeholder: PropTypes.string, max: PropTypes.number, help: PropTypes.string };
+
+function ImageUploadField({ label, value, onChange }) {
+  const inputRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleFile = async (file) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("Please choose an image file.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Image must be under 5MB.");
+      return;
+    }
+    setError(null);
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("photo", file);
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.tempUrl) throw new Error(data.error || "Upload failed");
+      onChange(data.tempUrl);
+    } catch (e) {
+      setError(e.message || "Upload failed. Please try again.");
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      aria-pressed={active}
-      onClick={() => onClick(id)}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onClick(id);
-        }
-      }}
-      className={`vto-card cursor-pointer transition-all duration-200 border-2 ${active ? "border-blue-600 bg-blue-50" : "border-transparent"}`}
-      style={{
-        padding: "16px",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        textAlign: "center",
-      }}
-    >
-      <div
-        className={`p-3 rounded-lg mb-3 ${active ? "text-blue-600" : "text-gray-400"}`}
-      >
-        {icons[icon] ?? null}
+    <div>
+      <span className="fs-label">{label}</span>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        {value ? (
+          <img src={value} alt="" style={{ width: 56, height: 56, objectFit: "cover", borderRadius: 8, border: "1px solid var(--fs-border)" }} />
+        ) : (
+          <div style={{ width: 56, height: 56, borderRadius: 8, border: "1px dashed var(--fs-border)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--fs-muted)" }}>
+            <FsIcon name="image" size={18} />
+          </div>
+        )}
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <button type="button" className="fs-btn fs-btn--plain fs-btn--sm" disabled={uploading} onClick={() => inputRef.current?.click()}>
+            {uploading ? "Uploading…" : value ? "Replace" : "Upload image"}
+          </button>
+          {value && (
+            <button type="button" className="fs-btn fs-btn--plain fs-btn--sm" onClick={() => onChange("")}>Remove</button>
+          )}
+        </div>
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: "none" }}
+          onChange={(e) => {
+            handleFile(e.target.files?.[0]);
+            e.target.value = "";
+          }}
+        />
       </div>
-      <p
-        className={`text-sm font-bold ${active ? "text-blue-700" : "text-gray-900"}`}
-      >
-        {label}
-      </p>
-      <p className="text-[9px] text-gray-500 mt-0.5">{sub}</p>
+      {error && <span style={{ fontSize: 11, color: "var(--fs-warning-ink)", display: "block", marginTop: 5 }}>{error}</span>}
     </div>
   );
 }
-PositionCard.propTypes = {
-  id: PropTypes.string.isRequired,
-  label: PropTypes.string.isRequired,
-  sub: PropTypes.string,
-  icon: PropTypes.string,
-  active: PropTypes.bool.isRequired,
-  onClick: PropTypes.func.isRequired,
-};
+ImageUploadField.propTypes = { label: PropTypes.string.isRequired, value: PropTypes.string, onChange: PropTypes.func.isRequired };
+
+function ColorField({ label, value, onChange, allowTransparent }) {
+  const valid = HEX.test(value);
+  const id = `set_color_${label.toLowerCase().replace(/[^a-z0-9]+/g, "_")}`;
+  const swatchBg = valid ? value : "repeating-conic-gradient(#E5E7EB 0 25%, #FFFFFF 0 50%) 0 0 / 8px 8px";
+  return (
+    <div>
+      <span className="fs-label" id={`${id}_l`}>{label}</span>
+      <div className="fs-color-input">
+        <label className="fs-color-input-swatch" style={{ background: swatchBg }}>
+          <span className="fs-sr">{label} picker</span>
+          <input type="color" value={valid ? value : "#000000"} onChange={(e) => onChange(e.target.value.toUpperCase())} />
+        </label>
+        <input id={id} value={value} maxLength={11} onChange={(e) => onChange(e.target.value)} aria-labelledby={`${id}_l`} className="fs-tabular fs-color-input-text" style={{ textTransform: value === "transparent" ? "none" : "uppercase" }} />
+        {allowTransparent && (
+          <button type="button" className={`fs-btn fs-btn--plain fs-btn--sm${value === "transparent" ? " is-on" : ""}`} onClick={() => onChange("transparent")}>None</button>
+        )}
+      </div>
+      {!valid && value !== "transparent" && <span style={{ fontSize: 11, color: "var(--fs-warning-ink)", display: "block", marginTop: 5 }}>Use #RRGGBB</span>}
+    </div>
+  );
+}
+ColorField.propTypes = { label: PropTypes.string.isRequired, value: PropTypes.string.isRequired, onChange: PropTypes.func.isRequired, allowTransparent: PropTypes.bool };
+
+function SliderField({ label, value, onChange, min, max, suffix = "px", hints }) {
+  const id = `set_num_${label.toLowerCase().replace(/[^a-z0-9]+/g, "_")}`;
+  return (
+    <div>
+      <label className="fs-label" htmlFor={id}>{label}</label>
+      <div className="fs-input-row">
+        <input
+          id={id}
+          type="number"
+          className="fs-tabular"
+          style={{ flex: 1, border: 0, outline: "none", background: "transparent", font: "inherit", color: "inherit" }}
+          value={value}
+          min={min}
+          max={max}
+          aria-label={`${label} value`}
+          onChange={(e) => onChange(Math.max(min, Math.min(max, parseInt(e.target.value, 10) || 0)))}
+        />
+        <span style={{ color: "var(--fs-muted)", fontSize: 12 }}>{suffix}</span>
+      </div>
+      {hints && <p className="fs-help">{hints[0]} · {hints[1]}</p>}
+    </div>
+  );
+}
+SliderField.propTypes = { label: PropTypes.string.isRequired, value: PropTypes.number.isRequired, onChange: PropTypes.func.isRequired, min: PropTypes.number, max: PropTypes.number, suffix: PropTypes.string, hints: PropTypes.array };
+
+function SelectField({ label, value, onChange, options }) {
+  const id = `set_select_${label.toLowerCase().replace(/[^a-z0-9]+/g, "_")}`;
+  return (
+    <div>
+      <label className="fs-label" htmlFor={id}>{label}</label>
+      <select id={id} className="fs-select" value={value} onChange={(e) => onChange(e.target.value)}>
+        {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+    </div>
+  );
+}
+SelectField.propTypes = { label: PropTypes.string.isRequired, value: PropTypes.string.isRequired, onChange: PropTypes.func.isRequired, options: PropTypes.array.isRequired };
+
+function SpacingInput({ label, values, onChange }) {
+  const groupId = `set_spacing_${label.toLowerCase().replace(/[^a-z0-9]+/g, "_")}`;
+  return (
+    <div>
+      <span id={groupId} className="fs-label">{label}</span>
+      <div className="fs-spacing" role="group" aria-labelledby={groupId}>
+        {["top", "right", "bottom", "left"].map((side) => (
+          <label key={side} className="fs-spacing-cell">
+            <span>{side}</span>
+            <input type="number" min={0} max={200} value={values[side]} onChange={(e) => onChange({ ...values, [side]: parseInt(e.target.value, 10) || 0 })} aria-label={`${label} ${side}`} />
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
+SpacingInput.propTypes = { label: PropTypes.string.isRequired, values: PropTypes.object.isRequired, onChange: PropTypes.func.isRequired };
+
+function ToggleRow({ checked, onChange, label, description, icon, badge }) {
+  return (
+    <div className="fs-toggle-row">
+      {icon && <span className={`fs-tile-icon${checked ? "" : " is-muted"}`} style={{ width: 32, height: 32, flexShrink: 0 }}><FsIcon name={icon} size={16} /></span>}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 13, fontWeight: 600 }}>{label}</span>
+          {badge && <FsPill tone="primary" style={{ height: 20, fontSize: 11 }}>{badge}</FsPill>}
+        </div>
+        {description && <p className="fs-help" style={{ marginTop: 2 }}>{description}</p>}
+      </div>
+      <button type="button" role="switch" aria-checked={checked} aria-label={label} className="fs-switch" onClick={() => onChange(!checked)}><span /></button>
+    </div>
+  );
+}
+ToggleRow.propTypes = { checked: PropTypes.bool.isRequired, onChange: PropTypes.func.isRequired, label: PropTypes.string.isRequired, description: PropTypes.string, icon: PropTypes.string, badge: PropTypes.string };
+
+function Collapsible({ title, hint, children }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="fs-collapse">
+      <button type="button" className="fs-collapse-head" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+        <FsIcon name="chevronRight" size={16} style={{ transform: open ? "rotate(90deg)" : "none", transition: "transform .2s" }} />
+        <span style={{ fontWeight: 600 }}>{title}</span>
+        {hint && <span style={{ fontWeight: 400, color: "var(--fs-muted)" }}>{hint}</span>}
+      </button>
+      {open && <div className="fs-collapse-body">{children}</div>}
+    </div>
+  );
+}
+Collapsible.propTypes = { title: PropTypes.string.isRequired, hint: PropTypes.string, children: PropTypes.node };
+
+function WidgetIcon({ name, size }) {
+  if (name === "eye") return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>;
+  if (name === "sparkles") return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 3l1.912 5.886L20 10.8l-5.886 1.912L12 18.6l-1.912-5.886L3 10.8l5.886-1.912z" /></svg>;
+  if (name === "camera") return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg>;
+  if (name === "shopping-bag") return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg>;
+  return null;
+}
+WidgetIcon.propTypes = { name: PropTypes.string, size: PropTypes.number };
 
 function IconPicker({ value, onChange }) {
-  const icons = ["none", "eye", "sparkles", "camera", "shopping-bag"];
   return (
-    <div className="flex gap-2.5">
-      {icons.map((icon) => (
-        <button
-          key={icon}
-          type="button"
-          onClick={() => onChange(icon)}
-          className={`flex-1 aspect-square max-w-[56px] rounded-xl flex items-center justify-center border-2 transition-all ${
-            value === icon
-              ? "border-blue-600 bg-blue-50 text-blue-600"
-              : "border-gray-100 bg-white text-gray-400 hover:border-gray-200 hover:text-gray-600"
-          }`}
-        >
-          {icon === "none" ? (
-            <span className="text-[9px] font-bold">NONE</span>
-          ) : (
-            <>
-              {icon === "eye" && (
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-              )}
-              {icon === "sparkles" && (
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M12 3l1.912 5.886L20 10.8l-5.886 1.912L12 18.6l-1.912-5.886L3 10.8l5.886-1.912z" />
-                </svg>
-              )}
-              {icon === "camera" && (
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                  <circle cx="12" cy="13" r="4" />
-                </svg>
-              )}
-              {icon === "shopping-bag" && (
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-                  <line x1="3" y1="6" x2="21" y2="6" />
-                  <path d="M16 10a4 4 0 0 1-8 0" />
-                </svg>
-              )}
-            </>
-          )}
+    <div style={{ display: "flex", gap: 8 }} role="radiogroup" aria-label="Button icon">
+      {["none", "eye", "sparkles", "camera", "shopping-bag"].map((icon) => (
+        <button key={icon} type="button" role="radio" aria-checked={value === icon} aria-label={icon === "none" ? "No icon" : `${icon} icon`}
+          className={`fs-icon-choice${value === icon ? " is-on" : ""}`} onClick={() => onChange(icon)}>
+          {icon === "none" ? <span style={{ fontSize: 11, fontWeight: 600 }}>None</span> : <WidgetIcon name={icon} size={18} />}
         </button>
       ))}
     </div>
   );
 }
-IconPicker.propTypes = {
-  value: PropTypes.string.isRequired,
-  onChange: PropTypes.func.isRequired,
-};
+IconPicker.propTypes = { value: PropTypes.string.isRequired, onChange: PropTypes.func.isRequired };
 
-function FormInput({ label, value, onChange, placeholder, name }) {
-  const inputId = name || `vto_${label.toLowerCase().replace(/\s+/g, "_")}`;
-  return (
-    <div className="space-y-1.5">
-      <label
-        htmlFor={inputId}
-        className="block text-sm font-bold text-gray-900"
-      >
-        {label}
-      </label>
-      <input
-        id={inputId}
-        type="text"
-        name={inputId}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        autoComplete="off"
-        className="w-full text-sm text-gray-900 bg-white border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900 transition-all"
-      />
-    </div>
-  );
-}
-FormInput.propTypes = {
-  label: PropTypes.string.isRequired,
-  value: PropTypes.string.isRequired,
-  onChange: PropTypes.func.isRequired,
-  placeholder: PropTypes.string,
-  name: PropTypes.string,
-};
-
-function ColorPicker({ label, value, onChange }) {
-  const isValid = /^#[0-9A-Fa-f]{6}$/.test(value);
-  const inputId = `vto_color_${label.toLowerCase().replace(/\s+/g, "_")}`;
-  return (
-    <div className="space-y-1.5">
-      <label
-        htmlFor={inputId}
-        className="block text-sm font-bold text-gray-900"
-      >
-        {label}
-      </label>
-      <div className="flex items-center gap-2.5">
-        <label
-          htmlFor={inputId + "_color"}
-          className="flex-shrink-0 w-12 h-12 rounded-xl border-2 border-gray-100 cursor-pointer relative shadow-sm overflow-hidden"
-          style={{ background: isValid ? value : "#ccc" }}
-        >
-          <span className="sr-only">{label} color</span>
-          <input
-            id={inputId + "_color"}
-            type="color"
-            value={isValid ? value : "#000000"}
-            onChange={(e) => onChange(e.target.value)}
-            className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
-          />
-        </label>
-        <input
-          id={inputId}
-          type="text"
-          name={inputId}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="#111827"
-          maxLength={7}
-          autoComplete="off"
-          className="flex-1 text-sm text-gray-900 bg-white border border-gray-200 rounded-xl px-4 py-3 font-mono uppercase focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900 transition-all"
-        />
-      </div>
-    </div>
-  );
-}
-ColorPicker.propTypes = {
-  label: PropTypes.string.isRequired,
-  value: PropTypes.string.isRequired,
-  onChange: PropTypes.func.isRequired,
-};
-
-function NumberInput({ label, value, onChange, min, max, suffix = "px" }) {
-  const inputId = `vto_number_${label.toLowerCase().replace(/\s+/g, "_")}`;
-  return (
-    <div className="space-y-1.5">
-      <div className="flex justify-between items-center">
-        <label htmlFor={inputId} className="text-sm font-bold text-gray-900">
-          {label}
-        </label>
-        {suffix && (
-          <span className="text-[10px] font-bold text-gray-400">{suffix}</span>
-        )}
-      </div>
-      <input
-        id={inputId}
-        type="number"
-        min={min}
-        max={max}
-        autoComplete="off"
-        className="w-full px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900 transition-all font-semibold bg-white"
-        value={value}
-        onChange={(e) => onChange(parseInt(e.target.value) || 0)}
-      />
-    </div>
-  );
-}
-NumberInput.propTypes = {
-  label: PropTypes.string.isRequired,
-  value: PropTypes.number.isRequired,
-  onChange: PropTypes.func.isRequired,
-  min: PropTypes.number,
-  max: PropTypes.number,
-  suffix: PropTypes.string,
-};
-
-function SelectField({ label, value, onChange, options }) {
-  const inputId = `vto_select_${label.toLowerCase().replace(/\s+/g, "_")}`;
-  return (
-    <div className="space-y-1.5">
-      <label
-        htmlFor={inputId}
-        className="block text-sm font-bold text-gray-900"
-      >
-        {label}
-      </label>
-      <div className="relative">
-        <select
-          id={inputId}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-full px-4 py-3 text-sm border border-gray-200 rounded-xl appearance-none bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900 transition-all pr-10 font-medium"
-        >
-          {options.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-        <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-          <svg
-            width="12"
-            height="12"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#94A3B8"
-            strokeWidth="2"
-          >
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
-        </div>
-      </div>
-    </div>
-  );
-}
-SelectField.propTypes = {
-  label: PropTypes.string.isRequired,
-  value: PropTypes.string.isRequired,
-  onChange: PropTypes.func.isRequired,
-  options: PropTypes.arrayOf(
-    PropTypes.shape({
-      label: PropTypes.string.isRequired,
-      value: PropTypes.string.isRequired,
-    }),
-  ).isRequired,
-};
-
-function SearchableSelect({ label, value, onChange, options }) {
+function LanguageSelect({ value, onChange, options }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [rect, setRect] = useState(null);
   const triggerRef = useRef(null);
+  const panelRef = useRef(null);
 
-  // Recalculate position on open
-  const openDropdown = () => {
-    if (triggerRef.current) {
-      setRect(triggerRef.current.getBoundingClientRect());
-    }
-    setOpen(true);
-    setQuery("");
-  };
-
-  // Close on outside click
   useEffect(() => {
-    if (!open) return;
-    function handleOutside(e) {
-      if (
-        triggerRef.current &&
-        !triggerRef.current.closest("[data-lang-select]").contains(e.target)
-      ) {
-        setOpen(false);
-        setQuery("");
-      }
-    }
-    document.addEventListener("mousedown", handleOutside);
-    return () => document.removeEventListener("mousedown", handleOutside);
+    if (!open) return undefined;
+    const onDown = (e) => {
+      if (triggerRef.current?.contains(e.target) || panelRef.current?.contains(e.target)) return;
+      setOpen(false);
+      setQuery("");
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
   }, [open]);
 
   const selected = options.find((o) => o.value === value);
-  const filtered = query
-    ? options.filter(
-        (o) =>
-          o.label.toLowerCase().includes(query.toLowerCase()) ||
-          (o.nativeName &&
-            o.nativeName.toLowerCase().includes(query.toLowerCase())),
-      )
-    : options;
+  const q = query.toLowerCase();
+  const filtered = q ? options.filter((o) => o.label.toLowerCase().includes(q) || (o.nativeName && o.nativeName.toLowerCase().includes(q))) : options;
 
-  const dropdown =
-    open &&
-    rect &&
-    createPortal(
-      <div
-        style={{
-          position: "fixed",
-          top: rect.bottom + 4,
-          left: rect.left,
-          width: rect.width,
-          zIndex: 99999,
-          background: "#fff",
-          border: "1px solid #E5E7EB",
-          borderRadius: "12px",
-          boxShadow: "0 20px 60px rgba(0,0,0,0.18)",
-          overflow: "hidden",
-        }}
-      >
-        {/* Search */}
-        <div
-          style={{
-            padding: "8px",
-            borderBottom: "1px solid #F3F4F6",
-            background: "#F9FAFB",
-          }}
-        >
-          <div style={{ position: "relative" }}>
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#9CA3AF"
-              strokeWidth="2"
-              style={{
-                position: "absolute",
-                left: "10px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                pointerEvents: "none",
-              }}
-            >
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search languages…"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              style={{
-                width: "100%",
-                paddingLeft: "32px",
-                paddingRight: "12px",
-                paddingTop: "8px",
-                paddingBottom: "8px",
-                fontSize: "12px",
-                border: "1px solid #E5E7EB",
-                borderRadius: "8px",
-                background: "#fff",
-                outline: "none",
-                boxSizing: "border-box",
-              }}
-            />
+  return (
+    <div>
+      <span className="fs-label">Widget language</span>
+      <button ref={triggerRef} type="button" className="fs-select" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", textAlign: "left", cursor: "pointer" }}
+        aria-haspopup="listbox" aria-expanded={open}
+        onClick={() => { setRect(triggerRef.current?.getBoundingClientRect() ?? null); setOpen(true); setQuery(""); }}>
+        <span style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+          <FsIcon name="globe" size={16} style={{ color: "var(--fs-muted)" }} />
+          <span style={{ fontWeight: 600 }}>{selected?.label ?? "Select a language"}</span>
+          {selected?.nativeName && selected.nativeName !== selected.label && <span style={{ fontSize: 12, color: "var(--fs-muted)" }}>{selected.nativeName}</span>}
+        </span>
+        <FsIcon name="chevronRight" size={14} style={{ transform: "rotate(90deg)", color: "var(--fs-muted)" }} />
+      </button>
+      {open && rect && createPortal(
+        <div ref={panelRef} className="fs-lang-panel" style={{ top: rect.bottom + 4, left: rect.left, width: rect.width }}>
+          <div style={{ padding: 8, borderBottom: "1px solid #F0F0F2" }}>
+            <label className="fs-search" style={{ width: "100%" }}>
+              <FsIcon name="search" size={14} />
+              <input placeholder="Search languages" aria-label="Search languages" value={query} onChange={(e) => setQuery(e.target.value)} />
+            </label>
           </div>
-        </div>
-
-        {/* List */}
-        <div style={{ maxHeight: "260px", overflowY: "auto" }}>
-          {filtered.length > 0 ? (
-            filtered.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  onChange(opt.value);
-                  setOpen(false);
-                  setQuery("");
-                }}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: "12px",
-                  width: "100%",
-                  textAlign: "left",
-                  padding: "10px 16px",
-                  fontSize: "12px",
-                  border: "none",
-                  cursor: "pointer",
-                  background: value === opt.value ? "#EEF2FF" : "transparent",
-                  color: value === opt.value ? "#3B5BDB" : "#374151",
-                  fontWeight: value === opt.value ? 600 : 400,
-                }}
-              >
-                <span
-                  style={{
-                    flex: 1,
-                    minWidth: 0,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {opt.label}
-                </span>
-                {opt.nativeName && opt.nativeName !== opt.label && (
-                  <span
-                    style={{
-                      fontSize: "10px",
-                      color: "#9CA3AF",
-                      flexShrink: 0,
-                    }}
-                  >
-                    {opt.nativeName}
-                  </span>
-                )}
+          <div role="listbox" style={{ maxHeight: 260, overflowY: "auto", padding: 4 }}>
+            {filtered.length ? filtered.map((o) => (
+              <button key={o.value} type="button" role="option" aria-selected={value === o.value} className={`fs-menu-item${value === o.value ? " is-selected" : ""}`}
+                style={{ display: "flex", justifyContent: "space-between", gap: 12 }}
+                onMouseDown={(e) => { e.preventDefault(); onChange(o.value); setOpen(false); setQuery(""); }}>
+                <span>{o.label}</span>
+                {o.nativeName && o.nativeName !== o.label && <span style={{ fontSize: 12, color: "var(--fs-muted)" }}>{o.nativeName}</span>}
               </button>
-            ))
-          ) : (
-            <div
-              style={{
-                padding: "32px 16px",
-                textAlign: "center",
-                fontSize: "12px",
-                color: "#9CA3AF",
-              }}
-            >
-              No languages match &quot;{query}&quot;
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div
-          style={{
-            padding: "8px 16px",
-            borderTop: "1px solid #F3F4F6",
-            background: "#F9FAFB",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <span style={{ fontSize: "10px", color: "#9CA3AF" }}>
-            {filtered.length} of {options.length} languages
-          </span>
-          {query && (
-            <button
-              type="button"
-              onMouseDown={(e) => {
-                e.preventDefault();
-                setQuery("");
-              }}
-              style={{
-                fontSize: "10px",
-                color: "#3B5BDB",
-                fontWeight: 600,
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
-              Clear
-            </button>
-          )}
-        </div>
-      </div>,
-      document.body,
-    );
-
-  return (
-    <div data-lang-select="">
-      <label
-        style={{
-          display: "block",
-          fontSize: "12px",
-          fontWeight: 700,
-          color: "#111827",
-          marginBottom: "6px",
-        }}
-      >
-        {label}
-      </label>
-      <button
-        ref={triggerRef}
-        type="button"
-        onClick={openDropdown}
-        style={{
-          width: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "10px 14px",
-          fontSize: "12px",
-          border: "1px solid #E5E7EB",
-          borderRadius: "10px",
-          background: "#fff",
-          cursor: "pointer",
-          textAlign: "left",
-        }}
-      >
-        {selected ? (
-          <span
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              minWidth: 0,
-            }}
-          >
-            <span
-              style={{
-                fontWeight: 600,
-                color: "#111827",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {selected.label}
-            </span>
-            {selected.nativeName && selected.nativeName !== selected.label && (
-              <span
-                style={{ fontSize: "10px", color: "#9CA3AF", flexShrink: 0 }}
-              >
-                {selected.nativeName}
-              </span>
-            )}
-          </span>
-        ) : (
-          <span style={{ color: "#9CA3AF" }}>Select a language…</span>
-        )}
-        <svg
-          width="12"
-          height="12"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="#94A3B8"
-          strokeWidth="2.5"
-          style={{
-            flexShrink: 0,
-            marginLeft: "8px",
-            transform: open ? "rotate(180deg)" : "rotate(0deg)",
-            transition: "transform 0.2s",
-          }}
-        >
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
-      </button>
-      {dropdown}
+            )) : <div style={{ padding: 24, textAlign: "center", fontSize: 13, color: "var(--fs-muted)" }}>No languages match “{query}”</div>}
+          </div>
+        </div>,
+        document.body,
+      )}
+      <p className="fs-help">The button text switches to this language automatically.</p>
     </div>
   );
 }
-SearchableSelect.propTypes = {
-  label: PropTypes.string.isRequired,
-  value: PropTypes.string.isRequired,
-  onChange: PropTypes.func.isRequired,
-  options: PropTypes.arrayOf(
-    PropTypes.shape({
-      label: PropTypes.string.isRequired,
-      value: PropTypes.string.isRequired,
-      nativeName: PropTypes.string,
-    }),
-  ).isRequired,
-};
+LanguageSelect.propTypes = { value: PropTypes.string.isRequired, onChange: PropTypes.func.isRequired, options: PropTypes.array.isRequired };
 
-function Toggle({ checked, onChange, label, description, badge }) {
+// ─── Live preview ─────────────────────────────────────────────────────────────
+
+// Static mockup of the merchant-uploaded before/after card — mirrors the
+// real storefront's clip-path split (see tryon-widget.js's
+// _applyExampleSlider) but without the drag interaction, since this is just
+// a preview. Uses the actual uploaded images, not a synthetic illustration.
+function ExampleCardPreview({ enabled, beforeImage, afterImage, title, width, height, margin, padding }) {
+  if (!enabled || !beforeImage || !afterImage) return null;
   return (
-    <div className="flex items-center justify-between py-4 first:pt-0 last:pb-0">
-      <div className="flex-1 pr-4 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          <p className="text-sm font-bold text-gray-900">{label}</p>
-          {badge && (
-            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 flex-shrink-0">
-              {badge}
-            </span>
-          )}
-        </div>
-        {description && (
-          <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
-            {description}
-          </p>
-        )}
-      </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        onClick={() => onChange(!checked)}
-        className="relative flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-gray-900/20 rounded-full"
-        style={{ width: "44px", height: "24px" }}
-      >
-        <span
-          className="absolute inset-0 rounded-full transition-colors duration-200"
-          style={{ background: checked ? "#111827" : "#D1D5DB" }}
-        />
-        <span
-          className="absolute top-[2px] w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-200"
-          style={{ left: checked ? "22px" : "2px" }}
-        />
-      </button>
-    </div>
-  );
-}
-Toggle.propTypes = {
-  checked: PropTypes.bool.isRequired,
-  onChange: PropTypes.func.isRequired,
-  label: PropTypes.string.isRequired,
-  description: PropTypes.string,
-  badge: PropTypes.string,
-};
-
-function Divider() {
-  return <div className="border-t border-gray-100" />;
-}
-
-// Four-value spacing control (top / right / bottom / left)
-function SpacingInput({ label, values, onChange, suffix = "px" }) {
-  const sides = ["top", "right", "bottom", "left"];
-  const groupId = `vto_spacing_${label.toLowerCase().replace(/\s+/g, "_")}`;
-  return (
-    <div className="space-y-2">
-      <span id={groupId} className="block text-sm font-bold text-gray-900">
-        {label}
-      </span>
+    <div
+      style={{
+        width: width > 0 ? width : "100%",
+        maxWidth: "100%",
+        boxSizing: "border-box",
+        margin: `${margin.top}px ${margin.right}px ${margin.bottom}px ${margin.left}px`,
+        padding: `${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px`,
+      }}
+    >
+      {title && (
+        <p style={{ margin: "0 0 8px", fontSize: 12, fontWeight: 600, textAlign: "center", color: "#111827" }}>
+          {title}
+        </p>
+      )}
       <div
-        className="grid grid-cols-2 gap-2"
-        role="group"
-        aria-labelledby={groupId}
+        style={{
+          position: "relative",
+          width: "100%",
+          height: height > 0 ? height : undefined,
+          aspectRatio: height > 0 ? undefined : "3 / 4",
+          borderRadius: 10,
+          overflow: "hidden",
+          background: "#f1f5f9",
+        }}
       >
-        {sides.map((side) => {
-          const inputId = `${groupId}_${side}`;
-          return (
-            <div key={side} className="space-y-1">
-              <span className="block text-[10px] font-semibold text-gray-400 uppercase tracking-wide">
-                {side}
-              </span>
-              <div className="relative">
-                <input
-                  id={inputId}
-                  type="number"
-                  value={values[side]}
-                  min={0}
-                  max={200}
-                  onChange={(e) =>
-                    onChange({
-                      ...values,
-                      [side]: parseInt(e.target.value) || 0,
-                    })
-                  }
-                  className="w-full px-3 py-2 pr-8 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900 transition-all font-semibold bg-white"
-                  aria-label={side}
-                />
-                <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-400 pointer-events-none">
-                  {suffix}
-                </span>
-              </div>
-            </div>
-          );
-        })}
+        <div style={{ position: "absolute", inset: 0, backgroundImage: `url(${beforeImage})`, backgroundSize: "cover", backgroundPosition: "center top" }} />
+        <div style={{ position: "absolute", inset: 0, backgroundImage: `url(${afterImage})`, backgroundSize: "cover", backgroundPosition: "center top", clipPath: "inset(0 0 0 50%)" }} />
+        <div style={{ position: "absolute", top: 0, bottom: 0, left: "50%", width: 3, background: "#fff", transform: "translateX(-50%)", boxShadow: "0 0 0 1px rgba(0,0,0,.12)" }} />
+        <div style={{ position: "absolute", top: "50%", left: "50%", width: 26, height: 26, borderRadius: "50%", background: "#fff", transform: "translate(-50%,-50%)", boxShadow: "0 2px 8px rgba(0,0,0,.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#374151" }}>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="m9 6-6 6 6 6M15 6l6 6-6 6" /></svg>
+        </div>
+        <span style={{ position: "absolute", top: 8, left: 8, fontSize: 9, fontWeight: 700, color: "#fff", background: "rgba(17,24,39,.65)", padding: "3px 8px", borderRadius: 999 }}>Before</span>
+        <span style={{ position: "absolute", top: 8, right: 8, fontSize: 9, fontWeight: 700, color: "#fff", background: "rgba(17,24,39,.65)", padding: "3px 8px", borderRadius: 999 }}>After</span>
       </div>
     </div>
   );
 }
-SpacingInput.propTypes = {
-  label: PropTypes.string.isRequired,
-  values: PropTypes.shape({
-    top: PropTypes.number.isRequired,
-    right: PropTypes.number.isRequired,
-    bottom: PropTypes.number.isRequired,
-    left: PropTypes.number.isRequired,
-  }).isRequired,
-  onChange: PropTypes.func.isRequired,
-  suffix: PropTypes.string,
+ExampleCardPreview.propTypes = {
+  enabled: PropTypes.bool, beforeImage: PropTypes.string, afterImage: PropTypes.string, title: PropTypes.string,
+  width: PropTypes.number, height: PropTypes.number, margin: PropTypes.object, padding: PropTypes.object,
 };
-
-// ─── Live Preview Panel ───────────────────────────────────────────────────────
 
 function LivePreview({
-  buttonColor,
-  buttonTextColor,
-  widgetTitle,
-  widgetSubtitle,
-  titleFontSize,
-  subtitleFontSize,
-  subtitleFontFamily,
-  titleFontFamily,
-  titleFontWeight,
-  borderRadius,
-  buttonIcon,
-  iconColor,
-  mainIconBgColor,
-  collIconBgColor,
-  iconSize,
-  iconRadius,
-  collectionPosition,
-  showOnCollection,
-  buttonWidth,
-  buttonWidthUnit,
-  buttonHeight,
-  buttonHeightUnit,
-  buttonPadding,
-  buttonMargin,
+  device, buttonColor, buttonTextColor, widgetTitle, widgetSubtitle, titleFontSize, subtitleFontSize,
+  subtitleFontFamily, titleFontFamily, titleFontWeight, borderRadius, buttonIcon, iconColor, mainIconBgColor,
+  collIconBgColor, iconSize, iconRadius, collectionPosition, showOnCollection, buttonWidth, buttonWidthUnit,
+  buttonHeight, buttonHeightUnit, buttonPadding, buttonMargin, beforeAfterEnabled,
+  exampleEnabled, exampleBeforeImage, exampleAfterImage, examplePosition, exampleTitle, exampleWidth,
+  exampleHeight, exampleMargin, examplePadding,
 }) {
-  const validColor = (c) => /^#[0-9A-Fa-f]{6}$/.test(c);
+  const btnBg = HEX.test(buttonColor) ? buttonColor : "#111827";
+  const btnTxt = HEX.test(buttonTextColor) ? buttonTextColor : "#ffffff";
+  const hasIcon = buttonIcon && buttonIcon !== "none";
+  // Hard safety clamp on top of the slider's own range: an old/unmigrated
+  // saved value (or any future bad write) can never balloon this preview
+  // button again, no matter what's actually in the database.
+  const safeTitleFontSize = Math.min(24, Math.max(10, Number(titleFontSize) || 16));
+  const safeSubtitleFontSize = Math.min(18, Math.max(8, Number(subtitleFontSize) || 12));
+  // Same defensive cap on padding — oversized saved padding shrinks the
+  // available text width just as much as an oversized font does.
+  const clampPad = (n) => Math.min(18, Math.max(0, Number(n) || 0));
+  const safePadding = { top: clampPad(buttonPadding.top), right: clampPad(buttonPadding.right), bottom: clampPad(buttonPadding.bottom), left: clampPad(buttonPadding.left) };
 
-  const renderIcon = (isCollection = false) => {
-    if (buttonIcon === "none") return null;
-    const sz = isCollection ? iconSize * 0.8 : iconSize + 12;
-    const svgSz = isCollection ? iconSize * 0.6 : iconSize;
+  const iconBox = (isCollection) => hasIcon && (
+    <span style={{
+      display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+      background: isCollection ? collIconBgColor : mainIconBgColor, color: iconColor,
+      width: isCollection ? iconSize * 0.8 : iconSize + 12, height: isCollection ? iconSize * 0.8 : iconSize + 12, borderRadius: iconRadius,
+    }}>
+      <WidgetIcon name={buttonIcon} size={isCollection ? iconSize * 0.6 : iconSize} />
+    </span>
+  );
+
+  const mainBtn = (
+    <span style={{
+      background: btnBg, color: btnTxt, borderRadius, boxSizing: "border-box", overflow: "hidden",
+      width: buttonWidth > 0 ? (buttonWidthUnit === "%" ? `${buttonWidth}%` : `${buttonWidth}px`) : "100%",
+      maxWidth: "100%",
+      height: buttonHeight > 0 && buttonHeightUnit !== "auto" ? buttonHeight : "auto",
+      padding: `${safePadding.top}px ${safePadding.right}px ${safePadding.bottom}px ${safePadding.left}px`,
+      margin: `${buttonMargin.top}px ${buttonMargin.right}px ${buttonMargin.bottom}px ${buttonMargin.left}px`,
+      display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+    }}>
+      {iconBox(false)}
+      <span style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+        <span style={{ fontSize: safeTitleFontSize, fontWeight: titleFontWeight || "600", fontFamily: titleFontFamily, lineHeight: 1.2, textAlign: "center" }}>{widgetTitle || "Try On This Look"}</span>
+        {widgetSubtitle && <span style={{ fontSize: safeSubtitleFontSize, fontFamily: subtitleFontFamily, lineHeight: 1.2, textAlign: "center", opacity: 0.8 }}>{widgetSubtitle}</span>}
+      </span>
+    </span>
+  );
+
+  const exampleCard = (
+    <ExampleCardPreview
+      enabled={exampleEnabled}
+      beforeImage={exampleBeforeImage}
+      afterImage={exampleAfterImage}
+      title={exampleTitle}
+      width={exampleWidth}
+      height={exampleHeight}
+      margin={exampleMargin}
+      padding={examplePadding}
+    />
+  );
+
+  const corner = { top_left: { top: 10, left: 10 }, top_right: { top: 10, right: 10 }, bottom_left: { bottom: 10, left: 10 }, bottom_right: { bottom: 10, right: 10 } }[collectionPosition] ?? { top: 10, right: 10 };
+  const image = (
+    <div className="fs-preview-img">
+      {beforeAfterEnabled ? (
+        <>
+          {/* AFTER — with garment — clipped to the right half */}
+          <svg viewBox="0 0 120 160" style={{ width: "76%", position: "absolute", left: "12%", bottom: 0, clipPath: "inset(0 0 0 50%)" }} aria-hidden="true">
+            <circle cx="60" cy="46" r="19" fill="#E4D5C7" /><path d="M41 44a19 19 0 0 1 38 0c-4-7-11-10-19-10s-15 3-19 10z" fill="#3B2F2A" /><path d="M24 160c1-44 15-86 36-86s35 42 36 86z" fill="#B4234A" />
+          </svg>
+          {/* BEFORE — plain, no garment — clipped to the left half */}
+          <svg viewBox="0 0 120 160" style={{ width: "76%", position: "absolute", left: "12%", bottom: 0, clipPath: "inset(0 50% 0 0)" }} aria-hidden="true">
+            <circle cx="60" cy="46" r="19" fill="#E4D5C7" /><path d="M41 44a19 19 0 0 1 38 0c-4-7-11-10-19-10s-15 3-19 10z" fill="#3B2F2A" /><path d="M24 160c1-44 15-86 36-86s35 42 36 86z" fill="#D6D1C9" />
+          </svg>
+          <div aria-hidden="true" style={{ position: "absolute", top: 0, bottom: 0, left: "50%", width: 3, background: "#FFFFFF", transform: "translateX(-50%)", boxShadow: "0 0 0 1px rgba(0,0,0,.15)", zIndex: 2 }} />
+          <div aria-hidden="true" style={{ position: "absolute", top: "50%", left: "50%", width: 26, height: 26, borderRadius: "50%", background: "#FFFFFF", transform: "translate(-50%,-50%)", boxShadow: "0 2px 8px rgba(0,0,0,.25)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 3, color: "#374151" }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="m9 6-6 6 6 6M15 6l6 6-6 6" /></svg>
+          </div>
+          <span style={{ position: "absolute", bottom: 8, left: 8, fontSize: 9, fontWeight: 700, color: "#fff", background: "rgba(17,24,39,.65)", padding: "2px 7px", borderRadius: 999, zIndex: 2 }}>BEFORE</span>
+          <span style={{ position: "absolute", bottom: 8, right: 8, fontSize: 9, fontWeight: 700, color: "#fff", background: "rgba(17,24,39,.65)", padding: "2px 7px", borderRadius: 999, zIndex: 2 }}>AFTER</span>
+        </>
+      ) : (
+        <svg viewBox="0 0 120 160" style={{ width: "76%", display: "block" }} aria-hidden="true"><circle cx="60" cy="46" r="19" fill="#E4D5C7" /><path d="M41 44a19 19 0 0 1 38 0c-4-7-11-10-19-10s-15 3-19 10z" fill="#3B2F2A" /><path d="M24 160c1-44 15-86 36-86s35 42 36 86z" fill="#B4234A" /></svg>
+      )}
+      {showOnCollection && (
+        <span style={{ position: "absolute", ...corner, display: "flex", alignItems: "center", gap: 4, padding: "5px 10px", background: `${btnBg}dd`, color: btnTxt, borderRadius, boxShadow: "0 2px 8px rgba(0,0,0,.15)", fontSize: 10, fontWeight: 700 }}>
+          {iconBox(true)}Try On
+        </span>
+      )}
+    </div>
+  );
+
+  if (device === "mobile") {
     return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: isCollection ? collIconBgColor : mainIconBgColor,
-          color: iconColor,
-          width: `${sz}px`,
-          height: `${sz}px`,
-          borderRadius: `${iconRadius}px`,
-          marginRight: isCollection ? "0" : "8px",
-          flexShrink: 0,
-        }}
-      >
-        {buttonIcon === "eye" && (
-          <svg
-            width={svgSz}
-            height={svgSz}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-            <circle cx="12" cy="12" r="3" />
-          </svg>
-        )}
-        {buttonIcon === "sparkles" && (
-          <svg
-            width={svgSz}
-            height={svgSz}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path d="M12 3l1.912 5.886L20 10.8l-5.886 1.912L12 18.6l-1.912-5.886L3 10.8l5.886-1.912z" />
-          </svg>
-        )}
-        {buttonIcon === "camera" && (
-          <svg
-            width={svgSz}
-            height={svgSz}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-            <circle cx="12" cy="13" r="4" />
-          </svg>
-        )}
-        {buttonIcon === "shopping-bag" && (
-          <svg
-            width={svgSz}
-            height={svgSz}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <path d="M16 10a4 4 0 0 1-8 0" />
-          </svg>
-        )}
+      <div className="fs-phone">
+        <div className="fs-phone-screen">
+          {image}
+          <div style={{ padding: 10, display: "flex", flexDirection: "column", gap: 6 }}>
+            <span style={{ fontSize: 13, fontWeight: 600 }}>Silk Banarasi Saree</span>
+            <span className="fs-tabular" style={{ fontSize: 12 }}>$749.95</span>
+            <span style={{ height: 32, borderRadius: 6, background: "#111827", color: "#FFFFFF", fontSize: 12, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center" }}>Add to cart</span>
+            {examplePosition === "above_button" && exampleCard}
+            <div style={{ display: "flex" }}>{mainBtn}</div>
+            {examplePosition !== "above_button" && exampleCard}
+          </div>
+        </div>
       </div>
     );
-  };
-
-  const btnBg = validColor(buttonColor) ? buttonColor : "#111827";
-  const btnTxt = validColor(buttonTextColor) ? buttonTextColor : "#ffffff";
-
-  const collBtnStyle = {
-    background: `${btnBg}dd`,
-    color: btnTxt,
-    borderRadius: `${borderRadius}px`,
-  };
-
-  const hasIcon = buttonIcon && buttonIcon !== "none";
-  const mainBtnStyle = {
-    background: btnBg,
-    color: btnTxt,
-    border: "none",
-    borderRadius: `${borderRadius}px`,
-    width: buttonWidth > 0
-      ? (buttonWidthUnit === "%" ? `${buttonWidth}%` : `${buttonWidth}px`)
-      : "100%",
-    height: buttonHeight > 0 && buttonHeightUnit !== "auto"
-      ? `${buttonHeight}px`
-      : "auto",
-    paddingTop: `${buttonPadding.top}px`,
-    paddingRight: `${buttonPadding.right}px`,
-    paddingBottom: `${buttonPadding.bottom}px`,
-    paddingLeft: `${buttonPadding.left}px`,
-    marginTop: `${buttonMargin.top}px`,
-    marginRight: `${buttonMargin.right}px`,
-    marginBottom: `${buttonMargin.bottom}px`,
-    marginLeft: `${buttonMargin.left}px`,
-    display: "flex",
-    flexDirection: hasIcon ? "row" : "column",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: hasIcon ? "8px" : "2px",
-    cursor: "pointer",
-    transition: "all 0.2s",
-    boxSizing: "border-box",
-    overflow: "hidden",
-  };
-
-  const posClass =
-    {
-      top_left: "top-3 left-3",
-      top_right: "top-3 right-3",
-      bottom_left: "bottom-3 left-3",
-      bottom_right: "bottom-3 right-3",
-    }[collectionPosition] ?? "top-3 right-3";
-
-  // Removed unused isTop variable
+  }
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 h-full">
-      <div className="relative h-60 bg-gray-100 overflow-hidden">
-        <img
-          src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=1000"
-          alt="Product Preview"
-          className="w-full h-full object-cover"
-        />
-        {showOnCollection && (
-          <div className={`absolute ${posClass}`}>
-            <button
-              className="flex items-center justify-center gap-1 shadow-lg backdrop-blur-sm transition-all"
-              style={{
-                ...collBtnStyle,
-                padding: "6px 12px",
-              }}
-            >
-              {renderIcon(true)}
-              <span style={{ fontSize: "10px", fontWeight: "bold" }}>
-                Try On
-              </span>
-            </button>
-          </div>
-        )}
-      </div>
-
-      <div className="p-5">
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <h2 className="text-lg font-bold text-gray-900">Summer Dress</h2>
-            <p className="text-xs text-gray-500">Premium Collection</p>
-          </div>
-          <div className="text-right">
-            <p className="text-base font-bold text-gray-900">$89.00</p>
-            <p className="text-[9px] text-gray-400 line-through">$120.00</p>
-          </div>
+    <div className="fs-browser">
+      <div className="fs-browser-bar"><span /><span /><span /><em>yourstore.com/products/silk-banarasi-saree</em></div>
+      <div style={{ display: "grid", gridTemplateColumns: "140px minmax(0, 1fr)", gap: 14, padding: 14 }}>
+        {image}
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, minWidth: 0 }}>
+          <span style={{ fontSize: 11, letterSpacing: ".08em", textTransform: "uppercase", color: "#6B7280" }}>Your store</span>
+          <span style={{ fontSize: 18, fontWeight: 600, lineHeight: 1.3 }}>Silk Banarasi Saree</span>
+          <span className="fs-tabular" style={{ fontSize: 16 }}>$749.95</span>
+          <span style={{ height: 40, borderRadius: 6, background: "#111827", color: "#FFFFFF", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center" }}>Add to cart</span>
+          {examplePosition === "above_button" && exampleCard}
+          <div style={{ display: "flex" }}>{mainBtn}</div>
+          {examplePosition !== "above_button" && exampleCard}
+          <span style={{ fontSize: 11, color: "#6B7280", lineHeight: 1.5 }}>Free shipping over $150 · Easy returns</span>
         </div>
-
-        <div className="space-y-3">
-          <div
-            style={{
-              display: "flex",
-              justifyContent: buttonWidth > 0 ? "flex-start" : "stretch",
-            }}
-          >
-            <button style={mainBtnStyle}>
-              {hasIcon && renderIcon()}
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: "2px",
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: `${titleFontSize}px`,
-                    fontWeight: titleFontWeight || "600",
-                    fontFamily: titleFontFamily,
-                    lineHeight: 1.2,
-                    textAlign: "center",
-                  }}
-                >
-                  {widgetTitle || "Try On This Look"}
-                </span>
-                <span
-                  style={{
-                    fontSize: `${subtitleFontSize}px`,
-                    fontFamily: subtitleFontFamily,
-                    lineHeight: 1.2,
-                    textAlign: "center",
-                    opacity: 0.8,
-                    display: widgetSubtitle ? "block" : "none",
-                  }}
-                >
-                  {widgetSubtitle}
-                </span>
-              </div>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="px-5 py-3.5 flex items-center justify-center border-t border-gray-50">
-        <span className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold">
-          Powered by FitSnap
-        </span>
       </div>
     </div>
   );
 }
 LivePreview.propTypes = {
-  buttonColor: PropTypes.string,
-  buttonTextColor: PropTypes.string,
-  widgetTitle: PropTypes.string,
-  widgetSubtitle: PropTypes.string,
-  titleFontSize: PropTypes.number,
-  subtitleFontSize: PropTypes.number,
-  titleFontFamily: PropTypes.string,
-  subtitleFontFamily: PropTypes.string,
-  titleFontWeight: PropTypes.string,
-  borderRadius: PropTypes.number,
-  buttonIcon: PropTypes.string,
-  iconColor: PropTypes.string,
-  mainIconBgColor: PropTypes.string,
-  collIconBgColor: PropTypes.string,
-  iconSize: PropTypes.number,
-  iconRadius: PropTypes.number,
-  collectionPosition: PropTypes.string,
-  showOnCollection: PropTypes.bool,
-  buttonWidth: PropTypes.number,
-  buttonWidthUnit: PropTypes.string,
-  buttonHeight: PropTypes.number,
-  buttonHeightUnit: PropTypes.string,
-  buttonPadding: PropTypes.object,
-  buttonMargin: PropTypes.object,
+  device: PropTypes.string, buttonColor: PropTypes.string, buttonTextColor: PropTypes.string, widgetTitle: PropTypes.string,
+  widgetSubtitle: PropTypes.string, titleFontSize: PropTypes.number, subtitleFontSize: PropTypes.number, titleFontFamily: PropTypes.string,
+  subtitleFontFamily: PropTypes.string, titleFontWeight: PropTypes.string, borderRadius: PropTypes.number, buttonIcon: PropTypes.string,
+  iconColor: PropTypes.string, mainIconBgColor: PropTypes.string, collIconBgColor: PropTypes.string, iconSize: PropTypes.number,
+  iconRadius: PropTypes.number, collectionPosition: PropTypes.string, showOnCollection: PropTypes.bool, buttonWidth: PropTypes.number,
+  buttonWidthUnit: PropTypes.string, buttonHeight: PropTypes.number, buttonHeightUnit: PropTypes.string, buttonPadding: PropTypes.object,
+  buttonMargin: PropTypes.object, beforeAfterEnabled: PropTypes.bool,
+  exampleEnabled: PropTypes.bool, exampleBeforeImage: PropTypes.string, exampleAfterImage: PropTypes.string,
+  examplePosition: PropTypes.string, exampleTitle: PropTypes.string, exampleWidth: PropTypes.number,
+  exampleHeight: PropTypes.number, exampleMargin: PropTypes.object, examplePadding: PropTypes.object,
 };
 
-// ─── Toast ────────────────────────────────────────────────────────────────────
+// ─── Modal quick edit ─────────────────────────────────────────────────────────
 
-function Toast({ content, error, onDismiss }) {
-  useEffect(() => {
-    const t = setTimeout(onDismiss, 5000); // 5s for errors/notices
-    return () => clearTimeout(t);
-  }, [onDismiss]);
+const MODAL_TEXT_FIELDS = [
+  ["modal_title", "Modal title"],
+  ["modal_subtitle", "Modal subtitle"],
+  ["upload_heading", "Upload heading"],
+  ["privacy_notice_text", "Privacy note"],
+  ["processing_heading", "While generating"],
+  ["add_to_cart_text", "Add to cart button"],
+];
+const MODAL_COLOR_FIELDS = [
+  ["modal_primary_color", "Primary color"],
+  ["modal_surface_color", "Background"],
+  ["modal_text_color", "Text color"],
+];
+
+function ModalEditor({ json, onChange }) {
+  let parsed = null;
+  try { parsed = JSON.parse(json); } catch { parsed = null; }
+  const valid = parsed && typeof parsed === "object" && !Array.isArray(parsed);
+  const setKey = (k, v) => onChange(JSON.stringify({ ...parsed, [k]: v }, null, 2));
 
   return (
-    <div
-      className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-gray-900 text-white text-sm font-medium px-6 py-4 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/10"
-      style={{ animation: "slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)" }}
-    >
-      <div
-        className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${error ? "bg-red-500" : "bg-emerald-500"}`}
-      >
-        {error ? (
-          <svg
-            width="12"
-            height="12"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="white"
-            strokeWidth="3.5"
-          >
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        ) : (
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="white"
-            strokeWidth="3.5"
-          >
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-        )}
-      </div>
-      <span className="pr-2">{content}</span>
-      <button
-        onClick={onDismiss}
-        className="ml-auto p-1 hover:bg-white/10 rounded-lg transition-colors"
-      >
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          className="opacity-50"
-        >
-          <line x1="18" y1="6" x2="6" y2="18" />
-          <line x1="6" y1="6" x2="18" y2="18" />
-        </svg>
-      </button>
-    </div>
+    <>
+      {valid ? (
+        <>
+          {MODAL_TEXT_FIELDS.map(([k, label]) => (
+            <TextInput key={k} label={label} value={String(parsed[k] ?? "")} onChange={(v) => setKey(k, v)} />
+          ))}
+          {MODAL_COLOR_FIELDS.map(([k, label]) => (
+            <ColorField key={k} label={label} value={String(parsed[k] ?? "#FFFFFF")} onChange={(v) => setKey(k, v)} />
+          ))}
+        </>
+      ) : (
+        <div className="fs-banner fs-banner--warning" role="alert"><FsIcon name="info" size={16} /><span>The JSON below has a syntax error — fix it to use the quick editor again.</span></div>
+      )}
+      <Collapsible title="Advanced: edit all modal text as JSON" hint={valid ? `${Object.keys(parsed).length} keys` : "needs fixing"}>
+        <textarea className="fs-textarea fs-code" value={json} onChange={(e) => onChange(e.target.value)} rows={18} spellCheck={false} aria-label="Modal content JSON" />
+        <p className="fs-help">Every modal label and color can be overridden here — camera, countdown, coupon, error and watermark texts included.</p>
+      </Collapsible>
+    </>
   );
 }
-Toast.propTypes = {
-  content: PropTypes.node.isRequired,
-  error: PropTypes.bool,
-  onDismiss: PropTypes.func.isRequired,
-};
+ModalEditor.propTypes = { json: PropTypes.string.isRequired, onChange: PropTypes.func.isRequired };
 
 // ─── Settings Page ────────────────────────────────────────────────────────────
 
-export default function Settings() {
-  const { settings, shop, currentPlan } = useLoaderData();
+const TABS = [
+  { id: "button", label: "Button design", icon: "layout" },
+  { id: "typography", label: "Text & style", icon: "type" },
+  { id: "modal", label: "Modal content", icon: "message" },
+  { id: "media", label: "Media", icon: "video" },
+  { id: "example", label: "Before/after images", icon: "image" },
+  { id: "collection", label: "Collection icon", icon: "grid" },
+  { id: "features", label: "Features", icon: "sliders" },
+];
+
+const DEFAULT_MODAL = {
+  modal_title: "Brix-TryOn",
+  modal_subtitle: "See how this item looks on you before you buy.",
+  privacy_notice_text: "Your photo is never stored after processing",
+  privacy_cta_text: "Get Started",
+  upload_heading: "Upload Your Photo",
+  upload_subheading: "Choose a front-facing photo for the best result.",
+  upload_primary_desktop: "Click or drag & drop your photo",
+  upload_primary_mobile: "Tap to choose a photo or use your camera",
+  upload_secondary: "JPEG, PNG or WebP — up to 5 MB",
+  camera_title: "Allow Camera Access",
+  camera_description: "We need your camera to take a photo.",
+  camera_allow_text: "Allow Camera",
+  camera_back_text: "Upload a photo instead",
+  processing_heading: "Creating your look…",
+  processing_resize_text: "Resizing your photo…",
+  processing_generating_text: "Brix-TryOn is creating your look…",
+  processing_message: "Brix-TryOn is creating your look…",
+  processing_note: "This usually takes 20–35 seconds",
+  countdown_prefix_text: "Your look is ready! Decide in ",
+  coupon_label: "Your exclusive discount",
+  add_to_cart_text: "Add to Cart",
+  buy_now_text: "Buy Now",
+  add_to_cart_loading_text: "Adding…",
+  buy_now_loading_text: "Loading…",
+  save_image_text: "Save",
+  share_whatsapp_text: "Share on WhatsApp",
+  retry_text: "Try Again",
+  error_title: "Something went wrong",
+  watermark_text: "Powered by Brix-TryOn",
+  modal_primary_color: "#6b3f17",
+  modal_primary_text_color: "#ffffff",
+  modal_primary_hover_color: "#5a3313",
+  modal_surface_color: "#ffffff",
+  modal_surface_secondary_color: "#f8f4ee",
+  modal_border_color: "#e4d8c8",
+  modal_border_hover_color: "#cbbba6",
+  modal_text_color: "#111827",
+  modal_text_secondary_color: "#667085",
+  modal_text_muted_color: "#98a2b3",
+  modal_overlay_color: "rgba(17, 17, 17, 0.66)",
+};
+
+function SettingsForm({ settings, shop, currentPlan, onDiscard }) {
   const fetcher = useFetcher();
-  const navigate = useNavigate();
+  const celebrate = useCelebrate();
   const isSubmitting = fetcher.state === "submitting";
   const actionData = fetcher.data;
-
-  const [toastActive, setToastActive] = useState(false);
   const [activeTab, setActiveTab] = useState("button");
+  const [errorMsg, setErrorMsg] = useState(null);
 
   // Button text
-  const [widgetTitle, setWidgetTitle] = useState(
-    settings?.widget_title ?? "Try On This Look",
-  );
-  const [widgetSubtitle, setWidgetSubtitle] = useState(
-    settings?.widget_subtitle ?? "See how it fits before you buy",
-  );
+  const [widgetTitle, setWidgetTitle] = useState(settings?.widget_title ?? "Try On This Look");
+  const [widgetSubtitle, setWidgetSubtitle] = useState(settings?.widget_subtitle ?? "See how it fits before you buy");
   const [modalSettingsJson, setModalSettingsJson] = useState(() => {
-    const fallback = {
-      modal_title: "FitSnap",
-      modal_subtitle: "See how this item looks on you before you buy.",
-      privacy_notice_text: "Your photo is never stored after processing",
-      privacy_cta_text: "Get Started",
-      upload_heading: "Upload Your Photo",
-      upload_subheading: "Choose a front-facing photo for the best result.",
-      upload_primary_desktop: "Click or drag & drop your photo",
-      upload_primary_mobile: "Tap to choose a photo or use your camera",
-      upload_secondary: "JPEG, PNG or WebP — up to 5 MB",
-      camera_title: "Allow Camera Access",
-      camera_description: "We need your camera to take a photo.",
-      camera_allow_text: "Allow Camera",
-      camera_back_text: "Upload a photo instead",
-      processing_heading: "Creating your look…",
-      processing_resize_text: "Resizing your photo…",
-      processing_generating_text: "FitSnap is creating your look…",
-      processing_message: "FitSnap is creating your look…",
-      processing_note: "This usually takes 20–35 seconds",
-      countdown_prefix_text: "Your look is ready! Decide in ",
-      coupon_label: "Your exclusive discount",
-      add_to_cart_text: "Add to Cart",
-      buy_now_text: "Buy Now",
-      add_to_cart_loading_text: "Adding…",
-      buy_now_loading_text: "Loading…",
-      save_image_text: "Save",
-      share_whatsapp_text: "Share on WhatsApp",
-      retry_text: "Try Again",
-      error_title: "Something went wrong",
-      watermark_text: "Powered by FitSnap",
-      modal_primary_color: "#6b3f17",
-      modal_primary_text_color: "#ffffff",
-      modal_primary_hover_color: "#5a3313",
-      modal_surface_color: "#ffffff",
-      modal_surface_secondary_color: "#f8f4ee",
-      modal_border_color: "#e4d8c8",
-      modal_border_hover_color: "#cbbba6",
-      modal_text_color: "#111827",
-      modal_text_secondary_color: "#667085",
-      modal_text_muted_color: "#98a2b3",
-      modal_overlay_color: "rgba(17, 17, 17, 0.66)",
-    };
     const current = settings?.modal_settings_json;
     if (typeof current === "string" && current.trim()) return current;
-    return JSON.stringify(current || fallback, null, 2);
+    return JSON.stringify(current || DEFAULT_MODAL, null, 2);
   });
 
   // Button colors & shape
-  const [buttonColor, setButtonColor] = useState(
-    settings?.button_color ?? "#111827",
-  );
-  const [buttonTextColor, setButtonTextColor] = useState(
-    settings?.button_text_color ?? "#FFFFFF",
-  );
-  const [borderRadius, setBorderRadius] = useState(
-    settings?.button_border_radius ?? 8,
-  );
+  const [buttonColor, setButtonColor] = useState(settings?.button_color ?? "#111827");
+  const [buttonTextColor, setButtonTextColor] = useState(settings?.button_text_color ?? "#FFFFFF");
+  const [borderRadius, setBorderRadius] = useState(settings?.button_border_radius ?? 8);
   const [hoverBg, setHoverBg] = useState(settings?.hover_bg_color ?? "#F3F4F6");
 
   // Button dimensions
   const [buttonWidth, setButtonWidth] = useState(settings?.button_width ?? 0);
-  const [buttonHeight, setButtonHeight] = useState(
-    settings?.button_height ?? 0,
-  );
+  const [buttonHeight, setButtonHeight] = useState(settings?.button_height ?? 0);
   const [buttonMargin, setButtonMargin] = useState({
     top: settings?.button_margin_top ?? 0,
     right: settings?.button_margin_right ?? 0,
@@ -1703,50 +1087,60 @@ export default function Settings() {
   });
 
   // Typography
-  const [subtitleFontSize, setSubtitleFontSize] = useState(
-    settings?.subtitle_font_size ?? 14,
-  );
-  const [titleFontWeight, setTitleFontWeight] = useState(
-    settings?.title_font_weight ?? "600",
-  );
-  const [titleFontFamily, setTitleFontFamily] = useState(
-    settings?.title_font_family ?? "Inter, sans-serif",
-  );
-  const [subtitleFontFamily, setSubtitleFontFamily] = useState(
-    settings?.subtitle_font_family ?? "Inter, sans-serif",
-  );
+  // Clamped to the slider's range (min=8/max=18) — older saved rows (or ones
+  // from before the range was tightened) could hold values the slider can no
+  // longer represent, e.g. 40px, which made the preview button balloon and
+  // wrap onto 3 lines even after the container width was fixed.
+  const [subtitleFontSize, setSubtitleFontSize] = useState(Math.min(18, Math.max(8, settings?.subtitle_font_size ?? 12)));
+  const [titleFontWeight, setTitleFontWeight] = useState(settings?.title_font_weight ?? "600");
+  const [titleFontFamily, setTitleFontFamily] = useState(settings?.title_font_family ?? "Inter, sans-serif");
+  const [subtitleFontFamily, setSubtitleFontFamily] = useState(settings?.subtitle_font_family ?? "Inter, sans-serif");
   const [language, setLanguage] = useState(settings?.widget_language ?? "en");
 
   // Collection icon
   const [buttonIcon, setButtonIcon] = useState(settings?.button_icon ?? "eye");
   const [iconColor, setIconColor] = useState(settings?.icon_color ?? "#FFFFFF");
-  const [mainIconBgColor, setMainIconBgColor] = useState(
-    settings?.main_icon_bg_color ?? "transparent",
-  );
-  const [collIconBgColor, setCollIconBgColor] = useState(
-    settings?.coll_icon_bg_color ?? "transparent",
-  );
+  const [mainIconBgColor, setMainIconBgColor] = useState(settings?.main_icon_bg_color ?? "transparent");
+  const [collIconBgColor, setCollIconBgColor] = useState(settings?.coll_icon_bg_color ?? "transparent");
   const [iconSize, setIconSize] = useState(settings?.icon_size ?? 16);
   const [iconRadius, setIconRadius] = useState(settings?.icon_radius ?? 4);
   const [iconShape] = useState(settings?.icon_shape ?? "square");
   const [iconOpacity] = useState(settings?.icon_opacity ?? 100);
-  const [showOnCollection, setShowOnCollection] = useState(
-    Boolean(settings?.show_on_collection ?? true),
-  );
-  const [collectionPosition, setCollectionPosition] = useState(
-    settings?.collection_position ?? "top_right",
-  );
+  const [showOnCollection, setShowOnCollection] = useState(Boolean(settings?.show_on_collection ?? true));
+  const [collectionPosition, setCollectionPosition] = useState(settings?.collection_position ?? "top_right");
 
   // Features & compliance
-  const [shareWa, setShareWa] = useState(
-    Boolean(settings?.share_whatsapp_enabled ?? true),
-  );
-  const [saveImg, setSaveImg] = useState(
-    Boolean(settings?.save_image_enabled ?? true),
-  );
-  const [privacy, setPrivacy] = useState(
-    Boolean(settings?.privacy_notice_shown ?? true),
-  );
+  const [shareWa, setShareWa] = useState(Boolean(settings?.share_whatsapp_enabled ?? true));
+  const [saveImg, setSaveImg] = useState(Boolean(settings?.save_image_enabled ?? true));
+  const [privacy, setPrivacy] = useState(Boolean(settings?.privacy_notice_shown ?? true));
+
+  // Before/After slider & promo video
+  const [beforeAfterEnabled] = useState(Boolean(settings?.before_after_enabled ?? false));
+  const [promoVideoUrl, setPromoVideoUrl] = useState(settings?.promo_video_url ?? "");
+  const [promoVideoPosition, setPromoVideoPosition] = useState(settings?.promo_video_position ?? "below_button");
+
+  // Merchant-uploaded before/after example images — independent of any
+  // product data, shown as a static comparison slider above/below the Try
+  // On button when enabled.
+  const [exampleBeforeAfterEnabled, setExampleBeforeAfterEnabled] = useState(Boolean(settings?.example_before_after_enabled ?? false));
+  const [exampleBeforeImage, setExampleBeforeImage] = useState(settings?.example_before_image ?? "");
+  const [exampleAfterImage, setExampleAfterImage] = useState(settings?.example_after_image ?? "");
+  const [exampleSliderPosition, setExampleSliderPosition] = useState(settings?.example_slider_position ?? "below_button");
+  const [exampleTitle, setExampleTitle] = useState(settings?.example_title ?? "");
+  const [exampleWidth, setExampleWidth] = useState(settings?.example_width ?? 320);
+  const [exampleHeight, setExampleHeight] = useState(settings?.example_height ?? 0);
+  const [exampleMargin, setExampleMargin] = useState({
+    top: settings?.example_margin_top ?? 10,
+    right: settings?.example_margin_right ?? 0,
+    bottom: settings?.example_margin_bottom ?? 0,
+    left: settings?.example_margin_left ?? 0,
+  });
+  const [examplePadding, setExamplePadding] = useState({
+    top: settings?.example_padding_top ?? 0,
+    right: settings?.example_padding_right ?? 0,
+    bottom: settings?.example_padding_bottom ?? 0,
+    left: settings?.example_padding_left ?? 0,
+  });
 
   // View-mode customization (desktop / mobile)
   const [viewMode, setViewMode] = useState("desktop");
@@ -1764,16 +1158,16 @@ export default function Settings() {
       heightUnit: settings?.mobile_widget_height_unit ?? "auto",
     },
   });
+  // Clamped to the slider's range (min=10/max=24) — see subtitleFontSize note above.
   const [fontSizeByView, setFontSizeByView] = useState({
-    desktop:
-      settings?.desktop_title_font_size ?? settings?.title_font_size ?? 20,
-    mobile: settings?.mobile_title_font_size ?? 14,
+    desktop: Math.min(24, Math.max(10, settings?.desktop_title_font_size ?? settings?.title_font_size ?? 16)),
+    mobile: Math.min(24, Math.max(10, settings?.mobile_title_font_size ?? 14)),
   });
   const [paddingByView, setPaddingByView] = useState({
     desktop: {
-      top: settings?.desktop_padding_top ?? 10,
+      top: settings?.desktop_padding_top ?? 14,
       right: settings?.desktop_padding_right ?? 24,
-      bottom: settings?.desktop_padding_bottom ?? 10,
+      bottom: settings?.desktop_padding_bottom ?? 14,
       left: settings?.desktop_padding_left ?? 24,
     },
     mobile: {
@@ -1797,890 +1191,430 @@ export default function Settings() {
     setWidgetSubtitle(t.subtitle);
   }, [language]);
 
-  const [errorToast, setErrorToast] = useState(null);
+  const payload = {
+    widget_title: widgetTitle,
+    widget_subtitle: widgetSubtitle,
+    modal_settings_json: modalSettingsJson,
+    // All CSS / style fields sent flat so PHP receives them as direct top-level keys.
+    // Nesting them under a "css" sub-object risks them being lost when React Router
+    // serialises with FormData (nested objects become the string "[object Object]").
+    button_color: buttonColor,
+    button_text_color: buttonTextColor,
+    hover_bg_color: hoverBg,
+    button_border_radius: borderRadius,
+    button_width: buttonWidth,
+    button_height: buttonHeight,
+    button_padding_top: buttonPadding.top,
+    button_padding_right: buttonPadding.right,
+    button_padding_bottom: buttonPadding.bottom,
+    button_padding_left: buttonPadding.left,
+    button_margin_top: buttonMargin.top,
+    button_margin_right: buttonMargin.right,
+    button_margin_bottom: buttonMargin.bottom,
+    button_margin_left: buttonMargin.left,
+    title_font_size: fontSizeByView.desktop,
+    subtitle_font_size: subtitleFontSize,
+    title_font_weight: titleFontWeight,
+    title_font_family: titleFontFamily,
+    subtitle_font_family: subtitleFontFamily,
+    desktop_widget_width: widgetDimensions.desktop.width,
+    desktop_widget_width_unit: widgetDimensions.desktop.widthUnit,
+    desktop_widget_height: widgetDimensions.desktop.height,
+    desktop_widget_height_unit: widgetDimensions.desktop.heightUnit,
+    mobile_widget_width: widgetDimensions.mobile.width,
+    mobile_widget_width_unit: widgetDimensions.mobile.widthUnit,
+    mobile_widget_height: widgetDimensions.mobile.height,
+    mobile_widget_height_unit: widgetDimensions.mobile.heightUnit,
+    desktop_title_font_size: fontSizeByView.desktop,
+    mobile_title_font_size: fontSizeByView.mobile,
+    desktop_padding_top: paddingByView.desktop.top,
+    desktop_padding_right: paddingByView.desktop.right,
+    desktop_padding_bottom: paddingByView.desktop.bottom,
+    desktop_padding_left: paddingByView.desktop.left,
+    mobile_padding_top: paddingByView.mobile.top,
+    mobile_padding_right: paddingByView.mobile.right,
+    mobile_padding_bottom: paddingByView.mobile.bottom,
+    mobile_padding_left: paddingByView.mobile.left,
+    button_icon: buttonIcon,
+    icon_color: iconColor,
+    main_icon_bg_color: mainIconBgColor,
+    coll_icon_bg_color: collIconBgColor,
+    icon_size: iconSize,
+    icon_radius: iconRadius,
+    icon_shape: iconShape,
+    icon_opacity: iconOpacity,
+    widget_language: language,
+    show_on_collection: showOnCollection,
+    collection_position: collectionPosition,
+    share_whatsapp_enabled: shareWa,
+    save_image_enabled: saveImg,
+    privacy_notice_shown: privacy,
+    before_after_enabled: beforeAfterEnabled,
+    promo_video_url: promoVideoUrl,
+    promo_video_position: promoVideoPosition,
+    example_before_after_enabled: exampleBeforeAfterEnabled,
+    example_before_image: exampleBeforeImage,
+    example_after_image: exampleAfterImage,
+    example_slider_position: exampleSliderPosition,
+    example_title: exampleTitle,
+    example_width: exampleWidth,
+    example_height: exampleHeight,
+    example_margin_top: exampleMargin.top,
+    example_margin_right: exampleMargin.right,
+    example_margin_bottom: exampleMargin.bottom,
+    example_margin_left: exampleMargin.left,
+    example_padding_top: examplePadding.top,
+    example_padding_right: examplePadding.right,
+    example_padding_bottom: examplePadding.bottom,
+    example_padding_left: examplePadding.left,
+    shopify_domain: shop,
+  };
+  const payloadKey = JSON.stringify(payload);
+  const savedKey = useRef(payloadKey);
+  const dirty = payloadKey !== savedKey.current;
 
   useEffect(() => {
     if (!actionData) return;
-    console.log("[FitSnap] Save response from action:", actionData);
     if (actionData?.ok) {
-      setToastActive(true);
-      setErrorToast(null);
+      savedKey.current = payloadKey;
+      setErrorMsg(null);
+      celebrate({ title: "Settings saved", body: "Your try-on button is updated on the storefront." });
     } else if (actionData?.error) {
-      setErrorToast(actionData.error);
+      setErrorMsg(actionData.error);
     }
-  }, [actionData]);
+  }, [actionData]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Warn before leaving with unsaved edits
+  useEffect(() => {
+    if (!dirty) return undefined;
+    const onBeforeUnload = (e) => { e.preventDefault(); e.returnValue = ""; };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [dirty]);
 
   const handleSave = () => {
-    fetcher.submit(
-      {
-        widget_title: widgetTitle,
-        widget_subtitle: widgetSubtitle,
-        modal_settings_json: modalSettingsJson,
-        // All CSS / style fields sent flat so PHP receives them as direct top-level keys.
-        // Nesting them under a "css" sub-object risks them being lost when React Router
-        // serialises with FormData (nested objects become the string "[object Object]").
-        button_color: buttonColor,
-        button_text_color: buttonTextColor,
-        hover_bg_color: hoverBg,
-        button_border_radius: borderRadius,
-        button_width: buttonWidth,
-        button_height: buttonHeight,
-        button_padding_top: buttonPadding.top,
-        button_padding_right: buttonPadding.right,
-        button_padding_bottom: buttonPadding.bottom,
-        button_padding_left: buttonPadding.left,
-        button_margin_top: buttonMargin.top,
-        button_margin_right: buttonMargin.right,
-        button_margin_bottom: buttonMargin.bottom,
-        button_margin_left: buttonMargin.left,
-        title_font_size: fontSizeByView.desktop,
-        subtitle_font_size: subtitleFontSize,
-        title_font_weight: titleFontWeight,
-        title_font_family: titleFontFamily,
-        subtitle_font_family: subtitleFontFamily,
-        desktop_widget_width: widgetDimensions.desktop.width,
-        desktop_widget_width_unit: widgetDimensions.desktop.widthUnit,
-        desktop_widget_height: widgetDimensions.desktop.height,
-        desktop_widget_height_unit: widgetDimensions.desktop.heightUnit,
-        mobile_widget_width: widgetDimensions.mobile.width,
-        mobile_widget_width_unit: widgetDimensions.mobile.widthUnit,
-        mobile_widget_height: widgetDimensions.mobile.height,
-        mobile_widget_height_unit: widgetDimensions.mobile.heightUnit,
-        desktop_title_font_size: fontSizeByView.desktop,
-        mobile_title_font_size: fontSizeByView.mobile,
-        desktop_padding_top: paddingByView.desktop.top,
-        desktop_padding_right: paddingByView.desktop.right,
-        desktop_padding_bottom: paddingByView.desktop.bottom,
-        desktop_padding_left: paddingByView.desktop.left,
-        mobile_padding_top: paddingByView.mobile.top,
-        mobile_padding_right: paddingByView.mobile.right,
-        mobile_padding_bottom: paddingByView.mobile.bottom,
-        mobile_padding_left: paddingByView.mobile.left,
-        button_icon: buttonIcon,
-        icon_color: iconColor,
-        main_icon_bg_color: mainIconBgColor,
-        coll_icon_bg_color: collIconBgColor,
-        icon_size: iconSize,
-        icon_radius: iconRadius,
-        icon_shape: iconShape,
-        icon_opacity: iconOpacity,
-        widget_language: language,
-        show_on_collection: showOnCollection,
-        collection_position: collectionPosition,
-        share_whatsapp_enabled: shareWa,
-        save_image_enabled: saveImg,
-        privacy_notice_shown: privacy,
-        shopify_domain: shop,
-      },
-      {
-        method: "POST",
-        encType: "application/json",
-        action: "/api/widget-settings",
-      },
-    );
+    fetcher.submit(payload, {
+      method: "POST",
+      encType: "application/json",
+      action: "/api/widget-settings",
+    });
   };
 
-  const TABS = [
-    { id: "button", label: "Button Design" },
-    { id: "typography", label: "Text & Style" },
-    { id: "modal", label: "Modal Content" },
-    { id: "collection", label: "Collection Icon" },
-    { id: "features", label: "Features" },
+  // Setup checklist — each check reflects a setting that helps conversion.
+  const checks = [
+    { label: "Custom button text", done: widgetTitle.trim() !== "" && widgetTitle !== "Try On This Look", tab: "button" },
+    { label: "Brand button color", done: HEX.test(buttonColor) && buttonColor.toLowerCase() !== "#111827", tab: "button" },
+    { label: "Supporting subtitle", done: widgetSubtitle.trim() !== "", tab: "button" },
+    { label: "Button icon", done: buttonIcon !== "none", tab: "collection" },
+    { label: "Collection page icon", done: showOnCollection, tab: "collection" },
+    { label: "WhatsApp share", done: shareWa, tab: "features" },
+    { label: "Save image", done: saveImg, tab: "features" },
+    { label: "Privacy notice", done: privacy, tab: "features" },
   ];
+  const todo = checks.filter((c) => !c.done);
+  const updateDims = (patch) => setWidgetDimensions((prev) => ({ ...prev, [viewMode]: { ...prev[viewMode], ...patch } }));
 
-  return (
-    <div className="min-h-screen bg-[#F6F6F7]">
-      {toastActive && (
-        <Toast
-          content="Settings saved successfully!"
-          onDismiss={() => setToastActive(false)}
-        />
-      )}
-
-      {errorToast && (
-        <Toast
-          content={errorToast}
-          error
-          onDismiss={() => setErrorToast(null)}
-        />
-      )}
-
-      {/* Page header */}
-      <div
-        style={{
-          background: "white",
-          borderBottom: "1px solid var(--vto-border)",
-          padding: "16px 24px",
-          position: "sticky",
-          top: 0,
-          zIndex: 40,
-        }}
-      >
-        <div
-          style={{
-            maxWidth: "1200px",
-            margin: "0 auto",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <button
-              type="button"
-              onClick={() => navigate("/app")}
-              aria-label="Back to Dashboard"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                padding: "4px",
-                borderRadius: "6px",
-                color: "#111827",
-                flexShrink: 0,
-              }}
-            >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
-            </button>
-            <div>
-              <h1
-                className="vto-title"
-                style={{ fontSize: "0.875rem", marginBottom: "2px" }}
-              >
-                Button Settings &amp; Configuration
-              </h1>
-              <p className="text-[9px] text-gray-400 font-medium">
-                Manage your button appearance, collection icons, and typography
-                settings
-              </p>
+  const ACCORDION_CONTENT = {
+    button: (
+      <>
+        <Section title="Button text" description="The label shoppers see on product pages.">
+          <TextInput label="Button title" value={widgetTitle} onChange={setWidgetTitle} placeholder="Try On This Look" max={60} help="Short and action-led works best." />
+          <TextInput label="Subtitle" value={widgetSubtitle} onChange={setWidgetSubtitle} placeholder="See how it fits before you buy" max={200} />
+        </Section>
+        <Section title="Colors and shape">
+          <ColorField label="Button color" value={buttonColor} onChange={setButtonColor} />
+          <ColorField label="Text color" value={buttonTextColor} onChange={setButtonTextColor} />
+          <SliderField label="Corner radius" value={borderRadius} onChange={setBorderRadius} min={0} max={40} hints={["Square", "Pill"]} />
+          <ColorField label="Hover background" value={hoverBg} onChange={setHoverBg} />
+        </Section>
+        <Section title="Size" description="Set sizes separately for desktop and mobile." action={<ViewToggle value={viewMode} onChange={setViewMode} />}>
+          <div>
+            <span className="fs-label">Widget width</span>
+            <div style={{ display: "flex", gap: 8 }}>
+              <input className="fs-input" type="number" min={0} max={widgetDimensions[viewMode].widthUnit === "%" ? 100 : 2000} value={widgetDimensions[viewMode].width} onChange={(e) => updateDims({ width: parseInt(e.target.value, 10) || 0 })} aria-label="Widget width" />
+              <div className="fs-seg">{["px", "%"].map((u) => <button key={u} type="button" className={widgetDimensions[viewMode].widthUnit === u ? "is-on" : ""} onClick={() => updateDims({ widthUnit: u })}>{u}</button>)}</div>
             </div>
           </div>
-          <button
-            onClick={handleSave}
-            disabled={isSubmitting}
-            style={{ background: "#000000" }}
-            className="text-white px-8 py-2.5 rounded-xl shadow-lg shadow-black/10 hover:shadow-black/20 active:scale-95 transition-all text-sm font-bold disabled:opacity-60"
-          >
-            {isSubmitting ? "Saving…" : "Save Configuration"}
-          </button>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-6 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4 lg:gap-8 items-start">
-          {/* LEFT: scrollable form */}
-          <div className="space-y-6 min-w-0 pb-12 lg:pb-48">
-            {/* Tab bar */}
-            <div className="bg-white p-1.5 rounded-2xl border border-gray-100 shadow-sm flex gap-1 w-full">
-              {TABS.map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${
-                    activeTab === tab.id
-                      ? "bg-gray-900 text-white shadow-md"
-                      : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-                  }`}
-                >
-                  {tab.label}
-                </button>
+          <div>
+            <span className="fs-label">Widget height</span>
+            <div style={{ display: "flex", gap: 8 }}>
+              {widgetDimensions[viewMode].heightUnit === "auto"
+                ? <div className="fs-input" style={{ display: "flex", alignItems: "center", color: "var(--fs-muted)", background: "#F9FAFB" }}>Auto</div>
+                : <input className="fs-input" type="number" min={0} max={2000} value={widgetDimensions[viewMode].height} onChange={(e) => updateDims({ height: parseInt(e.target.value, 10) || 0 })} aria-label="Widget height" />}
+              <div className="fs-seg">{["px", "auto"].map((u) => <button key={u} type="button" className={widgetDimensions[viewMode].heightUnit === u ? "is-on" : ""} onClick={() => updateDims({ heightUnit: u })}>{u}</button>)}</div>
+            </div>
+          </div>
+          <Collapsible title="Advanced spacing" hint="Button size, padding and margin">
+            <SliderField label="Button width" value={buttonWidth} onChange={setButtonWidth} min={0} max={800} hints={["0 = full width", "800px"]} />
+            <SliderField label="Button height" value={buttonHeight} onChange={setButtonHeight} min={0} max={200} hints={["0 = auto", "200px"]} />
+            <SpacingInput label={`Padding (${viewMode})`} values={paddingByView[viewMode]} onChange={(val) => setPaddingByView((prev) => ({ ...prev, [viewMode]: val }))} />
+            <SpacingInput label="Margin" values={buttonMargin} onChange={setButtonMargin} />
+          </Collapsible>
+          <SliderField label={`Title size (${viewMode})`} value={fontSizeByView[viewMode]} onChange={(val) => setFontSizeByView((prev) => ({ ...prev, [viewMode]: val }))} min={10} max={24} />
+          <SliderField label="Subtitle size" value={subtitleFontSize} onChange={setSubtitleFontSize} min={8} max={18} />
+        </Section>
+      </>
+    ),
+    typography: (
+      <PlanGate currentPlan={currentPlan} requiredPlan="growth" featureName="Typography & branding controls" mode="overlay">
+        <Section title="Typography" description="Weight and family for the button (size is set in Button design)." action={<ViewToggle value={viewMode} onChange={setViewMode} />}>
+          <div>
+            <span className="fs-label">Title weight</span>
+            <div className="fs-seg" role="group" aria-label="Title font weight" style={{ display: "flex" }}>
+              {FONT_WEIGHT_OPTIONS.map((o) => (
+                <button key={o.value} type="button" style={{ flex: 1, fontWeight: Number(o.value) }} className={titleFontWeight === o.value ? "is-on" : ""} aria-pressed={titleFontWeight === o.value} onClick={() => setTitleFontWeight(o.value)}>{o.label.split(" ")[0]}</button>
               ))}
             </div>
-
-            {/* ── Button Design tab ── */}
-            {activeTab === "button" && (
-              <div className="space-y-6">
-                <SectionCard
-                  title="Button Text"
-                  description="Configure the label and subtitle shown inside the button."
-                >
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-6">
-                    <FormInput
-                      label="Button Title"
-                      value={widgetTitle}
-                      onChange={setWidgetTitle}
-                      placeholder="Try On This Look"
-                    />
-                    <FormInput
-                      label="Button Subtitle"
-                      value={widgetSubtitle}
-                      onChange={setWidgetSubtitle}
-                      placeholder="See how it fits before you buy"
-                    />
-                  </div>
-                </SectionCard>
-
-                <SectionCard
-                  title="Colors & Shape"
-                  description="Button background, text color, and corner radius."
-                >
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-6">
-                    <ColorPicker
-                      label="Button Color"
-                      value={buttonColor}
-                      onChange={setButtonColor}
-                    />
-                    <ColorPicker
-                      label="Button Text Color"
-                      value={buttonTextColor}
-                      onChange={setButtonTextColor}
-                    />
-                    <ColorPicker
-                      label="Hover Background"
-                      value={hoverBg}
-                      onChange={setHoverBg}
-                    />
-                    <NumberInput
-                      label="Border Radius"
-                      value={borderRadius}
-                      onChange={setBorderRadius}
-                      min={0}
-                      max={100}
-                      suffix="px"
-                    />
-                  </div>
-                </SectionCard>
-
-                {/* Size & Dimensions — view-aware */}
-                <div
-                  className="vto-card"
-                  style={{
-                    padding: 0,
-                    overflow: "hidden",
-                    marginBottom: "24px",
-                  }}
-                >
-                  <div
-                    style={{
-                      padding: "20px 24px",
-                      borderBottom: "1px solid var(--vto-border)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: "12px",
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    <div>
-                      <h3 className="vto-title" style={{ fontSize: "0.875rem" }}>
-                        Size &amp; Dimensions
-                      </h3>
-                      <p
-                        className="vto-subtitle"
-                        style={{ fontSize: "0.6875rem", marginTop: "4px" }}
-                      >
-                        Widget container and button dimensions per view.
-                      </p>
-                    </div>
-                    <ViewToggle value={viewMode} onChange={setViewMode} />
-                  </div>
-                  <div style={{ padding: "24px" }}>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-6">
-                      {/* Widget Width — view-specific */}
-                      <div>
-                        <span className="block text-sm font-bold text-gray-900 mb-2">
-                          Widget Width
-                        </span>
-                        <div
-                          style={{
-                            display: "flex",
-                            gap: "8px",
-                            alignItems: "center",
-                          }}
-                        >
-                          <input
-                            type="number"
-                            value={widgetDimensions[viewMode].width}
-                            min={0}
-                            max={
-                              widgetDimensions[viewMode].widthUnit === "%"
-                                ? 100
-                                : 2000
-                            }
-                            onChange={(e) => {
-                              const val = parseInt(e.target.value) || 0;
-                              setWidgetDimensions((prev) => ({
-                                ...prev,
-                                [viewMode]: { ...prev[viewMode], width: val },
-                              }));
-                            }}
-                            className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900 transition-all font-semibold bg-white"
-                          />
-                          <div
-                            style={{
-                              display: "flex",
-                              background: "#F3F4F6",
-                              borderRadius: "12px",
-                              padding: "3px",
-                              gap: "2px",
-                              flexShrink: 0,
-                            }}
-                          >
-                            {["px", "%"].map((unit) => (
-                              <button
-                                key={unit}
-                                type="button"
-                                onClick={() =>
-                                  setWidgetDimensions((prev) => ({
-                                    ...prev,
-                                    [viewMode]: {
-                                      ...prev[viewMode],
-                                      widthUnit: unit,
-                                    },
-                                  }))
-                                }
-                                style={{
-                                  background:
-                                    widgetDimensions[viewMode].widthUnit ===
-                                    unit
-                                      ? "#1a1a1a"
-                                      : "transparent",
-                                  color:
-                                    widgetDimensions[viewMode].widthUnit ===
-                                    unit
-                                      ? "#ffffff"
-                                      : "#9CA3AF",
-                                  borderRadius: "9px",
-                                  fontSize: "10px",
-                                  fontWeight: 600,
-                                  height: "28px",
-                                  padding: "0 10px",
-                                  border: "none",
-                                  cursor: "pointer",
-                                  transition: "all 0.15s",
-                                }}
-                              >
-                                {unit}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                      {/* Widget Height — view-specific */}
-                      <div>
-                        <span className="block text-sm font-bold text-gray-900 mb-2">
-                          Widget Height
-                        </span>
-                        <div
-                          style={{
-                            display: "flex",
-                            gap: "8px",
-                            alignItems: "center",
-                          }}
-                        >
-                          {widgetDimensions[viewMode].heightUnit === "auto" ? (
-                            <div className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-xl bg-gray-50 font-semibold text-gray-400">
-                              Auto
-                            </div>
-                          ) : (
-                            <input
-                              type="number"
-                              value={widgetDimensions[viewMode].height}
-                              min={0}
-                              max={2000}
-                              onChange={(e) => {
-                                const val = parseInt(e.target.value) || 0;
-                                setWidgetDimensions((prev) => ({
-                                  ...prev,
-                                  [viewMode]: {
-                                    ...prev[viewMode],
-                                    height: val,
-                                  },
-                                }));
-                              }}
-                              className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900 transition-all font-semibold bg-white"
-                            />
-                          )}
-                          <div
-                            style={{
-                              display: "flex",
-                              background: "#F3F4F6",
-                              borderRadius: "12px",
-                              padding: "3px",
-                              gap: "2px",
-                              flexShrink: 0,
-                            }}
-                          >
-                            {["px", "auto"].map((unit) => (
-                              <button
-                                key={unit}
-                                type="button"
-                                onClick={() =>
-                                  setWidgetDimensions((prev) => ({
-                                    ...prev,
-                                    [viewMode]: {
-                                      ...prev[viewMode],
-                                      heightUnit: unit,
-                                    },
-                                  }))
-                                }
-                                style={{
-                                  background:
-                                    widgetDimensions[viewMode].heightUnit ===
-                                    unit
-                                      ? "#1a1a1a"
-                                      : "transparent",
-                                  color:
-                                    widgetDimensions[viewMode].heightUnit ===
-                                    unit
-                                      ? "#ffffff"
-                                      : "#9CA3AF",
-                                  borderRadius: "9px",
-                                  fontSize: "10px",
-                                  fontWeight: 600,
-                                  height: "28px",
-                                  padding: "0 10px",
-                                  border: "none",
-                                  cursor: "pointer",
-                                  transition: "all 0.15s",
-                                }}
-                              >
-                                {unit}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                      {/* Button-level dimensions (unchanged) */}
-                      <NumberInput
-                        label="Button Width"
-                        value={buttonWidth}
-                        onChange={setButtonWidth}
-                        min={0}
-                        max={800}
-                        suffix="px"
-                      />
-                      <NumberInput
-                        label="Button Height"
-                        value={buttonHeight}
-                        onChange={setButtonHeight}
-                        min={0}
-                        max={200}
-                        suffix="px"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Padding — view-aware */}
-                <div
-                  className="vto-card"
-                  style={{
-                    padding: 0,
-                    overflow: "hidden",
-                    marginBottom: "24px",
-                  }}
-                >
-                  <div
-                    style={{
-                      padding: "20px 24px",
-                      borderBottom: "1px solid var(--vto-border)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: "12px",
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    <div>
-                      <h3 className="vto-title" style={{ fontSize: "0.875rem" }}>
-                        Padding
-                      </h3>
-                      <p
-                        className="vto-subtitle"
-                        style={{ fontSize: "0.6875rem", marginTop: "4px" }}
-                      >
-                        Inner spacing between button text and its edges.
-                      </p>
-                    </div>
-                    <ViewToggle value={viewMode} onChange={setViewMode} />
-                  </div>
-                  <div style={{ padding: "24px" }}>
-                    <SpacingInput
-                      label="Padding (Top / Right / Bottom / Left)"
-                      values={paddingByView[viewMode]}
-                      onChange={(val) =>
-                        setPaddingByView((prev) => ({
-                          ...prev,
-                          [viewMode]: val,
-                        }))
-                      }
-                      suffix="px"
-                    />
-                  </div>
-                </div>
-
-                <SectionCard
-                  title="Margin"
-                  description="Outer spacing around the button."
-                >
-                  <SpacingInput
-                    label="Margin (Top / Right / Bottom / Left)"
-                    values={buttonMargin}
-                    onChange={setButtonMargin}
-                    suffix="px"
-                  />
-                </SectionCard>
-              </div>
-            )}
-
-            {/* ── Text & Style tab ── */}
-            {activeTab === "typography" && (
-              <PlanGate
-                currentPlan={currentPlan}
-                requiredPlan="growth"
-                featureName="Typography & Branding Controls"
-                mode="overlay"
-              >
-                <div className="space-y-6">
-                  {/* Typography — view-aware title font size */}
-                  <div
-                    className="vto-card"
-                    style={{
-                      padding: 0,
-                      overflow: "hidden",
-                      marginBottom: "24px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        padding: "20px 24px",
-                        borderBottom: "1px solid var(--vto-border)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        gap: "12px",
-                        flexWrap: "wrap",
-                      }}
-                    >
-                      <div>
-                        <h3 className="vto-title" style={{ fontSize: "0.875rem" }}>
-                          Typography
-                        </h3>
-                        <p
-                          className="vto-subtitle"
-                          style={{ fontSize: "0.6875rem", marginTop: "4px" }}
-                        >
-                          Control font sizes, weights and families.
-                        </p>
-                      </div>
-                      <ViewToggle value={viewMode} onChange={setViewMode} />
-                    </div>
-                    <div style={{ padding: "24px" }}>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-6">
-                        <NumberInput
-                          label={`Title Font Size (${viewMode === "desktop" ? "Desktop" : "Mobile"})`}
-                          value={fontSizeByView[viewMode]}
-                          onChange={(val) =>
-                            setFontSizeByView((prev) => ({
-                              ...prev,
-                              [viewMode]: val,
-                            }))
-                          }
-                          min={8}
-                          max={72}
-                          suffix="px"
-                        />
-                        <NumberInput
-                          label="Subtitle Font Size"
-                          value={subtitleFontSize}
-                          onChange={setSubtitleFontSize}
-                          min={8}
-                          max={48}
-                          suffix="px"
-                        />
-                        <SelectField
-                          label="Title Font Weight"
-                          value={titleFontWeight}
-                          onChange={setTitleFontWeight}
-                          options={FONT_WEIGHT_OPTIONS}
-                        />
-                        <SelectField
-                          label="Title Font Family"
-                          value={titleFontFamily}
-                          onChange={setTitleFontFamily}
-                          options={FONT_FAMILY_OPTIONS}
-                        />
-                        <SelectField
-                          label="Subtitle Font Family"
-                          value={subtitleFontFamily}
-                          onChange={setSubtitleFontFamily}
-                          options={FONT_FAMILY_OPTIONS}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <PlanGate
-                    currentPlan={currentPlan}
-                    requiredPlan="pro"
-                    featureName="Multi-language Widget"
-                    mode="overlay"
-                  >
-                    <SectionCard
-                      title="Language"
-                      description="Choose a language — the button text will update automatically in the preview and on your store."
-                    >
-                      <SearchableSelect
-                        label="Widget Language"
-                        value={language}
-                        onChange={setLanguage}
-                        options={WORLD_LANGUAGES}
-                      />
-                    </SectionCard>
-                  </PlanGate>
-                </div>
-              </PlanGate>
-            )}
-
-            {/* ── Modal Content tab ── */}
-            {activeTab === "modal" && (
-              <SectionCard
-                title="Modal Content JSON"
-                description="Override every modal label and color with one JSON object."
-              >
-                <div className="space-y-4">
-                  <textarea
-                    value={modalSettingsJson}
-                    onChange={(e) => setModalSettingsJson(e.target.value)}
-                    rows={24}
-                    spellCheck={false}
-                    className="w-full font-mono text-sm px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900 transition-all bg-white"
-                    style={{ minHeight: "520px", lineHeight: 1.5 }}
-                  />
-                  <p className="text-xs text-gray-500 leading-5">
-                    Supported keys include{" "}
-                    <span className="font-semibold text-gray-700">
-                      modal_title
-                    </span>
-                    ,{" "}
-                    <span className="font-semibold text-gray-700">
-                      modal_subtitle
-                    </span>
-                    ,{" "}
-                    <span className="font-semibold text-gray-700">
-                      upload_heading
-                    </span>
-                    ,{" "}
-                    <span className="font-semibold text-gray-700">
-                      camera_title
-                    </span>
-                    ,{" "}
-                    <span className="font-semibold text-gray-700">
-                      add_to_cart_text
-                    </span>
-                    ,{" "}
-                    <span className="font-semibold text-gray-700">
-                      modal_primary_color
-                    </span>
-                    , and the other starter fields in the JSON.
-                  </p>
-                </div>
-              </SectionCard>
-            )}
-
-            {/* ── Collection Icon tab ── */}
-            {activeTab === "collection" && (
-              <PlanGate
-                currentPlan={currentPlan}
-                requiredPlan="growth"
-                featureName="Collection Page Icons"
-              >
-                <SectionCard
-                  title="Collection Icon"
-                  description="Customize the VTO icon on product listing cards."
-                >
-                  <Toggle
-                    checked={showOnCollection}
-                    onChange={setShowOnCollection}
-                    label="Show on Collection Pages"
-                    description="Enable the mini try-on icon for product listings."
-                  />
-
-                  {showOnCollection && (
-                    <div className="space-y-8 mt-6 pt-6 border-t border-gray-100">
-                      <div>
-                        <span className="block text-sm font-bold text-gray-900 mb-4">
-                          Position on Product Cards
-                        </span>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                          {[
-                            {
-                              id: "top_left",
-                              label: "Top Left",
-                              sub: "Over image",
-                              icon: "monitor",
-                            },
-                            {
-                              id: "top_right",
-                              label: "Top Right",
-                              sub: "Over image",
-                              icon: "monitor",
-                            },
-                            {
-                              id: "bottom_left",
-                              label: "Bottom Left",
-                              sub: "Action corner",
-                              icon: "cart",
-                            },
-                            {
-                              id: "bottom_right",
-                              label: "Bottom Right",
-                              sub: "Action corner",
-                              icon: "cart",
-                            },
-                          ].map((pos) => (
-                            <PositionCard
-                              key={pos.id}
-                              id={pos.id}
-                              label={pos.label}
-                              sub={pos.sub}
-                              icon={pos.icon}
-                              active={collectionPosition === pos.id}
-                              onClick={setCollectionPosition}
-                            />
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                        <div className="space-y-3">
-                          <span className="block text-sm font-bold text-gray-900">
-                            Icon Choice
-                          </span>
-                          <IconPicker
-                            value={buttonIcon}
-                            onChange={setButtonIcon}
-                          />
-                        </div>
-                        <ColorPicker
-                          label="Icon Color"
-                          value={iconColor}
-                          onChange={setIconColor}
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-6">
-                        <ColorPicker
-                          label="Main Button Icon BG"
-                          value={mainIconBgColor}
-                          onChange={setMainIconBgColor}
-                        />
-                        <ColorPicker
-                          label="Collection Icon BG"
-                          value={collIconBgColor}
-                          onChange={setCollIconBgColor}
-                        />
-                        <NumberInput
-                          label="Icon Size"
-                          value={iconSize}
-                          onChange={setIconSize}
-                          min={8}
-                          max={48}
-                        />
-                        <NumberInput
-                          label="Icon Border Radius"
-                          value={iconRadius}
-                          onChange={setIconRadius}
-                          min={0}
-                          max={32}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </SectionCard>
-              </PlanGate>
-            )}
-
-            {/* ── Features & Compliance tab ── */}
-            {activeTab === "features" && (
-              <PlanGate
-                currentPlan={currentPlan}
-                requiredPlan="growth"
-                featureName="Advanced Features (WhatsApp Share, Conversion Tracking)"
-              >
-                <SectionCard
-                  title="Features & Compliance"
-                  description="Enable or disable optional features and notices."
-                >
-                  <Toggle
-                    checked={shareWa}
-                    onChange={setShareWa}
-                    label="WhatsApp Share"
-                    description="Allow customers to share their try-on results via WhatsApp."
-                  />
-                  <Divider />
-                  <Toggle
-                    checked={saveImg}
-                    onChange={setSaveImg}
-                    label="Save Try-On Image"
-                    badge="Active"
-                    description="Allow customers to download the try-on photo."
-                  />
-                  <Divider />
-                  <Toggle
-                    checked={privacy}
-                    onChange={setPrivacy}
-                    label="Privacy Notice"
-                    badge="Active"
-                    description="Show a consent notice before the customer uploads a photo."
-                  />
-                </SectionCard>
-              </PlanGate>
-            )}
           </div>
-
-          {/* RIGHT: sticky live preview */}
-          <div className="sticky top-[73px]">
-            <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-widest mb-3 text-center">
-              Live Preview
-            </p>
-            <LivePreview
-              buttonColor={buttonColor}
-              buttonTextColor={buttonTextColor}
-              widgetTitle={widgetTitle}
-              widgetSubtitle={widgetSubtitle}
-              titleFontSize={fontSizeByView[viewMode]}
-              subtitleFontSize={subtitleFontSize}
-              titleFontFamily={titleFontFamily}
-              subtitleFontFamily={subtitleFontFamily}
-              titleFontWeight={titleFontWeight}
-              borderRadius={borderRadius}
-              buttonIcon={buttonIcon}
-              iconColor={iconColor}
-              mainIconBgColor={mainIconBgColor}
-              collIconBgColor={collIconBgColor}
-              iconSize={iconSize}
-              iconRadius={iconRadius}
-              iconShape={iconShape}
-              iconOpacity={iconOpacity}
-              showOnCollection={showOnCollection}
-              collectionPosition={collectionPosition}
-              buttonWidth={widgetDimensions[viewMode].width}
-              buttonWidthUnit={widgetDimensions[viewMode].widthUnit}
-              buttonHeight={widgetDimensions[viewMode].heightUnit === "auto" ? 0 : widgetDimensions[viewMode].height}
-              buttonHeightUnit={widgetDimensions[viewMode].heightUnit}
-              buttonPadding={paddingByView[viewMode]}
-              buttonMargin={buttonMargin}
+          <SelectField label="Title font" value={titleFontFamily} onChange={setTitleFontFamily} options={FONT_FAMILY_OPTIONS} />
+          <SelectField label="Subtitle font" value={subtitleFontFamily} onChange={setSubtitleFontFamily} options={FONT_FAMILY_OPTIONS} />
+        </Section>
+        <PlanGate currentPlan={currentPlan} requiredPlan="pro" featureName="Multi-language widget" mode="overlay">
+          <Section title="Language" description="Show the try-on experience in your shoppers' language.">
+            <LanguageSelect value={language} onChange={setLanguage} options={WORLD_LANGUAGES} />
+          </Section>
+        </PlanGate>
+      </PlanGate>
+    ),
+    modal: (
+      <Section title="Modal content" description="The words and colors shoppers see inside the try-on window.">
+        <ModalEditor json={modalSettingsJson} onChange={setModalSettingsJson} />
+      </Section>
+    ),
+    media: (
+      <>
+        {/* Commented out for now — Result display / Before-after slider toggle.
+        <Section title="Result display" description="How shoppers see their finished try-on.">
+          <ToggleRow
+            checked={beforeAfterEnabled}
+            onChange={setBeforeAfterEnabled}
+            icon="image"
+            label="Before/after slider"
+            description="Shoppers drag a divider between their original photo and the try-on result, instead of seeing a single static image."
+          />
+        </Section>
+        */}
+        <Section title="Promo video" description="An optional clip shown above or below the Try On button on your product pages — how it works, not the try-on result itself.">
+          <TextInput
+            label="Video URL"
+            value={promoVideoUrl}
+            onChange={setPromoVideoUrl}
+            placeholder="https://..."
+            max={500}
+            help="A direct link to an MP4, or a YouTube/Vimeo URL. Leave blank to hide."
+          />
+          <SelectField
+            label="Position"
+            value={promoVideoPosition}
+            onChange={setPromoVideoPosition}
+            options={[
+              { value: "below_button", label: "Below the Try On button" },
+              { value: "above_button", label: "Above the Try On button" },
+            ]}
+          />
+        </Section>
+      </>
+    ),
+    example: (
+      <Section
+        title="Before/after images"
+        description="A static before/after comparison slider shown above or below the Try On button. You upload both images — not tied to any product."
+        action={<button type="button" role="switch" aria-checked={exampleBeforeAfterEnabled} aria-label="Show before/after images" className="fs-switch" onClick={() => setExampleBeforeAfterEnabled(!exampleBeforeAfterEnabled)}><span /></button>}
+      >
+        {exampleBeforeAfterEnabled && (
+          <>
+            <ImageUploadField label="Before image" value={exampleBeforeImage} onChange={setExampleBeforeImage} />
+            <ImageUploadField label="After image" value={exampleAfterImage} onChange={setExampleAfterImage} />
+            <SelectField
+              label="Position"
+              value={exampleSliderPosition}
+              onChange={setExampleSliderPosition}
+              options={[
+                { value: "below_button", label: "Below the Try On button" },
+                { value: "above_button", label: "Above the Try On button" },
+              ]}
             />
+            <Collapsible title="Customize appearance" hint="Size & spacing">
+              <TextInput
+                label="Title"
+                value={exampleTitle}
+                onChange={setExampleTitle}
+                placeholder="e.g. See the Transformation"
+                max={80}
+                help="Optional heading shown above the slider. Leave blank to hide."
+              />
+              <SliderField label="Width" value={exampleWidth} onChange={setExampleWidth} min={100} max={800} hints={["100px", "800px"]} />
+              <SliderField label="Height" value={exampleHeight} onChange={setExampleHeight} min={0} max={800} hints={["0 = auto (3:4 ratio)", "800px"]} />
+              <SpacingInput label="Margin" values={exampleMargin} onChange={setExampleMargin} />
+              <SpacingInput label="Padding" values={examplePadding} onChange={setExamplePadding} />
+            </Collapsible>
+          </>
+        )}
+      </Section>
+    ),
+    collection: (
+      <>
+        <Section title="Button icon" description="Shown on the product-page button and the collection badge.">
+          <div><span className="fs-label">Icon</span><IconPicker value={buttonIcon} onChange={setButtonIcon} /></div>
+          <ColorField label="Icon color" value={iconColor} onChange={setIconColor} />
+          <ColorField label="Button icon background" value={mainIconBgColor} onChange={setMainIconBgColor} allowTransparent />
+          <SliderField label="Icon size" value={iconSize} onChange={setIconSize} min={8} max={48} />
+        </Section>
+        <PlanGate currentPlan={currentPlan} requiredPlan="growth" featureName="Collection page icons">
+          <Section title="Collection page badge" description="A small try-on badge on product cards in your collections."
+            action={<button type="button" role="switch" aria-checked={showOnCollection} aria-label="Show on collection pages" className="fs-switch" onClick={() => setShowOnCollection(!showOnCollection)}><span /></button>}>
+            {showOnCollection ? (
+              <div className="fs-corner-layout">
+                <div>
+                  <span className="fs-label">Position</span>
+                  <div className="fs-corner-card">
+                    <svg viewBox="0 0 120 160" style={{ position: "absolute", bottom: 0, left: "15%", width: "70%" }} aria-hidden="true"><circle cx="60" cy="46" r="19" fill="#E4D5C7" /><path d="M24 160c1-44 15-86 36-86s35 42 36 86z" fill="#9CA3AF" /></svg>
+                    {["top_left", "top_right", "bottom_left", "bottom_right"].map((pos) => (
+                      <button key={pos} type="button" className={`fs-corner fs-corner--${pos}${collectionPosition === pos ? " is-on" : ""}`}
+                        aria-label={pos.replace("_", " ")} aria-pressed={collectionPosition === pos} onClick={() => setCollectionPosition(pos)}>
+                        {collectionPosition === pos && <FsIcon name="sparkle" size={15} />}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="fs-help">Tap a corner to move the badge.</p>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                  <ColorField label="Icon background" value={collIconBgColor} onChange={setCollIconBgColor} allowTransparent />
+                  <SliderField label="Corner radius" value={iconRadius} onChange={setIconRadius} min={0} max={32} />
+                </div>
+              </div>
+            ) : (
+              <FsEmpty icon="grid" text="Turn this on so shoppers spot try-on while browsing collections." cta="Show the badge" onClick={() => setShowOnCollection(true)} />
+            )}
+          </Section>
+        </PlanGate>
+      </>
+    ),
+    features: (
+      <PlanGate currentPlan={currentPlan} requiredPlan="growth" featureName="Sharing and saving features">
+        <Section title="Features" description="What shoppers can do with their try-on result.">
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <ToggleRow checked={shareWa} onChange={setShareWa} icon="message" label="WhatsApp share" badge="Top converter" description="One tap to send the result to friends for a second opinion." />
+            <ToggleRow checked={saveImg} onChange={setSaveImg} icon="download" label="Save image" description="Shoppers can download their try-on photo." />
+            <ToggleRow checked={privacy} onChange={setPrivacy} icon="lock" label="Privacy notice" description="Show a consent notice before the shopper uploads a photo." />
           </div>
+        </Section>
+      </PlanGate>
+    ),
+  };
+
+  return (
+    <FsPage
+      title={
+        <span style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          Try-on button and modal
+          {dirty && <FsPill tone="warning"><span className="fs-dot" style={{ background: "var(--fs-warning)" }} />Unsaved changes</FsPill>}
+        </span>
+      }
+      subtitle="Changes appear on your storefront after you save."
+    >
+      {errorMsg && (
+        <div className="fs-banner fs-banner--critical" role="alert">
+          <FsIcon name="info" size={16} /><span style={{ flex: 1 }}>{errorMsg}</span>
+          <button type="button" className="fs-icon-btn" aria-label="Dismiss" onClick={() => setErrorMsg(null)}><FsIcon name="x" size={14} /></button>
         </div>
+      )}
+
+      <div className="fs-settings-layout">
+        {/* LEFT: settings, as vertical collapsible bars */}
+        <section className="fs-card fs-acc-panel">
+          {TABS.map((t) => {
+            const open = activeTab === t.id;
+            return (
+              <div key={t.id} className={`fs-acc-item${open ? " is-open" : ""}`}>
+                <button type="button" className="fs-acc-head" aria-expanded={open} onClick={() => setActiveTab(open ? null : t.id)}>
+                  <FsIcon name={t.icon} size={16} />
+                  <span className="fs-acc-title">{t.label}</span>
+                  <FsIcon name="chevronRight" size={14} className="fs-acc-chev" style={{ transform: open ? "rotate(90deg)" : "none" }} />
+                </button>
+                {open && <div className="fs-acc-body">{ACCORDION_CONTENT[t.id]}</div>}
+              </div>
+            );
+          })}
+        </section>
+
+        {/* RIGHT: sticky preview + score */}
+        <aside className="fs-settings-aside">
+          <div className="fs-live-controls">
+            <span className="fs-live-controls-label">Live preview</span>
+            <ViewToggle value={viewMode} onChange={setViewMode} />
+            <div style={{ flex: 1 }} />
+            <FsButton variant="ghost" size="sm" onClick={onDiscard} disabled={!dirty || isSubmitting}>Discard</FsButton>
+            <FsButton variant="dark" size="sm" onClick={handleSave} disabled={!dirty || isSubmitting}>{isSubmitting ? "Saving…" : "Save"}</FsButton>
+          </div>
+          <FsCard style={{ padding: 14 }}>
+            <div className="fs-preview-stage">
+              <LivePreview
+                device={viewMode}
+                buttonColor={buttonColor}
+                buttonTextColor={buttonTextColor}
+                widgetTitle={widgetTitle}
+                widgetSubtitle={widgetSubtitle}
+                titleFontSize={fontSizeByView[viewMode]}
+                subtitleFontSize={subtitleFontSize}
+                titleFontFamily={titleFontFamily}
+                subtitleFontFamily={subtitleFontFamily}
+                titleFontWeight={titleFontWeight}
+                borderRadius={borderRadius}
+                buttonIcon={buttonIcon}
+                iconColor={iconColor}
+                mainIconBgColor={mainIconBgColor}
+                collIconBgColor={collIconBgColor}
+                iconSize={iconSize}
+                iconRadius={iconRadius}
+                showOnCollection={showOnCollection}
+                collectionPosition={collectionPosition}
+                buttonWidth={widgetDimensions[viewMode].width}
+                buttonWidthUnit={widgetDimensions[viewMode].widthUnit}
+                buttonHeight={widgetDimensions[viewMode].heightUnit === "auto" ? 0 : widgetDimensions[viewMode].height}
+                buttonHeightUnit={widgetDimensions[viewMode].heightUnit}
+                buttonPadding={paddingByView[viewMode]}
+                buttonMargin={buttonMargin}
+                beforeAfterEnabled={beforeAfterEnabled}
+                exampleEnabled={exampleBeforeAfterEnabled}
+                exampleBeforeImage={exampleBeforeImage}
+                exampleAfterImage={exampleAfterImage}
+                examplePosition={exampleSliderPosition}
+                exampleTitle={exampleTitle}
+                exampleWidth={exampleWidth}
+                exampleHeight={exampleHeight}
+                exampleMargin={exampleMargin}
+                examplePadding={examplePadding}
+              />
+            </div>
+          </FsCard>
+
+          <FsCard style={{ padding: 22 }}>
+            <div>
+              <div className="fs-eyebrow">Setup checklist</div>
+              <div className="fs-tabular" style={{ fontSize: 15, fontWeight: 700, marginTop: 2 }}>{checks.length - todo.length} of {checks.length} done</div>
+              <div style={{ fontSize: 13, color: "var(--fs-muted)", marginTop: 2 }}>{todo.length ? `${todo.length} quick tweak${todo.length === 1 ? "" : "s"} left` : "Every conversion booster is on"}</div>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {checks.map((c) => (
+                <div key={c.label} className={`fs-score-row${c.done ? " is-done" : ""}`}>
+                  <span className="fs-score-mark">{c.done && <FsIcon name="check" size={12} strokeWidth={3.2} />}</span>
+                  <span style={{ flex: 1 }}>{c.label}</span>
+                  {!c.done && <button type="button" className="fs-btn fs-btn--plain fs-btn--sm" style={{ height: 24 }} onClick={() => setActiveTab(c.tab)}>Fix</button>}
+                </div>
+              ))}
+            </div>
+          </FsCard>
+        </aside>
       </div>
-    </div>
+    </FsPage>
   );
+}
+SettingsForm.propTypes = { settings: PropTypes.object, shop: PropTypes.string, currentPlan: PropTypes.string, onDiscard: PropTypes.func };
+
+export default function Settings() {
+  const { settings, shop, currentPlan } = useLoaderData();
+  // Remounting the form restores every field to the last saved values.
+  const [formKey, setFormKey] = useState(0);
+  return <SettingsForm key={formKey} settings={settings} shop={shop} currentPlan={currentPlan} onDiscard={() => setFormKey((k) => k + 1)} />;
 }
