@@ -1,0 +1,68 @@
+{
+ "run": "20261021-175908-baseline",
+ "profile": "baseline",
+ "integration": "MOCKED (AI provider) / local Docker replica of PHP+MariaDB",
+ "args": {
+  "profile": "baseline",
+  "mock_workers": 1,
+  "mock_gen_ms": 14000,
+  "mock_fail_rate": 0.0,
+  "mock_max_queue": 0,
+  "app_workers": 20,
+  "max_vus": 20,
+  "dur_scale": 1.0,
+  "rate_scale": 1.0,
+  "soak_min": 30,
+  "extra_polls": 0,
+  "yes_i_am_authorised": false
+ },
+ "started": 1792585757.9041479,
+ "ended": 1792585940.9746706,
+ "duration_s": 183.1,
+ "k6_exit_code": 0,
+ "pre": {
+  "count_m1": 0,
+  "count_m2": 95
+ },
+ "post": {
+  "count_m1": 5,
+  "count_m2": 95,
+  "analytics_completed": "5",
+  "result_files": "5",
+  "db_slow_queries": "0",
+  "db_max_used_connections": "3",
+  "app_error_log_tail": " 126 \"-\" \"Apache/2.4.68 (Debian) PHP/8.3.35 (internal dummy connection)\"\n172.19.0.5 - - [21/Oct/2026:12:32:02 +0000] \"GET /api/tryon-status?job_id=35276657-bd98-46bf-8867-4ab4534a43d9-mock&shop=perf-test.myshopify.com&seed=42 HTTP/1.1\" 200 326 \"-\" \"k6/0.54.0 (https://k6.io/)\"\n172.19.0.1 - - [21/Oct/2026:12:32:03 +0000] \"GET /server-status?auto HTTP/1.1\" 200 896 \"-\" \"Python-urllib/3.13\"\n127.0.0.1 - - [21/Oct/2026:12:32:03 +0000] \"OPTIONS * HTTP/1.0\" 200 126 \"-\" \"Apache/2.4.68 (Debian) PHP/8.3.35 (internal dummy connection)\"\n172.19.0.5 - - [21/Oct/2026:12:32:05 +0000] \"GET /api/tryon-status?job_id=35276657-bd98-46bf-8867-4ab4534a43d9-mock&shop=perf-test.myshopify.com&seed=42 HTTP/1.1\" 200 419 \"-\" \"k6/0.54.0 (https://k6.io/)\"\n172.19.0.5 - - [21/Oct/2026:12:32:05 +0000] \"GET /results/tryon_result_20261021_123205_a402b8.jpg HTTP/1.1\" 200 19291 \"-\" \"k6/0.54.0 (https://k6.io/)\"\n127.0.0.1 - - [21/Oct/2026:12:32:05 +0000] \"OPTIONS * HTTP/1.0\" 200 126 \"-\" \"Apache/2.4.68 (Debian) PHP/8.3.35 (internal dummy connection)\"\n127.0.0.1 - - [21/Oct/2026:12:32:10 +0000] \"OPTIONS * HTTP/1.0\" 200 126 \"-\" \"Apache/2.4.68 (Debian) PHP/8.3.35 (internal dummy connection)\"\n172.19.0.1 - - [21/Oct/2026:12:32:11 +0000] \"GET /server-status?auto HTTP/1.1\" 200 896 \"-\" \"Python-urllib/3.13\"\n172.19.0.1 - - [21/Oct/2026:12:32:19 +0000] \"GET /server-status?auto HTTP/1.1\" 200 892 \"-\" \"Python-urllib/3.13\"\n172.19.0.1 - - [21/Oct/2026:12:32:26 +0000] \"GET /server-status?auto HTTP/1.1\" 200 899 \"-\" \"Python-urllib/3.13\"\n"
+ },
+ "mock_stats": {
+  "cfg": {
+   "port": 4010,
+   "workers": 1,
+   "genMs": 14000,
+   "jitterMs": 1000,
+   "failRate": 0,
+   "maxQueue": 0
+  },
+  "submitted": 5,
+  "rejected429": 0,
+  "statusCalls": 30,
+  "maxQueueDepth": 0,
+  "jobs": 5,
+  "completed": 5,
+  "failed": 0,
+  "running": 0,
+  "queueDepthNow": 0,
+  "queueWaitMs": {
+   "p50": 0,
+   "p95": 0,
+   "max": 0,
+   "avg": 0
+  }
+ },
+ "k6_tryon_completed": 5,
+ "consistency": {
+  "merchant1_count_delta": 5,
+  "k6_completed_jobs": 5,
+  "double_counted": 0,
+  "analytics_completed": "5"
+ }
+}

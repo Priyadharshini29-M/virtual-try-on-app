@@ -2,7 +2,6 @@ import "@shopify/shopify-app-react-router/adapters/node";
 import {
   ApiVersion,
   AppDistribution,
-  BillingInterval,
   shopifyApp,
 } from "@shopify/shopify-app-react-router/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
@@ -17,52 +16,7 @@ const shopify = shopifyApp({
   authPathPrefix: "/auth",
   sessionStorage: new PrismaSessionStorage(prisma),
   distribution: AppDistribution.AppStore,
-  billing: {
-    // New subscriptions are created under the "Brix-TryOn" names. The old
-    // "FitSnap" entries stay configured so merchants who subscribed before
-    // the rename keep a valid, checkable plan (billing.check/cancel still
-    // needs to recognize their existing subscription's stored name).
-    "Brix-TryOn Growth": {
-      lineItems: [
-        {
-          amount: 19,
-          currencyCode: "USD",
-          interval: BillingInterval.Every30Days,
-        },
-      ],
-      trialDays: 3,
-    },
-    "Brix-TryOn Pro": {
-      lineItems: [
-        {
-          amount: 49,
-          currencyCode: "USD",
-          interval: BillingInterval.Every30Days,
-        },
-      ],
-      trialDays: 3,
-    },
-    "FitSnap Growth": {
-      lineItems: [
-        {
-          amount: 19,
-          currencyCode: "USD",
-          interval: BillingInterval.Every30Days,
-        },
-      ],
-      trialDays: 3,
-    },
-    "FitSnap Pro": {
-      lineItems: [
-        {
-          amount: 49,
-          currencyCode: "USD",
-          interval: BillingInterval.Every30Days,
-        },
-      ],
-      trialDays: 3,
-    },
-  },
+  isEmbeddedApp: false,
   future: {},
   ...(process.env.SHOP_CUSTOM_DOMAIN
     ? { customShopDomains: [process.env.SHOP_CUSTOM_DOMAIN] }

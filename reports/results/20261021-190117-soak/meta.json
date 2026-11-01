@@ -1,0 +1,71 @@
+{
+ "run": "20261021-190117-soak",
+ "profile": "soak",
+ "integration": "MOCKED (AI provider) / local Docker replica of PHP+MariaDB",
+ "args": {
+  "profile": "soak",
+  "mock_workers": 10,
+  "mock_gen_ms": 14000,
+  "mock_fail_rate": 0.0,
+  "mock_max_queue": 0,
+  "app_workers": 20,
+  "max_vus": 50,
+  "dur_scale": 1.0,
+  "rate_scale": 1.0,
+  "soak_min": 10,
+  "only": "",
+  "widget_event": "1",
+  "keepalive": "Off",
+  "extra_polls": 0,
+  "yes_i_am_authorised": true
+ },
+ "started": 1792589489.6532526,
+ "ended": 1792590192.5284417,
+ "duration_s": 702.9,
+ "k6_exit_code": 0,
+ "pre": {
+  "count_m1": 0,
+  "count_m2": 95
+ },
+ "post": {
+  "count_m1": 39,
+  "count_m2": 95,
+  "analytics_completed": "39",
+  "result_files": "39",
+  "db_slow_queries": "425",
+  "db_max_used_connections": "10",
+  "app_error_log_tail": "=perf-test.myshopify.com HTTP/1.1\" 200 2310 \"-\" \"k6/0.54.0 (https://k6.io/)\"\n172.19.0.5 - - [21/Oct/2026:13:43:05 +0000] \"POST /api/widget-event HTTP/1.1\" 200 333 \"-\" \"k6/0.54.0 (https://k6.io/)\"\n172.19.0.5 - - [21/Oct/2026:13:43:06 +0000] \"GET /api/widget-settings?shop=perf-test.myshopify.com HTTP/1.1\" 200 2310 \"-\" \"k6/0.54.0 (https://k6.io/)\"\n172.19.0.5 - - [21/Oct/2026:13:43:06 +0000] \"POST /api/widget-event HTTP/1.1\" 200 333 \"-\" \"k6/0.54.0 (https://k6.io/)\"\n172.19.0.5 - - [21/Oct/2026:13:43:06 +0000] \"GET /api/widget-settings?shop=perf-test.myshopify.com HTTP/1.1\" 200 2310 \"-\" \"k6/0.54.0 (https://k6.io/)\"\n172.19.0.5 - - [21/Oct/2026:13:43:06 +0000] \"GET /api/widget-settings?shop=perf-test.myshopify.com HTTP/1.1\" 200 2310 \"-\" \"k6/0.54.0 (https://k6.io/)\"\n172.19.0.5 - - [21/Oct/2026:13:43:06 +0000] \"POST /api/widget-event HTTP/1.1\" 200 333 \"-\" \"k6/0.54.0 (https://k6.io/)\"\n172.19.0.5 - - [21/Oct/2026:13:43:06 +0000] \"POST /api/widget-event HTTP/1.1\" 200 333 \"-\" \"k6/0.54.0 (https://k6.io/)\"\n172.19.0.5 - - [21/Oct/2026:13:43:08 +0000] \"GET /api/widget-settings?shop=perf-test.myshopify.com HTTP/1.1\" 200 2310 \"-\" \"k6/0.54.0 (https://k6.io/)\"\n172.19.0.5 - - [21/Oct/2026:13:43:08 +0000] \"POST /api/widget-event HTTP/1.1\" 200 333 \"-\" \"k6/0.54.0 (https://k6.io/)\"\n172.19.0.1 - - [21/Oct/2026:13:43:09 +0000] \"GET /server-status?auto HTTP/1.1\" 200 906 \"-\" \"Python-urllib/3.13\"\n172.19.0.1 - - [21/Oct/2026:13:43:17 +0000] \"GET /server-status?auto HTTP/1.1\" 200 906 \"-\" \"Python-urllib/3.13\"\n"
+ },
+ "mock_stats": {
+  "cfg": {
+   "port": 4010,
+   "workers": 10,
+   "genMs": 14000,
+   "jitterMs": 1000,
+   "failRate": 0,
+   "maxQueue": 0
+  },
+  "submitted": 39,
+  "rejected429": 0,
+  "statusCalls": 231,
+  "maxQueueDepth": 0,
+  "jobs": 39,
+  "completed": 39,
+  "failed": 0,
+  "running": 0,
+  "queueDepthNow": 0,
+  "queueWaitMs": {
+   "p50": 0,
+   "p95": 0,
+   "max": 0,
+   "avg": 0
+  }
+ },
+ "k6_tryon_completed": 39,
+ "consistency": {
+  "merchant1_count_delta": 39,
+  "k6_completed_jobs": 39,
+  "double_counted": 0,
+  "analytics_completed": "39"
+ }
+}

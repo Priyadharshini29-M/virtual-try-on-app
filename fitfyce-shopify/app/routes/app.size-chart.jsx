@@ -12,6 +12,7 @@ import { ensureMerchant } from "../lib/merchant.server";
 import phpApiClient from "../lib/php-api.server";
 import { PHP_API_URL } from "../lib/env.server";
 import { FsPage, FsCard, FsButton, FsIcon } from "../components/fs-ui";
+import { TOURS } from "../lib/tours";
 
 export const loader = async ({ request }) => {
   const { session } = await authenticate.admin(request);
@@ -283,7 +284,7 @@ export default function SizeChartPage() {
   };
 
   return (
-    <FsPage>
+    <FsPage tour={TOURS.sizeChart}>
       <div className="fs-page-head">
         <div style={{ flex: 1 }}>
           <h1 className="fs-h1">Size Chart</h1>
@@ -303,9 +304,9 @@ export default function SizeChartPage() {
       )}
 
       {!editing && (
-        <FsCard title="Your charts" action={<FsButton size="sm" onClick={() => setEditing("new")}>+ New chart</FsButton>}>
+        <FsCard tour="size-charts" title="Your charts" action={<FsButton size="sm" onClick={() => setEditing("new")}>+ New chart</FsButton>}>
           {charts.length === 0 ? (
-            <p className="fs-help">No charts yet — create one to get started.</p>
+            <p className="fs-help">No charts yet: create one to get started.</p>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {charts.map((c) => (
@@ -324,7 +325,7 @@ export default function SizeChartPage() {
       )}
 
       {!editing && (
-        <FsCard title="Assign to products" subtitle="Pick which size chart shows on each product's page.">
+        <FsCard tour="size-assign" title="Assign to products" subtitle="Pick which size chart shows on each product's page.">
           <div className="fs-table-wrap">
             <table className="fs-table">
               <thead><tr><th>Product</th><th>Size chart</th></tr></thead>

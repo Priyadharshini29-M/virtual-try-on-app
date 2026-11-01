@@ -15,6 +15,8 @@ class OpenAIClient
     private const BASE_URL       = 'https://api.openai.com/v1';
     private const CHAT_MODEL     = 'gpt-4o-mini';
     private const IMAGE_MODEL    = 'gpt-image-1';
+    // Orchestrator model for Responses-API background image jobs.
+    private const CHAT_MODEL_FOR_TOOLS = 'gpt-4.1-mini';
     private const EMBEDDING_MODEL = 'text-embedding-3-small';
 
     // Each "Regenerate" variation should still feel like a genuinely
@@ -1491,6 +1493,192 @@ class OpenAIClient
         return ($dims && $dims[1] > $dims[0]) ? '1024x1536' : '1024x1024';
     }
 
+    /**
+     * Edits one photo with gpt-image-1 (images/edits) — used for AI Studio's
+     * Pose & Background on a finished try-on. input_fidelity=high keeps the
+     * person's face and the garment's colour/pattern far closer to the source
+     * than the default; quality=high because this is the merchant's final
+     * catalogue image. Blocks for ~30-90s. Returns raw image bytes.
+     */
+    /**
+     * Starts an image edit as an OpenAI background job (Responses API with the
+     * image_generation tool) and returns its id at once. Unlike editPhoto(),
+     * nothing waits on OpenAI: callers poll checkBackgroundImage(), so a slow
+     * edit can never be killed by the host's PHP time limit. Images are sent
+     * as data URLs, shrunk to <= 1536px. The tool's default image model is
+     * used on purpose: forcing gpt-image-1 inside the tool fails server-side,
+     * and the default model rejects input_fidelity.
+     */
+    public function startBackgroundImage(array $imagePaths, string $prompt, string $size = '1024x1536'): string
+    {
+        $content = [['type' => 'input_text', 'text' => $prompt]];
+        foreach ($imagePaths as $path) {
+            $bytes = (string) file_get_contents($path);
+            $bytes = ImageUtils::jpegBytesMaxEdge($bytes, 1536) ?? $bytes;
+            $content[] = ['type' => 'input_image', 'image_url' => 'data:image/jpeg;base64,' . base64_encode($bytes)];
+        }
+        $data = $this->responsesRequest('POST', '/responses', [
+            'model'       => self::CHAT_MODEL_FOR_TOOLS,
+            'background'  => true,
+            'store'       => true,
+            'input'       => [['role' => 'user', 'content' => $content]],
+            'tools'       => [['type' => 'image_generation', 'quality' => 'high', 'size' => $size]],
+            'tool_choice' => ['type' => 'image_generation'],
+        ]);
+        if (empty($data['id'])) {
+            throw new \RuntimeException('OpenAI did not return a job id');
+        }
+        return (string) $data['id'];
+    }
+
+    /**
+     * One status check of a background image job.
+     *
+     * @return array{status:string, bytes:?string, error:?string}
+     *   status: processing | completed | failed | error (transient, check again)
+     */
+    public function checkBackgroundImage(string $responseId): array
+    {
+        try {
+            $data = $this->responsesRequest('GET', '/responses/' . rawurlencode($responseId));
+        } catch (\Throwable $e) {
+            return ['status' => 'error', 'bytes' => null, 'error' => $e->getMessage()];
+        }
+        $status = (string) ($data['status'] ?? '');
+        if (in_array($status, ['queued', 'in_progress'], true)) {
+            return ['status' => 'processing', 'bytes' => null, 'error' => null];
+        }
+        if ($status === 'completed') {
+            foreach ((array) ($data['output'] ?? []) as $out) {
+                if (($out['type'] ?? '') === 'image_generation_call' && !empty($out['result'])) {
+                    $bytes = base64_decode((string) $out['result'], true);
+                    if ($bytes !== false && $bytes !== '') {
+                        $this->recordUsage('background_image', $data['usage'] ?? null);
+                        return ['status' => 'completed', 'bytes' => $bytes, 'error' => null];
+                    }
+                }
+            }
+            return ['status' => 'failed', 'bytes' => null, 'error' => 'OpenAI finished without an image'];
+        }
+        return ['status' => 'failed', 'bytes' => null, 'error' => (string) ($data['error']['message'] ?? "OpenAI job {$status}")];
+    }
+
+    /** JSON request to the Responses API (GET sends no body). */
+    private function responsesRequest(string $method, string $path, ?array $body = null): array
+    {
+        $ch = curl_init(self::BASE_URL . $path);
+        $opts = [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CUSTOMREQUEST  => $method,
+            CURLOPT_TIMEOUT        => 60,
+            CURLOPT_HTTPHEADER     => [
+                'Content-Type: application/json',
+                'Authorization: Bearer ' . $this->apiKey,
+            ],
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false,
+        ];
+        if ($body !== null) {
+            $opts[CURLOPT_POSTFIELDS] = json_encode($body);
+        }
+        curl_setopt_array($ch, $opts);
+        $raw      = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErr  = curl_error($ch);
+        curl_close($ch);
+        if ($curlErr) {
+            throw new \RuntimeException("OpenAI request failed: {$curlErr}");
+        }
+        $data = json_decode((string) $raw, true) ?? [];
+        if ($httpCode >= 400) {
+            writeLog('ERROR', 'OpenAI responses request failed', ['http_code' => $httpCode, 'path' => $path, 'response' => substr((string) $raw, 0, 500)]);
+            throw new \RuntimeException($data['error']['message'] ?? "OpenAI error HTTP {$httpCode}");
+        }
+        return $data;
+    }
+
+    public function editPhoto(string|array $imagePaths, string $prompt, string $size = '1024x1536'): string
+    {
+        $imagePaths = (array) $imagePaths;
+        // Try the configured model first, then newer ones: an API key's
+        // project may not have every image model enabled ("model does not
+        // exist"), and newer models may reject input_fidelity — each such
+        // rejection moves on instead of failing the merchant's edit.
+        $models    = array_values(array_unique([$this->imageModel(), 'gpt-image-1.5', 'gpt-image-2', 'gpt-image-1-mini']));
+        $lastError = null;
+        foreach ($models as $model) {
+            foreach ([true, false] as $highFidelity) {
+                try {
+                    return $this->requestPhotoEdit($imagePaths, $prompt, $size, $model, $highFidelity);
+                } catch (\RuntimeException $e) {
+                    $lastError = $e;
+                    $msg = strtolower($e->getMessage());
+                    if ($highFidelity && str_contains($msg, 'input_fidelity')) {
+                        continue; // same model, without input_fidelity
+                    }
+                    if (str_contains($msg, 'does not exist') || str_contains($msg, 'model') || str_contains($msg, 'not have access')) {
+                        continue 2; // next model
+                    }
+                    throw $e; // a real failure (content policy, network…) — don't burn retries
+                }
+            }
+        }
+        throw $lastError ?? new \RuntimeException('No OpenAI image model available');
+    }
+
+    /** gpt-image-* model from OPENAI_IMAGE_MODEL, defaulting to gpt-image-1. */
+    private function imageModel(): string
+    {
+        return (string) (getenv('OPENAI_IMAGE_MODEL') ?: self::IMAGE_MODEL);
+    }
+
+    private function requestPhotoEdit(array $imagePaths, string $prompt, string $size, string $model, bool $highFidelity): string
+    {
+        $fieldName = count($imagePaths) > 1 ? 'image[]' : 'image';
+        $parts = [
+            ['name' => 'model',   'contents' => $model],
+            ['name' => 'prompt',  'contents' => $prompt],
+            ['name' => 'size',    'contents' => $size],
+            ['name' => 'quality', 'contents' => 'high'],
+            ['name' => 'n',       'contents' => '1'],
+        ];
+        if ($highFidelity) {
+            $parts[] = ['name' => 'input_fidelity', 'contents' => 'high'];
+        }
+        foreach ($imagePaths as $path) {
+            $parts[] = [
+                'name'     => $fieldName,
+                'file'     => $path,
+                'filename' => basename($path),
+                'mime'     => mime_content_type($path) ?: 'image/jpeg',
+            ];
+        }
+        $boundary = 'pe' . bin2hex(random_bytes(16));
+        $body     = $this->buildMultipartBody($parts, $boundary);
+
+        $ch = curl_init(self::BASE_URL . '/images/edits');
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $body,
+            CURLOPT_TIMEOUT        => 180,
+            CURLOPT_HTTPHEADER     => [
+                'Authorization: Bearer ' . $this->apiKey,
+                'Content-Type: multipart/form-data; boundary=' . $boundary,
+            ],
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false,
+        ]);
+        $raw      = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErr  = curl_error($ch);
+        curl_close($ch);
+
+        $data = $this->parseImageEditResponse($raw, $httpCode, $curlErr);
+        $this->recordUsage('pose_background_edit', $data['usage'] ?? null);
+        return $this->decodeImageResponse($data);
+    }
+
     private function requestGeneratedImage(array $imagePaths, string $prompt, string $size = '1024x1024'): string
     {
         $ch = $this->buildImageEditHandle($imagePaths, $prompt, $size);
@@ -1587,7 +1775,7 @@ class OpenAIClient
     {
         $fieldName = count($imagePaths) > 1 ? 'image[]' : 'image';
         $parts = [
-            ['name' => 'model',   'contents' => self::IMAGE_MODEL],
+            ['name' => 'model',   'contents' => $this->imageModel()],
             ['name' => 'prompt',  'contents' => $prompt],
             ['name' => 'size',    'contents' => $size],
             // 'medium' (down from 'high') — gpt-image-1's own generation
@@ -1648,7 +1836,7 @@ class OpenAIClient
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST           => true,
             CURLOPT_POSTFIELDS     => (string) json_encode([
-                'model'         => self::IMAGE_MODEL,
+                'model'         => $this->imageModel(),
                 'prompt'        => $prompt,
                 'size'          => $size,
                 'quality'       => $quality,
@@ -1720,6 +1908,114 @@ class OpenAIClient
         }
         $body .= "--{$boundary}--\r\n";
         return $body;
+    }
+
+    /**
+     * Looks at a clothing product photo (gpt-4o-mini vision, low detail) and
+     * says what it is, so the storefront try-on can pick the right try-on
+     * category by itself: shoppers can't choose one, and merchants often never
+     * set it. "full" covers one-piece garments AND matching sets sold together
+     * (kurta with pants, co-ord set, suit), whose bottoms must transfer too.
+     *
+     * @return array{garment:string, category:string, photo:string}
+     *   category: top | bottom | full;  photo: on_model | flat_lay | mannequin
+     */
+    public function classifyGarmentImage(string $imageUrl): array
+    {
+        $system =
+            'You classify clothing product photos for a virtual try-on system. ' .
+            'Look at the main garment(s) being sold in the image and return ONLY JSON: ' .
+            '{"garment": "<short name, e.g. kurta set with pants>", "category": "top|bottom|full", "photo": "on_model|flat_lay|mannequin"}. ' .
+            'category rules: "top" = upper-body only (shirt, t-shirt, kurta/kurti on its own, blouse, jacket, sweater). ' .
+            '"bottom" = lower-body only (pants, jeans, skirt, shorts, palazzo, leggings). ' .
+            '"full" = one piece covering top and bottom (dress, gown, saree, lehenga, jumpsuit, abaya, anarkali) ' .
+            'OR a matching set clearly sold together, where top and bottom share the same fabric or colour (kurta with matching pants/salwar/churidar, co-ord set, suit). ' .
+            'Ignore accessories, footwear and the background. ' .
+            'photo: "on_model" if a person wears it, "flat_lay" if laid flat or hanging, "mannequin" if on a mannequin or ghost mannequin.';
+
+        $response = $this->chatCompletion([
+            ['role' => 'system', 'content' => $system],
+            ['role' => 'user', 'content' => [
+                ['type' => 'text', 'text' => 'Classify this product photo.'],
+                ['type' => 'image_url', 'image_url' => ['url' => $imageUrl, 'detail' => 'low']],
+            ]],
+        ], 120, 'classify_garment');
+
+        $raw  = trim((string) ($response['choices'][0]['message']['content'] ?? ''));
+        $raw  = preg_replace('/^```(?:json)?\s*|\s*```$/i', '', $raw);
+        $data = json_decode((string) $raw, true);
+        if (!is_array($data) || !in_array($data['category'] ?? '', ['top', 'bottom', 'full'], true)) {
+            throw new \RuntimeException('Garment classification returned no usable category');
+        }
+        return [
+            'garment'  => mb_substr(trim((string) ($data['garment'] ?? '')), 0, 80),
+            'category' => (string) $data['category'],
+            'photo'    => in_array($data['photo'] ?? '', ['on_model', 'flat_lay', 'mannequin'], true) ? (string) $data['photo'] : 'on_model',
+        ];
+    }
+
+    /**
+     * Short UI-copy suggestions for one widget-settings text field (button
+     * title, modal heading, etc.) — the admin's "✨ Generate with AI" picker.
+     * Runs hotter than chatCompletion()'s 0.2 since the merchant wants
+     * distinct options to choose from, not one deterministic answer. Every
+     * suggestion is hard-trimmed to $maxChars so the input's maxLength never
+     * silently truncates what the merchant picked.
+     */
+    public function generateFieldCopy(
+        string $fieldLabel,
+        string $current = '',
+        int $maxChars = 60,
+        string $tone = 'friendly',
+        string $instructions = '',
+        string $language = 'English',
+        string $storeName = '',
+        int $count = 3
+    ): array {
+        $count    = max(1, min(5, $count));
+        $maxChars = max(10, min(300, $maxChars));
+
+        $system =
+            'You write microcopy for a virtual try-on widget on a fashion e-commerce store. ' .
+            "Write {$count} distinct options for the UI text field described by the user. " .
+            "Rules: each option at most {$maxChars} characters; written in {$language}; tone: {$tone}; " .
+            'no emojis unless the tone is playful; no surrounding quotes; no hashtags; never use em dashes or en dashes; ' .
+            'a button label is 2–5 words and action-led; a heading reads as a heading, not a sentence paragraph. ' .
+            'Return ONLY a JSON array of strings, nothing else.';
+
+        $user = "Field: {$fieldLabel}";
+        if ($storeName !== '')    $user .= "\nStore: {$storeName}";
+        if ($current !== '')      $user .= "\nCurrent text (write better alternatives, do not repeat it): {$current}";
+        if ($instructions !== '') $user .= "\nMerchant's direction: {$instructions}";
+
+        $response = $this->jsonRequest('POST', '/chat/completions', [
+            'model'       => self::CHAT_MODEL,
+            'messages'    => [
+                ['role' => 'system', 'content' => $system],
+                ['role' => 'user',   'content' => $user],
+            ],
+            'max_tokens'  => 300,
+            'temperature' => 0.9,
+        ]);
+        $this->recordUsage('field_copy', $response['usage'] ?? null);
+
+        $raw = trim((string)($response['choices'][0]['message']['content'] ?? '[]'));
+        $raw = preg_replace('/^```(?:json)?\s*|\s*```$/i', '', $raw);
+        $list = json_decode((string)$raw, true);
+        if (!is_array($list)) {
+            // Model ignored the JSON instruction — fall back to one-per-line.
+            $list = preg_split('/\r?\n/', (string)$raw) ?: [];
+        }
+
+        $out = [];
+        foreach ($list as $item) {
+            if (!is_string($item)) continue;
+            $s = trim(preg_replace('/^\s*(?:[-*•]|\d+[.)])\s*/u', '', $item), " \t\"'“”");
+            if ($s === '') continue;
+            if (mb_strlen($s) > $maxChars) $s = rtrim(mb_substr($s, 0, $maxChars));
+            if (!in_array($s, $out, true)) $out[] = $s;
+        }
+        return array_slice($out, 0, $count);
     }
 
     private function chatCompletion(array $messages, int $maxTokens = 300, string $stage = 'chat'): array

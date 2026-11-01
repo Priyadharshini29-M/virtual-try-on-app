@@ -28,10 +28,10 @@ class UploadController
             respondJson(['error' => 'Only image files are allowed'], 400);
         }
 
-        if ($file['size'] > AppConfig::UPLOAD_MAX_BYTES) {
-            $mb = AppConfig::UPLOAD_MAX_BYTES / 1024 / 1024;
-            respondJson(['error' => "File exceeds {$mb}MB limit"], 400);
-        }
+        // No size limit. Very large photos are shrunk below so GD (memory) and the try-on
+        // engines (request size) can still handle them.
+        @ini_set('memory_limit', '1024M');
+        @set_time_limit(120);
 
         $uuid    = $this->generateUuidV4();
         $tempDir = AppConfig::tempDir();
@@ -49,14 +49,25 @@ class UploadController
 
         $image = @imagecreatefromstring((string)file_get_contents($file['tmp_name']));
         if ($image !== false) {
+            $maxEdge = 2560;
+            $w = imagesx($image);
+            $h = imagesy($image);
+            if (max($w, $h) > $maxEdge) {
+                $ratio   = $maxEdge / max($w, $h);
+                $resized = imagescale($image, max(1, (int)round($w * $ratio)), max(1, (int)round($h * $ratio)));
+                if ($resized !== false) {
+                    imagedestroy($image);
+                    $image = $resized;
+                }
+            }
             $saved = @imagejpeg($image, $destPath, AppConfig::JPEG_QUALITY);
             imagedestroy($image);
             if (!$saved) {
-                respondJson(['error' => "Failed to write file to {$tempDir} — check the directory is writable"], 500);
+                respondJson(['error' => "Failed to write file to {$tempDir}: check the directory is writable"], 500);
             }
         } else {
             if (!move_uploaded_file($file['tmp_name'], $destPath)) {
-                respondJson(['error' => "Failed to save file to {$tempDir} — check the directory is writable"], 500);
+                respondJson(['error' => "Failed to save file to {$tempDir}: check the directory is writable"], 500);
             }
         }
 

@@ -24,7 +24,7 @@ class ShopifySyncController
         $mid      = (int)$merchant['id'];
 
         if ($mid === 0) {
-            respondJson(['error' => 'Merchant not identified — use merchant api_key, not master key'], 400);
+            respondJson(['error' => 'Merchant not identified: use merchant api_key, not master key'], 400);
         }
 
         $db   = Database::getInstance();

@@ -1,6 +1,7 @@
 // Brix-TryOn UI kit — small, dependency-free building blocks shared by the
 // redesigned admin pages. Styling lives in app/fitsnap-ui.css (fs-* classes).
 import PropTypes from "prop-types";
+import { PageTour } from "./GuidedTour";
 import { Link } from "react-router";
 
 // ── Icons (24px stroke set) ──────────────────────────────────────────────────
@@ -78,9 +79,10 @@ FsIcon.propTypes = {
 
 // ── Layout ───────────────────────────────────────────────────────────────────
 
-export function FsPage({ title, subtitle, actions, children }) {
+export function FsPage({ title, subtitle, actions, tour, children }) {
   return (
     <main className="fs-page">
+      {tour && <PageTour id={tour.id} steps={tour.steps} />}
       {(title || actions) && (
         <div className="fs-page-head">
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -95,11 +97,11 @@ export function FsPage({ title, subtitle, actions, children }) {
   );
 }
 
-FsPage.propTypes = { title: PropTypes.node, subtitle: PropTypes.node, actions: PropTypes.node, children: PropTypes.node };
+FsPage.propTypes = { title: PropTypes.node, subtitle: PropTypes.node, actions: PropTypes.node, tour: PropTypes.shape({ id: PropTypes.string, steps: PropTypes.array }), children: PropTypes.node };
 
-export function FsCard({ title, subtitle, action, className = "", children, style, tone }) {
+export function FsCard({ title, subtitle, action, className = "", children, style, tone, tour }) {
   return (
-    <section className={`fs-card${tone ? ` fs-card--${tone}` : ""} ${className}`} style={style}>
+    <section className={`fs-card${tone ? ` fs-card--${tone}` : ""} ${className}`} style={style} data-tour={tour}>
       {(title || action) && (
         <div className="fs-card-head">
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -116,7 +118,7 @@ export function FsCard({ title, subtitle, action, className = "", children, styl
 
 FsCard.propTypes = {
   title: PropTypes.node, subtitle: PropTypes.node, action: PropTypes.node, className: PropTypes.string,
-  children: PropTypes.node, style: PropTypes.object, tone: PropTypes.oneOf(["gold", "primary"]),
+  children: PropTypes.node, style: PropTypes.object, tone: PropTypes.oneOf(["gold", "primary"]), tour: PropTypes.string,
 };
 
 // ── Atoms ────────────────────────────────────────────────────────────────────

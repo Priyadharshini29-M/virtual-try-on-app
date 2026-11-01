@@ -24,12 +24,10 @@ export const action = async ({ request }) => {
     return Response.json({ error: "No photo provided" }, { status: 400 });
   }
 
-  // Validate: image/* only, max 5 MB
+  // Validate: image/* only. There is deliberately no size limit; the browser downscales very
+  // large photos before upload and the PHP side normalises whatever arrives.
   if (!photo.type.startsWith("image/")) {
     return Response.json({ error: "Only image files are allowed" }, { status: 400 });
-  }
-  if (photo.size > 5 * 1024 * 1024) {
-    return Response.json({ error: "File exceeds 5MB limit" }, { status: 400 });
   }
 
   const uuid = crypto.randomUUID();

@@ -1,0 +1,12 @@
+.env
+.env.*
+results/
+temp/
+logs/
+generations/
+library/
+*.log
+app.log
+*.rar
+test_*.php
+debug_*.php

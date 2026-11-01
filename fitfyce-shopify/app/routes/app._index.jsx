@@ -4,13 +4,13 @@ import { Link, useLoaderData, useRouteLoaderData, useSubmit, useNavigation, useA
 import { authenticate } from "../shopify.server";
 import phpApiClient from "../lib/php-api.server";
 import { ensureMerchant } from "../lib/merchant.server";
-import { PHP_API_URL, SHOPIFY_API_KEY } from "../lib/env.server";
-import { PLAN_LABELS } from "../lib/plans";
+import { PHP_API_URL } from "../lib/env.server";
 import { useCelebrate } from "../components/AppShell";
 import OnboardingWizard from "../components/OnboardingWizard";
 import {
   FsPage, FsCard, FsButton, FsPill, FsProgress, FsSparkline, FsEmpty, FsIcon,
 } from "../components/fs-ui";
+import { TOURS } from "../lib/tours";
 
 // ─── Server ──────────────────────────────────────────────────────────────────
 
@@ -63,7 +63,6 @@ export async function loader({ request }) {
     currencyCode,
     week: { summary: week?.summary ?? {}, charts: week?.charts ?? {} },
     shop: session.shop,
-    apiKey: SHOPIFY_API_KEY,
   };
 }
 
@@ -120,7 +119,8 @@ function Checklist({ checklist }) {
     <FsCard
       className="fs-span-8"
       title="Setup checklist"
-      subtitle={left === 0 ? "All done — your try-on experience is fully set up" : `${checklist.checklistDone} of ${items.length} complete · ${left} step${left === 1 ? "" : "s"} left`}
+      tour="dash-checklist"
+      subtitle={left === 0 ? "All done: your try-on experience is fully set up" : `${checklist.checklistDone} of ${items.length} complete · ${left} step${left === 1 ? "" : "s"} left`}
       action={<span className="fs-tabular" style={{ fontSize: 17, fontWeight: 700 }}>{checklist?.checklistPct ?? 0}%</span>}
     >
       <FsProgress value={checklist?.checklistPct ?? 0} />
@@ -150,36 +150,40 @@ function Checklist({ checklist }) {
 
 Checklist.propTypes = { checklist: PropTypes.object };
 
-function CreditsGauge({ credits, planName }) {
-  const limit = credits?.limit ?? 0;
-  const left = credits?.left ?? 0;
-  const pct = limit ? left / limit : 0;
+function CreditsGauge({ credits, aiStudioEnabled }) {
+  const balance = credits?.balance ?? credits?.left ?? 0;
+  const used = credits?.used ?? 0;
+  const total = balance + used;
+  const pct = total > 0 ? balance / total : (balance > 0 ? 1 : 0);
   const arc = Math.PI * 96;
+  const low = balance <= 10;
   return (
-    <FsCard className="fs-span-4" title="Try-on credits" action={<FsPill>{`${PLAN_LABELS[planName] ?? "Preview"} plan`}</FsPill>}>
+    <FsCard className="fs-span-4" title="Try-on credits" tour="dash-credits" action={<FsPill>Wallet</FsPill>}>
       <div className="fs-gauge">
         <svg width="240" height="136" viewBox="0 0 240 136" aria-hidden="true">
           <path d="M24 124 A96 96 0 0 1 216 124" fill="none" stroke="var(--fs-primary-soft)" strokeWidth="18" strokeLinecap="round" />
-          <path d="M24 124 A96 96 0 0 1 216 124" fill="none" stroke={pct < 0.15 ? "var(--fs-warning)" : "var(--fs-primary)"} strokeWidth="18" strokeLinecap="round" strokeDasharray={`${pct * arc} ${arc}`} />
+          <path d="M24 124 A96 96 0 0 1 216 124" fill="none" stroke={low ? "var(--fs-warning)" : "var(--fs-primary)"} strokeWidth="18" strokeLinecap="round" strokeDasharray={`${pct * arc} ${arc}`} />
         </svg>
         <div className="fs-gauge-center">
-          <span className="fs-tabular" style={{ fontSize: 26, fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1 }}>{left.toLocaleString()}</span>
-          <span style={{ fontSize: 11, color: "var(--fs-muted)", marginTop: 4 }}>of {limit.toLocaleString()} left this month</span>
+          <span className="fs-tabular" style={{ fontSize: 26, fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1 }}>{balance.toLocaleString()}</span>
+          <span style={{ fontSize: 11, color: "var(--fs-muted)", marginTop: 4 }}>credits remaining</span>
         </div>
       </div>
       <div className="fs-kv">
-        <div><span>Used this month</span><span className="fs-tabular">{(credits?.used ?? 0).toLocaleString()} try-ons</span></div>
-        <div><span>Status</span><span>{pct < 0.15 ? "Running low" : "Healthy"}</span></div>
+        <div><span>Used so far</span><span className="fs-tabular">{used.toLocaleString()} try-ons</span></div>
+        <div><span>Status</span><span>{low ? "Running low" : "Healthy"}</span></div>
       </div>
       <div style={{ display: "flex", gap: 10, marginTop: "auto" }}>
-        <FsButton to="/app/plans" variant="ghost" style={{ flex: 1 }}>{pct < 0.15 ? "Upgrade" : "View plans"}</FsButton>
-        <FsButton to="/app/studio/create" style={{ flex: 1 }}>Create asset</FsButton>
+        <FsButton to="/app/wallet" variant={aiStudioEnabled ? "ghost" : "primary"} style={{ flex: 1 }}>{low ? "Top up" : "Buy credits"}</FsButton>
+        {aiStudioEnabled ? (
+          <FsButton to="/app/studio/create" style={{ flex: 1 }}>Create asset</FsButton>
+        ) : null}
       </div>
     </FsCard>
   );
 }
 
-CreditsGauge.propTypes = { credits: PropTypes.object, planName: PropTypes.string };
+CreditsGauge.propTypes = { credits: PropTypes.object, aiStudioEnabled: PropTypes.bool };
 
 function Kpis({ week, currencyCode }) {
   const s = week?.summary ?? {};
@@ -192,7 +196,7 @@ function Kpis({ week, currencyCode }) {
   if (tryons === 0) {
     return (
       <FsCard>
-        <FsEmpty icon="shirt" text="No try-ons this week yet — open a product in your store and try it on to see it live." cta="Enable products" to="/app/products" />
+        <FsEmpty icon="shirt" text="No try-ons this week yet: open a product in your store and try it on to see it live." cta="Enable products" to="/app/products" />
       </FsCard>
     );
   }
@@ -232,16 +236,23 @@ Kpis.propTypes = { week: PropTypes.object, currencyCode: PropTypes.string };
 
 const TUTORIAL_YOUTUBE_ID = "fMRsrR3o4Zk";
 
-const HOW_TO_STEPS = [
+const HOW_TO_STEPS_FULL = [
   { icon: "box", title: "1. Enable products", desc: "Turn on try-on for the products you want shoppers to try." },
   { icon: "sliders", title: "2. Customize your button", desc: "Match colors and text to your brand in Widget Settings." },
   { icon: "sparkle", title: "3. Create AI photos", desc: "Generate on-model images in AI Studio." },
   { icon: "users", title: "4. Track performance", desc: "See try-ons, add-to-carts and orders in Analytics." },
 ];
 
-function HowToUseSlider() {
+const HOW_TO_STEPS_NO_STUDIO = [
+  { icon: "box", title: "1. Enable products", desc: "Turn on try-on for the products you want shoppers to try." },
+  { icon: "sliders", title: "2. Customize your button", desc: "Match colors and text to your brand in Widget Settings." },
+  { icon: "users", title: "3. Track performance", desc: "See try-ons, add-to-carts and orders in Analytics." },
+];
+
+function HowToUseSlider({ aiStudioEnabled = false }) {
   const trackRef = useRef(null);
   const [active, setActive] = useState(0);
+  const HOW_TO_STEPS = aiStudioEnabled ? HOW_TO_STEPS_FULL : HOW_TO_STEPS_NO_STUDIO;
 
   const goTo = (i) => {
     const idx = Math.max(0, Math.min(HOW_TO_STEPS.length - 1, i));
@@ -251,7 +262,7 @@ function HowToUseSlider() {
   };
 
   return (
-    <FsCard>
+    <FsCard tour="dash-howto">
       <div className="fs-card-head">
         <div>
           <h3 className="fs-h3">How to use Brix-TryOn</h3>
@@ -285,6 +296,7 @@ function HowToUseSlider() {
     </FsCard>
   );
 }
+HowToUseSlider.propTypes = { aiStudioEnabled: PropTypes.bool };
 
 function TutorialModal({ onClose }) {
   return (
@@ -316,6 +328,7 @@ export default function Dashboard() {
   const appData = useRouteLoaderData("routes/app");
   const growth = appData?.growth ?? null;
   const onboarding = appData?.onboarding ?? null;
+  const aiStudioEnabled = appData?.aiStudioEnabled ?? false;
   const [videoOpen, setVideoOpen] = useState(false);
   const obSaved = onboarding?.saved ?? null;
   const [obOpen, setObOpen] = useState(() => !obSaved?.completed && !obSaved?.skipped);
@@ -344,16 +357,16 @@ export default function Dashboard() {
   const counts = growth?.counts ?? {};
 
   return (
-    <FsPage>
-      {obOpen && appData?.apiKey && (
-        <OnboardingWizard shop={shop} apiKey={appData.apiKey} onboarding={onboarding} currentPlan={growth?.planName} onClose={() => setObOpen(false)} />
+    <FsPage tour={TOURS.dashboard}>
+      {obOpen && (
+        <OnboardingWizard shop={shop} onboarding={onboarding} onClose={() => setObOpen(false)} />
       )}
 
       {!obOpen && !obSaved?.completed && (
         <div className="fs-card fs-card--gold fs-resume">
           <span className="fs-streak-icon"><FsIcon name="sparkle" size={20} /></span>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 14, fontWeight: 600 }}>Finish setting up — {Math.min((Number(obSaved?.step) || 0) + 1, 7)} of 7</div>
+            <div style={{ fontSize: 14, fontWeight: 600 }}>Finish setting up: {Math.min((Number(obSaved?.step) || 0) + 1, 7)} of 7</div>
             <div style={{ fontSize: 13, color: "var(--fs-gold-text)", marginTop: 2 }}>A few more steps and try-on will be live for shoppers.</div>
           </div>
           <FsButton variant="dark" size="sm" onClick={() => setObOpen(true)}>Resume setup</FsButton>
@@ -376,7 +389,11 @@ export default function Dashboard() {
             {nextStep ? ` Next step: ${nextStep.title.toLowerCase()}.` : ""}
           </p>
           <div className="fs-welcome-actions">
-            {nextStep ? <FsButton to={nextStep.to} size="sm">{nextStep.title}</FsButton> : <FsButton to="/app/studio/create" icon="sparkle" size="sm">Create AI asset</FsButton>}
+            {nextStep
+              ? <FsButton to={nextStep.to} size="sm">{nextStep.title}</FsButton>
+              : aiStudioEnabled
+                ? <FsButton to="/app/studio/create" icon="sparkle" size="sm">Create AI asset</FsButton>
+                : <FsButton to="/app/products" size="sm">Enable more products</FsButton>}
             <FsButton to="/app/analytics" variant="ghost" size="sm">View analytics</FsButton>
           </div>
           <div className="fs-storefront">
@@ -403,7 +420,7 @@ export default function Dashboard() {
       {/* Checklist + credits */}
       <div className="fs-grid-12">
         <Checklist checklist={checklist} />
-        <CreditsGauge credits={growth?.credits} planName={growth?.planName} />
+        <CreditsGauge credits={growth?.credits} aiStudioEnabled={aiStudioEnabled} />
       </div>
 
       {/* KPIs */}
@@ -411,20 +428,20 @@ export default function Dashboard() {
         <h3 className="fs-h2">This week&apos;s performance</h3>
         <FsButton to="/app/analytics" variant="plain">Open analytics</FsButton>
       </div>
-      <div style={{ marginTop: -8 }}>
+      <div style={{ marginTop: -8 }} data-tour="dash-kpis">
         <Kpis week={week} currencyCode={currencyCode} />
       </div>
 
       {/* Quick actions */}
       <section style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         <h3 className="fs-h2">Quick actions</h3>
-        <div className="fs-grid-4">
+        <div className="fs-grid-5">
           {[
             { to: "/app/products", icon: "box", title: "Enable more products", sub: counts.totalProducts ? `${counts.enabledProducts ?? 0} of ${counts.totalProducts} live` : "Choose try-on products" },
-            { to: "/app/studio/create", icon: "sparkle", title: "Create an AI model photo", sub: "Guided, step by step" },
+            aiStudioEnabled ? { to: "/app/studio/create", icon: "sparkle", title: "Create an AI model photo", sub: "Guided, step by step" } : null,
             { to: "/app/settings", icon: "sliders", title: "Customize your button", sub: "Colors, text and placement" },
             { to: "/app/analytics", icon: "users", title: "See captured leads", sub: "Shoppers who left details" },
-          ].map((a) => (
+          ].filter(Boolean).map((a) => (
             <Link key={a.to} to={a.to} className="fs-card fs-action-tile">
               <span className="fs-tile-icon"><FsIcon name={a.icon} size={20} /></span>
               <span style={{ flex: 1 }}><span className="fs-tile-title">{a.title}</span><span className="fs-tile-sub">{a.sub}</span></span>
@@ -439,7 +456,7 @@ export default function Dashboard() {
         </div>
       </section>
 
-      <HowToUseSlider />
+      <HowToUseSlider aiStudioEnabled={aiStudioEnabled} />
 
       {videoOpen && <TutorialModal onClose={() => setVideoOpen(false)} />}
     </FsPage>

@@ -6,7 +6,8 @@ namespace VTON;
 
 /**
  * Converts a flat-lay garment image into a worn reference image using
- * FLUX Kontext Pro (FAL.ai). The result is cached for 7 days by garment URL
+ * an image-edit model on RunPod (Qwen-Image-Edit worker, see
+ * runpod-accessory-worker/). The result is cached for 7 days by garment URL
  * so each unique product image is only processed once.
  *
  * Pipeline role:
@@ -17,11 +18,10 @@ namespace VTON;
 final class FlatLayConverter
 {
     private string $apiKey;
+    private string $endpointId;
     private string $cacheDir;
 
-    private const FAL_URL      = 'https://fal.run/fal-ai/flux-kontext-pro';
     private const CACHE_TTL    = 86400 * 7; // 7 days
-    private const API_TIMEOUT  = 120;
 
     // Prompts per garment family
     private const PROMPTS = [
@@ -49,15 +49,16 @@ final class FlatLayConverter
                    . 'Neutral background, studio lighting, photorealistic fashion photography.',
     ];
 
-    public function __construct(string $apiKey, string $cacheDir)
+    public function __construct(string $apiKey, string $endpointId, string $cacheDir)
     {
-        $this->apiKey   = $apiKey;
-        $this->cacheDir = rtrim($cacheDir, DIRECTORY_SEPARATOR);
+        $this->apiKey     = $apiKey;
+        $this->endpointId = $endpointId;
+        $this->cacheDir   = rtrim($cacheDir, DIRECTORY_SEPARATOR);
     }
 
     /**
      * Returns a local file path to the worn-reference image.
-     * Serves from cache when available; calls FAL.ai otherwise.
+     * Serves from cache when available; calls RunPod otherwise.
      *
      * @param string $clothingUrl  Public URL of the flat-lay garment image
      * @param string $garmentHint  'saree' | 'lehenga' | 'default'
@@ -82,19 +83,12 @@ final class FlatLayConverter
             }
         }
 
-        // Generate via FAL.ai
-        $prompt    = self::PROMPTS[$garmentHint] ?? self::PROMPTS['default'];
-        $resultUrl = $this->callFal($clothingUrl, $prompt);
+        // Generate via RunPod image-edit
+        $prompt     = self::PROMPTS[$garmentHint] ?? self::PROMPTS['default'];
+        $imageBytes = $this->editViaRunpod($clothingUrl, $prompt);
 
-        if ($resultUrl === null) {
-            writeLog('WARNING', 'FlatLayConverter: FAL.ai call failed', ['url' => $clothingUrl]);
-            return null;
-        }
-
-        // Download result
-        $imageBytes = $this->downloadUrl($resultUrl);
         if ($imageBytes === null) {
-            writeLog('WARNING', 'FlatLayConverter: failed to download result', ['url' => $resultUrl]);
+            writeLog('WARNING', 'FlatLayConverter: RunPod image-edit failed', ['url' => $clothingUrl]);
             return null;
         }
 
@@ -121,44 +115,32 @@ final class FlatLayConverter
 
     // ── Private helpers ───────────────────────────────────────────────────────
 
-    private function callFal(string $imageUrl, string $prompt): ?string
+    /** Sends the source image + prompt to the RunPod image-edit worker; returns the edited image bytes or null. */
+    private function editViaRunpod(string $imageUrl, string $prompt): ?string
     {
-        $body = (string)json_encode([
-            'image_url' => $imageUrl,
-            'prompt'    => $prompt,
-            'num_inference_steps' => 28,
-            'guidance_scale'      => 3.5,
-        ]);
+        if (str_starts_with($imageUrl, 'data:image')) {
+            $source = $imageUrl;
+        } else {
+            $bytes = $this->downloadUrl($imageUrl);
+            if ($bytes === null) {
+                writeLog('WARNING', 'FlatLayConverter: failed to download source image', ['url' => $imageUrl]);
+                return null;
+            }
+            $source = base64_encode($bytes);
+        }
 
-        $ch = curl_init(self::FAL_URL);
-        curl_setopt_array($ch, [
-            CURLOPT_POST           => true,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POSTFIELDS     => $body,
-            CURLOPT_HTTPHEADER     => [
-                'Authorization: Key ' . $this->apiKey,
-                'Content-Type: application/json',
-            ],
-            CURLOPT_TIMEOUT        => self::API_TIMEOUT,
-            CURLOPT_CONNECTTIMEOUT => 15,
-        ]);
+        $client = new RunpodVtonClient($this->apiKey, $this->endpointId);
+        $result = $client->editImage(['image' => $source, 'prompt' => $prompt]);
 
-        $response = curl_exec($ch);
-        $status   = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if ($response === false || $status !== 200) {
-            writeLog('WARNING', 'FlatLayConverter: FAL HTTP error', [
-                'status'   => $status,
-                'response' => is_string($response) ? substr($response, 0, 300) : 'false',
+        if ($result['image_bytes'] === null) {
+            writeLog('WARNING', 'FlatLayConverter: RunPod error', [
+                'status'   => $result['status_code'],
+                'response' => substr((string)$result['error_details'], 0, 300),
             ]);
             return null;
         }
 
-        $decoded = json_decode((string)$response, true);
-        $url     = $decoded['images'][0]['url'] ?? null;
-
-        return is_string($url) && $url !== '' ? $url : null;
+        return $result['image_bytes'];
     }
 
     private function downloadUrl(string $url): ?string

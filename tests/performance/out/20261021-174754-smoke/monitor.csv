@@ -1,0 +1,7 @@
+t,app_cpu_pct,app_mem_mib,db_aborted_connects,db_cpu_pct,db_max_used_connections,db_mem_mib,db_slow_queries,db_threads_connected,db_threads_running,fitfyce-postgres_cpu_pct,fitfyce-postgres_mem_mib,fitfyce-redis_cpu_pct,fitfyce-redis_mem_mib,k6-run-d2f0f866a0b8_cpu_pct,k6-run-d2f0f866a0b8_mem_mib,mock-ai_cpu_pct,mock-ai_mem_mib,mock_completed,mock_queue_depth,mock_running
+1792585086.9,0.01,15.0,0,0.04,1,125.0,0,1,1,0.01,20.2,1.01,4.8,,,0.01,10.5,,,
+1792585094.8,0.02,20.2,0,0.07,2,125.6,0,1,1,0.0,20.2,1.53,5.3,1.18,61.5,0.02,10.2,0,0,1
+1792585101.8,2.41,20.9,0,1.56,2,126.0,0,1,1,0.02,20.2,1.08,5.6,2.47,64.7,0.0,8.1,0,0,1
+1792585109.5,3.33,21.2,0,3.86,2,126.0,0,1,1,0.0,20.2,1.78,5.3,1.2,66.9,0.0,8.5,1,0,0
+1792585117.5,0.02,21.3,0,0.17,2,126.1,0,2,2,0.0,20.2,1.01,5.3,1.63,69.7,0.0,8.5,1,0,0
+1792585125.3,0.03,20.8,0,0.06,2,125.5,0,1,1,0.0,20.2,2.12,5.1,,,0.0,8.3,1,0,0

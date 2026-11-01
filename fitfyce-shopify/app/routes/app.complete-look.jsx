@@ -10,6 +10,7 @@ import { ensureMerchant } from "../lib/merchant.server";
 import phpApiClient from "../lib/php-api.server";
 import { PHP_API_URL } from "../lib/env.server";
 import { FsPage, FsCard, FsButton } from "../components/fs-ui";
+import { TOURS } from "../lib/tours";
 
 export const loader = async ({ request }) => {
   const { session } = await authenticate.admin(request);
@@ -110,11 +111,11 @@ export default function CompleteLookPage() {
   };
 
   return (
-    <FsPage>
+    <FsPage tour={TOURS.completeLook}>
       <div className="fs-page-head">
         <div style={{ flex: 1 }}>
           <h1 className="fs-h1">Complete Your Look</h1>
-          <p className="fs-sub">A "styling ideas" rail on the product page, showing other products you pick — no automatic matching.</p>
+          <p className="fs-sub">A "styling ideas" rail on the product page, showing other products you pick: no automatic matching.</p>
         </div>
         <button type="button" role="switch" aria-checked={enabled} aria-label="Enable Complete Your Look" className="fs-switch" onClick={toggle}>
           <span />
@@ -130,7 +131,7 @@ export default function CompleteLookPage() {
           onSaved={() => { setEditingProduct(null); window.location.reload(); }}
         />
       ) : (
-        <FsCard title="Products">
+        <FsCard tour="look-products" title="Products">
           <div className="fs-table-wrap">
             <table className="fs-table">
               <thead><tr><th>Product</th><th>Styling ideas</th><th /></tr></thead>

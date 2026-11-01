@@ -181,6 +181,43 @@ class WidgetController
     }
 
     /**
+     * POST /widget/ai-copy
+     * Body: { field, current?, max?, tone?, instructions?, language?, store? }
+     * Returns { suggestions: string[] } for the admin's AI copy picker.
+     */
+    public function aiCopy(): void
+    {
+        ApiKeyAuth::handle();
+        $body = (array)(json_decode((string)file_get_contents('php://input'), true) ?? []);
+
+        $field = mb_substr(trim((string)($body['field'] ?? '')), 0, 80);
+        if ($field === '') {
+            respondJson(['error' => 'field is required'], 400);
+        }
+
+        $tones = ['friendly', 'bold', 'luxury', 'playful', 'minimal', 'professional'];
+        $tone  = in_array($body['tone'] ?? '', $tones, true) ? $body['tone'] : 'friendly';
+
+        try {
+            $client      = new \VTON\OpenAIClient(AppConfig::openAiApiKey());
+            $suggestions = $client->generateFieldCopy(
+                $field,
+                mb_substr(trim((string)($body['current'] ?? '')), 0, 300),
+                (int)($body['max'] ?? 60),
+                $tone,
+                mb_substr(trim((string)($body['instructions'] ?? '')), 0, 200),
+                mb_substr(trim((string)($body['language'] ?? 'English')), 0, 40) ?: 'English',
+                mb_substr(trim((string)($body['store'] ?? '')), 0, 80)
+            );
+        } catch (\Throwable $e) {
+            error_log('[FitSnap Widget] aiCopy failed: ' . $e->getMessage());
+            respondJson(['error' => 'AI generation failed. Please try again.'], 502);
+        }
+
+        respondJson(['suggestions' => $suggestions]);
+    }
+
+    /**
      * PATCH /widget/settings
      * Accepts any subset of config fields — only those fields are written.
      */
@@ -276,6 +313,9 @@ class WidgetController
             'privacy_notice_shown'   => (bool)($cfg['privacy_notice_shown']  ?? $d['privacy_notice_shown']),
             'before_after_enabled'   => (bool)($cfg['before_after_enabled']  ?? $d['before_after_enabled']),
             'promo_video_url'        => $cfg['promo_video_url']         ?? $d['promo_video_url'],
+            'tryon_limit_enabled'    => (bool)($cfg['tryon_limit_enabled'] ?? $d['tryon_limit_enabled']),
+            'tryon_limit_count'      => (int)($cfg['tryon_limit_count']    ?? $d['tryon_limit_count']),
+            'tryon_limit_reset'      => $cfg['tryon_limit_reset']          ?? $d['tryon_limit_reset'],
             'promo_video_position'   => $cfg['promo_video_position']    ?? $d['promo_video_position'],
             'example_before_after_enabled' => (bool)($cfg['example_before_after_enabled'] ?? $d['example_before_after_enabled']),
             'example_before_image'   => $cfg['example_before_image']   ?? $d['example_before_image'],
@@ -441,6 +481,9 @@ class WidgetController
             'privacy_notice_shown'   => (bool)($row['privacy_notice_shown']  ?? $d['privacy_notice_shown']),
             'before_after_enabled'   => (bool)($row['before_after_enabled']  ?? $d['before_after_enabled']),
             'promo_video_url'        => $row['promo_video_url']         ?? $d['promo_video_url'],
+            'tryon_limit_enabled'    => (bool)($row['tryon_limit_enabled'] ?? $d['tryon_limit_enabled']),
+            'tryon_limit_count'      => (int)($row['tryon_limit_count']    ?? $d['tryon_limit_count']),
+            'tryon_limit_reset'      => $row['tryon_limit_reset']          ?? $d['tryon_limit_reset'],
             'promo_video_position'   => $row['promo_video_position']    ?? $d['promo_video_position'],
             'example_before_after_enabled' => (bool)($row['example_before_after_enabled'] ?? $d['example_before_after_enabled']),
             'example_before_image'   => $row['example_before_image']   ?? $d['example_before_image'],

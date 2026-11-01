@@ -1,0 +1,11 @@
+{
+  "title": "Getting started",
+  "steps": {
+    "connect_store": "Connect your store",
+    "sync_products": "Sync your products",
+    "configure_widget": "Configure the widget",
+    "launch": "Launch on your storefront"
+  },
+  "complete": "You're all set.",
+  "incomplete_banner": "Finish onboarding to unlock all features."
+}

@@ -88,6 +88,21 @@ if (is_dir($metaDir)) {
 
 cronLog("Deleted {$deletedTemp} expired temp file(s).");
 
+/* ── 2b. Delete expired per-job outcome markers (TryOnController idempotency) ── */
+$jobsDir     = $tempDir . '/.jobs';
+$deletedJobs = 0;
+foreach (is_dir($jobsDir) ? (glob($jobsDir . '/*') ?: []) : [] as $entry) {
+    if (filemtime($entry) >= $cutoffTs) {
+        continue;
+    }
+    if (is_dir($entry)) {
+        $deletedJobs += @rmdir($entry) ? 1 : 0;   // .lock directories
+    } else {
+        $deletedJobs += @unlink($entry) ? 1 : 0;  // .json outcomes and stray .tmp files
+    }
+}
+cronLog("Deleted {$deletedJobs} expired job marker(s).");
+
 /* ── 3. Nullify expired result URLs in DB ─────────────────────── */
 try {
     $host = getenv('DB_HOST') ?: 'localhost';

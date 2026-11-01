@@ -1,0 +1,76 @@
+# Isolated, local-only replica of the PHP backend for load testing.  Nothing here touches production.
+# All AI traffic goes to the MOCK server (results labelled MOCKED).  Run via scripts/run_test.py or manually:
+#   python scripts/prepare_db.py && docker compose up -d --build
+name: brixperf
+services:
+  db:
+    image: mariadb:10.11
+    environment:
+      MARIADB_ROOT_PASSWORD: perfroot
+      MARIADB_DATABASE: tryfit_db
+      MARIADB_USER: perf
+      MARIADB_PASSWORD: perfpass
+    command: ["--max-connections=${DB_MAX_CONNECTIONS:-100}", "--slow-query-log=1", "--long-query-time=0.2", "--slow-query-log-file=/var/lib/mysql/slow.log"]
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/00-init.sql:ro
+    cpus: ${DB_CPUS:-1}
+    mem_limit: ${DB_MEM:-1g}
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  mock-ai:
+    image: node:20-alpine
+    working_dir: /mock
+    command: ["node", "mock-ai.mjs"]
+    environment:
+      MOCK_WORKERS: ${MOCK_WORKERS:-1}
+      MOCK_GEN_MS: ${MOCK_GEN_MS:-14000}
+      MOCK_JITTER_MS: ${MOCK_JITTER_MS:-1000}
+      MOCK_FAIL_RATE: ${MOCK_FAIL_RATE:-0}
+      MOCK_MAX_QUEUE: ${MOCK_MAX_QUEUE:-0}
+      MOCK_RESULT: /fixtures/result.jpg
+    volumes:
+      - ./mock:/mock:ro
+      - ./fixtures:/fixtures:ro
+    ports: ["4010:4010"]
+    cpus: 0.5
+    mem_limit: 256m
+
+  app:
+    build:
+      context: ../../fitfyce-php
+      dockerfile: ../tests/performance/php/Dockerfile
+      additional_contexts:
+        perf: ./php
+    environment:
+      APACHE_MAX_WORKERS: ${APACHE_MAX_WORKERS:-20}
+      APACHE_KEEPALIVE: ${APACHE_KEEPALIVE:-Off}
+      DB_HOST: db
+      DB_NAME: tryfit_db
+      DB_USER: perf
+      DB_PASS: perfpass
+      RUNPOD_API_KEY: mock-key-not-real
+      RUNPOD_ENDPOINT_ID: mock-endpoint
+      RUNPOD_IMAGE_EDIT_ENDPOINT_ID: mock-imageedit
+      FASHN_API_KEY: mock-fashn-key-not-real
+    depends_on:
+      db: { condition: service_healthy }
+      mock-ai: { condition: service_started }
+    ports: ["8080:80"]
+    cpus: ${APP_CPUS:-2}
+    mem_limit: ${APP_MEM:-1g}
+
+  k6:
+    image: grafana/k6:0.54.0
+    profiles: ["tools"]
+    entrypoint: ["k6"]
+    working_dir: /work
+    volumes:
+      - ./:/work
+    environment:
+      BASE_URL: http://app:80
+    depends_on: [app]
+    cpus: 1

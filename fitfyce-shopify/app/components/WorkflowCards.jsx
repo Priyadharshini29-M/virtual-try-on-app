@@ -1,16 +1,23 @@
-// Five AI Studio workflow cards (before → after art, time, steps, credits).
+// Six AI Studio workflow cards (before → after art, time, steps, credits).
 // Shared by the AI Studio library page (links) and the create wizard (onSelect).
 import PropTypes from "prop-types";
 import { Link } from "react-router";
 import { FsIcon } from "./fs-ui";
 
-export const WORKFLOW_CARDS = [
+// Duo & Group try-on is parked for a later release: flip to true to show it again
+// (the wizard, its API route and the PHP endpoints are all still in place).
+export const GROUP_WORKFLOW_ENABLED = false;
+
+const ALL_WORKFLOW_CARDS = [
   { id: "model-generation", title: "AI Model Generation", desc: "Put your garment on a realistic AI model.", time: "~45 sec", steps: 5, before: "shirt", after: "model", tone: "#7E9A7A", popular: true },
   { id: "flat-lay", title: "Flat Lay to Model", desc: "Turn a flat product photo into an on-model shot.", time: "~60 sec", steps: 5, before: "flat", after: "model", tone: "#B4234A", popular: true },
   { id: "mannequin", title: "Ghost Mannequin to Model", desc: "Swap the invisible mannequin for a real model.", time: "~50 sec", steps: 5, before: "ghost", after: "model", tone: "#2F3A56" },
   { id: "accessories", title: "Accessories Try-On", desc: "Watches, jewellery and bags on a model.", time: "~40 sec", steps: 5, before: "bag", after: "model", tone: "#8A6F52" },
   { id: "infographic", title: "Marketing Infographic", desc: "Feature callouts ready for ads and product pages.", time: "~90 sec", steps: 4, before: "model", after: "info", tone: "#4B5563" },
+  { id: "group", title: "Duo & Group Try-On", desc: "2 to 4 people in one photo, each in their own outfit.", time: "~3 min", steps: 4, before: "shirt", after: "duo", tone: "#6D5BA8" },
 ];
+
+export const WORKFLOW_CARDS = ALL_WORKFLOW_CARDS.filter((w) => GROUP_WORKFLOW_ENABLED || w.id !== "group");
 
 const SHAPES = {
   shirt: "M8 3 3 6l2 5 3-1v11h8V10l3 1 2-5-5-3a4 4 0 0 1-8 0z",
@@ -27,6 +34,27 @@ function Art({ kind, tone }) {
         <path d="M41 44a19 19 0 0 1 38 0c-4-7-11-10-19-10s-15 3-19 10z" fill="#3B2F2A" />
         <path d="M24 160c1-44 15-86 36-86s35 42 36 86z" fill={tone} />
       </svg>
+    );
+  }
+  if (kind === "duo") {
+    return (
+      <svg viewBox="0 0 160 160" style={{ width: "96%", alignSelf: "flex-end", display: "block" }} aria-hidden="true">
+        <circle cx="52" cy="50" r="17" fill="#E4D5C7" />
+        <path d="M35 48a17 17 0 0 1 34 0c-4-6-10-9-17-9s-13 3-17 9z" fill="#3B2F2A" />
+        <path d="M18 160c1-40 14-76 34-76s33 36 34 76z" fill={tone} />
+        <circle cx="108" cy="46" r="17" fill="#D9C2AE" />
+        <path d="M91 42a17 17 0 0 1 34 0c-3-4-9-6-17-6s-14 2-17 6z" fill="#2B211D" />
+        <path d="M80 160V100c0-10 12-16 28-16s28 6 28 16v60z" fill="#2F3A56" />
+      </svg>
+    );
+  }
+  if (kind === "grid") {
+    return (
+      <div style={{ position: "absolute", inset: 8, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4 }}>
+        {[0, 1, 2, 3].map((i) => (
+          <span key={i} style={{ borderRadius: 3, background: i === 3 ? tone : "#FFFFFF", border: `1px solid ${tone}` }} />
+        ))}
+      </div>
     );
   }
   if (kind === "info") {
@@ -58,11 +86,11 @@ function CardInner({ w }) {
       {w.popular && <span className="fs-pill fs-pill--dark fs-wf-popular">Popular</span>}
       <div className="fs-wf-art">
         <div className="fs-wf-frame fs-wf-before"><Art kind={w.before} tone={w.tone} /></div>
-        <FsIcon name="arrowRight" size={18} style={{ color: "#9CA3AF", flexShrink: 0 }} />
+        <FsIcon name="arrowRight" size={14} style={{ color: "#9CA3AF", flexShrink: 0 }} />
         <div className="fs-wf-frame" style={{ background: w.after === "info" ? "var(--fs-primary-tint)" : "#F3F1EC" }}><Art kind={w.after} tone={w.tone} /></div>
       </div>
       <div>
-        <div style={{ fontSize: 13, fontWeight: 600 }}>{w.title}</div>
+        <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.3 }}>{w.title}</div>
         <div style={{ fontSize: 11, color: "var(--fs-muted)", marginTop: 3, lineHeight: 1.4 }}>{w.desc}</div>
       </div>
       <div className="fs-wf-meta">

@@ -1,0 +1,9 @@
+{
+  "title": "Plans",
+  "current_plan": "Current plan: {name}",
+  "limit_remaining": "{remaining} of {limit} generations left this month",
+  "limit_exceeded": "You have reached your plan limit of {limit} generations this month",
+  "upgrade_cta": "Upgrade plan",
+  "upgrade_success": "Plan upgraded to {name}",
+  "downgrade_success": "Plan changed to {name}"
+}

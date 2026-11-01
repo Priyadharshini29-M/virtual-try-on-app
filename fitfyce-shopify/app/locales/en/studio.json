@@ -1,0 +1,25 @@
+{
+  "title": "AI Studio",
+  "garment_studio": {
+    "title": "Garment Studio",
+    "upload_garment": "Upload garment",
+    "upload_model": "Upload or pick a model",
+    "generate": "Generate try-on",
+    "generation_started": "Generation started",
+    "generation_failed": "Generation failed: {reason}",
+    "report_title": "Garment Studio report",
+    "report_generated_on": "Generated on {date}"
+  },
+  "models": {
+    "title": "Models",
+    "default_library": "Default library",
+    "saved_models": "Saved models",
+    "upload": "Upload model"
+  },
+  "jobs": {
+    "queued": "Queued",
+    "running": "Running",
+    "done": "Done",
+    "failed": "Failed"
+  }
+}

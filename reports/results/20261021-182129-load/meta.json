@@ -1,0 +1,71 @@
+{
+ "run": "20261021-182129-load",
+ "profile": "load",
+ "integration": "MOCKED (AI provider) / local Docker replica of PHP+MariaDB",
+ "args": {
+  "profile": "load",
+  "mock_workers": 10,
+  "mock_gen_ms": 14000,
+  "mock_fail_rate": 0.0,
+  "mock_max_queue": 0,
+  "app_workers": 20,
+  "max_vus": 120,
+  "dur_scale": 0.2,
+  "rate_scale": 1.0,
+  "soak_min": 30,
+  "only": "widget",
+  "widget_event": "1",
+  "keepalive": "Off",
+  "extra_polls": 0,
+  "yes_i_am_authorised": false
+ },
+ "started": 1792587099.843481,
+ "ended": 1792587213.4065084,
+ "duration_s": 113.6,
+ "k6_exit_code": 99,
+ "pre": {
+  "count_m1": 0,
+  "count_m2": 95
+ },
+ "post": {
+  "count_m1": 0,
+  "count_m2": 95,
+  "analytics_completed": "0",
+  "result_files": "0",
+  "db_slow_queries": "12",
+  "db_max_used_connections": "4",
+  "app_error_log_tail": "- [21/Oct/2026:12:53:33 +0000] \"OPTIONS * HTTP/1.0\" 200 126 \"-\" \"Apache/2.4.68 (Debian) PHP/8.3.35 (internal dummy connection)\"\n127.0.0.1 - - [21/Oct/2026:12:53:34 +0000] \"OPTIONS * HTTP/1.0\" 200 126 \"-\" \"Apache/2.4.68 (Debian) PHP/8.3.35 (internal dummy connection)\"\n127.0.0.1 - - [21/Oct/2026:12:53:35 +0000] \"OPTIONS * HTTP/1.0\" 200 126 \"-\" \"Apache/2.4.68 (Debian) PHP/8.3.35 (internal dummy connection)\"\n127.0.0.1 - - [21/Oct/2026:12:53:36 +0000] \"OPTIONS * HTTP/1.0\" 200 126 \"-\" \"Apache/2.4.68 (Debian) PHP/8.3.35 (internal dummy connection)\"\n127.0.0.1 - - [21/Oct/2026:12:53:37 +0000] \"OPTIONS * HTTP/1.0\" 200 126 \"-\" \"Apache/2.4.68 (Debian) PHP/8.3.35 (internal dummy connection)\"\n172.19.0.1 - - [21/Oct/2026:12:53:37 +0000] \"GET /server-status?auto HTTP/1.1\" 200 895 \"-\" \"Python-urllib/3.13\"\n127.0.0.1 - - [21/Oct/2026:12:53:38 +0000] \"OPTIONS * HTTP/1.0\" 200 126 \"-\" \"Apache/2.4.68 (Debian) PHP/8.3.35 (internal dummy connection)\"\n127.0.0.1 - - [21/Oct/2026:12:53:39 +0000] \"OPTIONS * HTTP/1.0\" 200 126 \"-\" \"Apache/2.4.68 (Debian) PHP/8.3.35 (internal dummy connection)\"\n127.0.0.1 - - [21/Oct/2026:12:53:40 +0000] \"OPTIONS * HTTP/1.0\" 200 126 \"-\" \"Apache/2.4.68 (Debian) PHP/8.3.35 (internal dummy connection)\"\n127.0.0.1 - - [21/Oct/2026:12:53:41 +0000] \"OPTIONS * HTTP/1.0\" 200 126 \"-\" \"Apache/2.4.68 (Debian) PHP/8.3.35 (internal dummy connection)\"\n127.0.0.1 - - [21/Oct/2026:12:53:42 +0000] \"OPTIONS * HTTP/1.0\" 200 126 \"-\" \"Apache/2.4.68 (Debian) PHP/8.3.35 (internal dummy connection)\"\n"
+ },
+ "mock_stats": {
+  "cfg": {
+   "port": 4010,
+   "workers": 10,
+   "genMs": 14000,
+   "jitterMs": 1000,
+   "failRate": 0,
+   "maxQueue": 0
+  },
+  "submitted": 0,
+  "rejected429": 0,
+  "statusCalls": 0,
+  "maxQueueDepth": 0,
+  "jobs": 0,
+  "completed": 0,
+  "failed": 0,
+  "running": 0,
+  "queueDepthNow": 0,
+  "queueWaitMs": {
+   "p50": 0,
+   "p95": 0,
+   "max": 0,
+   "avg": 0
+  }
+ },
+ "k6_tryon_completed": 0,
+ "consistency": {
+  "merchant1_count_delta": 0,
+  "k6_completed_jobs": 0,
+  "double_counted": 0,
+  "analytics_completed": "0"
+ }
+}

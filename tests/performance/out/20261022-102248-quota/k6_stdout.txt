@@ -1,0 +1,40 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+     execution: local
+        script: /work/k6/main.js
+ web dashboard: http://127.0.0.1:5665
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 20 max VUs, 5m30s max duration (incl. graceful stop):
+              * quota: 20 iterations shared among 20 VUs (maxDuration: 5m0s, exec: quota, gracefulStop: 30s)
+
+
+running (0m00.5s), 05/20 VUs, 15 complete and 0 interrupted iterations
+quota   [  75% ] 20 VUs  0m00.5s/5m0s  15/20 shared iters
+
+running (0m01.5s), 05/20 VUs, 15 complete and 0 interrupted iterations
+quota   [  75% ] 20 VUs  0m01.5s/5m0s  15/20 shared iters
+
+running (0m02.5s), 05/20 VUs, 15 complete and 0 interrupted iterations
+quota   [  75% ] 20 VUs  0m02.5s/5m0s  15/20 shared iters
+
+running (0m03.5s), 04/20 VUs, 16 complete and 0 interrupted iterations
+quota   [  80% ] 20 VUs  0m03.5s/5m0s  16/20 shared iters
+
+running (0m04.5s), 04/20 VUs, 16 complete and 0 interrupted iterations
+quota   [  80% ] 20 VUs  0m04.5s/5m0s  16/20 shared iters
+
+running (0m05.5s), 02/20 VUs, 18 complete and 0 interrupted iterations
+quota   [  90% ] 20 VUs  0m05.5s/5m0s  18/20 shared iters
+
+running (0m06.5s), 02/20 VUs, 18 complete and 0 interrupted iterations
+quota   [  90% ] 20 VUs  0m06.5s/5m0s  18/20 shared iters
+
+--- stderr ---
+ Container brixperf-k6-run-70722eace5ed Creating 
+ Container brixperf-k6-run-70722eace5ed Created 

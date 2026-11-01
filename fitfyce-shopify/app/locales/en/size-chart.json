@@ -1,0 +1,10 @@
+{
+  "title": "Size chart",
+  "enable": "Enable size chart",
+  "enabled": "Size chart is enabled",
+  "disabled": "Size chart is disabled",
+  "create": "Create size chart",
+  "assign_to_product": "Assign to product",
+  "unassign": "Remove from product",
+  "deleted": "Size chart deleted"
+}

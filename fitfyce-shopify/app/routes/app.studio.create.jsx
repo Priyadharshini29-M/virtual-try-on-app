@@ -1,17 +1,21 @@
 /**
- * app.studio.create.jsx — AI Studio: workflow selector + 5 multi-step wizards.
+ * app.studio.create.jsx — AI Studio: workflow selector + multi-step wizards.
  * Route: /app/studio/create
  */
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import { shrinkImageIfLarge } from "../lib/shrink-image.client";
 import { useFetcher, useLoaderData, useNavigate, useRouteLoaderData, useSearchParams } from "react-router";
 import { useCelebrate } from "../components/AppShell";
-import WorkflowCards from "../components/WorkflowCards";
+import WorkflowCards, { GROUP_WORKFLOW_ENABLED } from "../components/WorkflowCards";
 import { FsIcon } from "../components/fs-ui";
+import { PageTour } from "../components/GuidedTour";
+import { TOURS } from "../lib/tours";
 import { authenticate } from "../shopify.server";
 import { ensureMerchant } from "../lib/merchant.server";
 import phpApiClient from "../lib/php-api.server";
 import { PHP_API_URL } from "../lib/env.server";
+import { buildGeneratePayload } from "../lib/studio-generate.server";
 
 // ── Loader ────────────────────────────────────────────────────────────────────
 
@@ -74,47 +78,7 @@ export const action = async ({ request }) => {
     return Response.json({ error: "Invalid JSON" }, { status: 400 });
   }
   if (body._action === "generate") {
-    // Map workflow_type → garment_type so PHP's /studio/generate controller
-    // can route to the correct AI model. PHP requires this field.
-    const garmentTypeByWorkflow = {
-      "model-generation": "full",
-      "flat-lay": "top",
-      mannequin: "top",
-      accessories: "top",
-      infographic: "full",
-    };
-
-    const modelKey = body.model_key || null;
-
-    // "Upload New Model" in the wizard has no model_key — just an ad-hoc
-    // photo URL. PHP accepts model_image_url directly now, unlimited, not
-    // constrained by the registry's fixed 7-per-gender slots.
-    const modelImageUrl = !modelKey ? body.model_image_url || null : null;
-    const modelGender = body.model_gender === "male" ? "male" : "female";
-
-    const phpBody = {
-      front_image_url: body.front_image_url || null,
-      back_image_url: body.back_image_url || null,
-      detail_image_1_url: body.detail_image_1_url || null,
-      detail_image_2_url: body.detail_image_2_url || null,
-      detail_image_3_url: body.detail_image_3_url || null,
-      model_key: modelKey,
-      model_image_url: modelImageUrl,
-      model_gender: modelGender,
-      garment_type:
-        body.garment_type ??
-        garmentTypeByWorkflow[body.workflow_type] ??
-        "full",
-      clothing_prompt: body.clothing_prompt || null,
-      workflow_type: body.workflow_type || null,
-      // Wizard's explicit product type (e.g. "saree") — PHP uses it to pick
-      // the try-on engine instead of guessing from the free-text prompt.
-      product_type: body.product_type || null,
-      // Accessories Try-On: which accessory and where it goes on the model,
-      // so PHP can tell the try-on engine exactly where to place it.
-      accessory_category: body.accessory_category || null,
-      accessory_placement: body.accessory_placement || null,
-    };
+    const phpBody = buildGeneratePayload(body);
     if (!phpBody.front_image_url) {
       return Response.json(
         { error: "Product image is required." },
@@ -259,7 +223,7 @@ const FALLBACK_LABELS = {
   male_plus_size: "Male Plus Size",
 };
 
-const WORKFLOWS = [
+const ALL_WORKFLOWS = [
   {
     id: "model-generation",
     title: "AI Model Generation",
@@ -287,10 +251,19 @@ const WORKFLOWS = [
   {
     id: "infographic",
     title: "Marketing Infographic",
-    desc: "Turn a saved Fashn AI model photo — or a fresh upload — into a promotional infographic with OpenAI-extracted highlights.",
+    desc: "Turn a saved Fashn AI model photo, or a fresh upload, into a promotional infographic with OpenAI-extracted highlights.",
     steps: ["Source Image", "Description", "Options", "Output"],
   },
+  {
+    id: "group",
+    title: "Duo & Group Try-On",
+    desc: "Put 2 to 4 people in one photo, each in their own outfit.",
+    steps: ["Who's in it", "Dress each person", "Scene", "Output"],
+  },
 ];
+
+// Duo & Group is parked (see GROUP_WORKFLOW_ENABLED in WorkflowCards).
+const WORKFLOWS = ALL_WORKFLOWS.filter((w) => GROUP_WORKFLOW_ENABLED || w.id !== "group");
 
 const ACCESSORY_PLACEMENTS = {
   watch: ["Wrist (Left)", "Wrist (Right)"],
@@ -303,17 +276,31 @@ const ACCESSORY_PLACEMENTS = {
 };
 
 const SIZE_OPTIONS = [
-  { id: "portrait", label: "Portrait", desc: "1024×1536 — tall, best for full-length garment/model shots." },
-  { id: "square", label: "Square", desc: "1024×1024 — best for packaged goods and social posts." },
-  { id: "landscape", label: "Landscape", desc: "1536×1024 — wide, best for banners." },
+  { id: "portrait", label: "Portrait", desc: "1024×1536: tall, best for full-length garment/model shots." },
+  { id: "square", label: "Square", desc: "1024×1024: best for packaged goods and social posts." },
+  { id: "landscape", label: "Landscape", desc: "1536×1024: wide, best for banners." },
 ];
 
 // ── Product type data ─────────────────────────────────────────────────────────
 
 const PRODUCT_CATS = [
+  // Paired outfit — top + bottom in one full-body generation. The front image
+  // is the top; the bottom is uploaded separately on the type step and PHP
+  // applies it in a second try-on pass on top of the top-wear result.
+  {
+    id: "paired-outfit",
+    audience: ["women", "men", "unisex"],
+    label: "Top + Bottom (paired outfit)",
+    menLabel: "Shirt + Pant (paired outfit)",
+    group: "outfit",
+    garmentType: "full",
+    outfit: true,
+    desc: "Top and bottom together, full-body shot",
+  },
   // Ethnic / Full-Body Wear
   {
     id: "saree",
+    audience: ["women"],
     label: "Saree",
     group: "ethnic",
     garmentType: "full",
@@ -321,6 +308,7 @@ const PRODUCT_CATS = [
   },
   {
     id: "lehenga",
+    audience: ["women"],
     label: "Lehenga / Ghagra",
     group: "ethnic",
     garmentType: "full",
@@ -328,13 +316,25 @@ const PRODUCT_CATS = [
   },
   {
     id: "dress",
+    audience: ["women"],
     label: "Dress / Gown",
     group: "ethnic",
     garmentType: "full",
     desc: "Western or fusion dress",
   },
   {
+    // Kurta with matching pants/salwar: sent as one full-body garment so the
+    // bottom is transferred too (a plain "Kurta" is top wear only).
+    id: "kurta-set",
+    audience: ["women", "men"],
+    label: "Kurta set (with pants)",
+    group: "ethnic",
+    garmentType: "full",
+    desc: "Kurta with matching pants, salwar or churidar",
+  },
+  {
     id: "coord-set",
+    audience: ["women", "unisex"],
     label: "Co-ord Set",
     group: "ethnic",
     garmentType: "full",
@@ -343,6 +343,8 @@ const PRODUCT_CATS = [
   // Top Wear
   {
     id: "kurta",
+    menLabel: "Kurta",
+    audience: ["women", "men"],
     label: "Kurta / Kurti",
     group: "top-wear",
     garmentType: "top",
@@ -350,6 +352,7 @@ const PRODUCT_CATS = [
   },
   {
     id: "tshirt",
+    audience: ["women", "men", "unisex"],
     label: "T-Shirt / Top",
     group: "top-wear",
     garmentType: "top",
@@ -357,6 +360,8 @@ const PRODUCT_CATS = [
   },
   {
     id: "shirt",
+    menLabel: "Shirt",
+    audience: ["women", "men", "unisex"],
     label: "Shirt / Blouse",
     group: "top-wear",
     garmentType: "top",
@@ -364,6 +369,7 @@ const PRODUCT_CATS = [
   },
   {
     id: "jacket",
+    audience: ["women", "men", "unisex"],
     label: "Jacket / Blazer",
     group: "top-wear",
     garmentType: "top",
@@ -372,6 +378,8 @@ const PRODUCT_CATS = [
   // Bottom Wear
   {
     id: "pants",
+    menLabel: "Pants / Jeans / Trousers",
+    audience: ["women", "men", "unisex"],
     label: "Pants / Jeans",
     group: "bottom-wear",
     garmentType: "bottom",
@@ -379,6 +387,7 @@ const PRODUCT_CATS = [
   },
   {
     id: "skirt",
+    audience: ["women"],
     label: "Skirt / Palazzo",
     group: "bottom-wear",
     garmentType: "bottom",
@@ -386,6 +395,8 @@ const PRODUCT_CATS = [
   },
   {
     id: "shorts",
+    menLabel: "Shorts / Track Pants",
+    audience: ["women", "men", "unisex"],
     label: "Shorts / Leggings",
     group: "bottom-wear",
     garmentType: "bottom",
@@ -394,6 +405,7 @@ const PRODUCT_CATS = [
   // Accessories
   {
     id: "jewellery",
+    audience: ["women", "men", "unisex"],
     label: "Jewellery",
     group: "accessories",
     garmentType: "top",
@@ -402,6 +414,7 @@ const PRODUCT_CATS = [
   },
   {
     id: "watch",
+    audience: ["women", "men", "unisex"],
     label: "Watch",
     group: "accessories",
     garmentType: "top",
@@ -410,6 +423,7 @@ const PRODUCT_CATS = [
   },
   {
     id: "handbag",
+    audience: ["women", "unisex"],
     label: "Bag / Handbag",
     group: "accessories",
     garmentType: "top",
@@ -418,6 +432,7 @@ const PRODUCT_CATS = [
   },
   {
     id: "sunglasses",
+    audience: ["women", "men", "unisex"],
     label: "Sunglasses",
     group: "accessories",
     garmentType: "top",
@@ -426,6 +441,7 @@ const PRODUCT_CATS = [
   },
   {
     id: "footwear",
+    audience: ["women", "men", "unisex"],
     label: "Footwear",
     group: "accessories",
     garmentType: "bottom",
@@ -435,6 +451,7 @@ const PRODUCT_CATS = [
   // Other
   {
     id: "electronics",
+    audience: ["women", "men", "unisex"],
     label: "Electronics / Mobile",
     group: "other",
     garmentType: "full",
@@ -442,6 +459,7 @@ const PRODUCT_CATS = [
   },
   {
     id: "other",
+    audience: ["women", "men", "unisex"],
     label: "Other Product",
     group: "other",
     garmentType: "full",
@@ -449,7 +467,15 @@ const PRODUCT_CATS = [
   },
 ];
 
-const CLOTHING_GROUPS = ["ethnic", "top-wear", "bottom-wear"];
+const CLOTHING_GROUPS = ["outfit", "ethnic", "top-wear", "bottom-wear"];
+
+const AUDIENCES = [
+  { id: "women", label: "Women" },
+  { id: "men", label: "Men" },
+  { id: "unisex", label: "Unisex" },
+];
+
+const isOutfitType = (productType) => !!PRODUCT_CATS.find((c) => c.id === productType)?.outfit;
 
 const WEAR_TYPES = [
   { id: "full", label: "Full Body", desc: "Complete head-to-toe look" },
@@ -473,12 +499,13 @@ function buildProductPrompt(productType, wearType) {
 
 async function uploadToTemp(file) {
   const fd = new FormData();
-  fd.append("photo", file);
+  // No size limit: big originals are downscaled in the browser first (see shrink-image.client.js).
+  fd.append("photo", await shrinkImageIfLarge(file));
   let res;
   try {
     res = await fetch("/api/upload", { method: "POST", body: fd });
   } catch {
-    throw new Error("Network error — check your connection and try again.");
+    throw new Error("Network error: check your connection and try again.");
   }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error ?? `Upload failed (${res.status})`);
@@ -696,6 +723,8 @@ function CrInput({ label, value, onChange, placeholder, hint }) {
 
 // ── Upload Zone ───────────────────────────────────────────────────────────────
 
+const LOW_RES_EDGE = 700;
+
 function UploadZone({
   label,
   required,
@@ -709,16 +738,26 @@ function UploadZone({
   const [drag, setDrag] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
+  const [dims, setDims] = useState(null);
+
+  // Read the uploaded image's real size so a tiny photo is flagged before it
+  // produces a blurry generation (the try-on engine needs ~768px+ to keep detail).
+  useEffect(() => {
+    setDims(null);
+    if (!value) return undefined;
+    let alive = true;
+    const img = new Image();
+    img.onload = () => { if (alive) setDims({ w: img.naturalWidth, h: img.naturalHeight }); };
+    img.src = value;
+    return () => { alive = false; };
+  }, [value]);
+  const lowRes = dims && Math.min(dims.w, dims.h) < LOW_RES_EDGE;
 
   const handleFile = useCallback(
     async (file) => {
       if (!file) return;
       if (!file.type.startsWith("image/")) {
         setError("Invalid file type. Please use JPEG, PNG, or WEBP.");
-        return;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        setError("File is too large. Maximum size is 5 MB.");
         return;
       }
       setError(null);
@@ -817,7 +856,37 @@ function UploadZone({
                 boxSizing: "border-box",
               }}
             />
-            <div className="cr-zone-bar">✓ Uploaded — click to replace</div>
+            <div className="cr-zone-actions">
+              <button
+                type="button"
+                className="cr-zone-act"
+                aria-label={`Change ${label ?? "image"}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  inputRef.current?.click();
+                }}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Change
+              </button>
+              <button
+                type="button"
+                className="cr-zone-act cr-zone-act--danger"
+                aria-label={`Remove ${label ?? "image"}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setError(null);
+                  onChange(null);
+                }}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Remove
+              </button>
+            </div>
           </>
         ) : (
           <div style={{ textAlign: "center", padding: "12px" }}>
@@ -871,7 +940,7 @@ function UploadZone({
             <p
               style={{ fontSize: "10px", color: "var(--ink-300)", margin: "4px 0 0" }}
             >
-              JPEG · PNG · WEBP · Max 5 MB
+              JPEG · PNG · WEBP · any size
             </p>
           </div>
         )}
@@ -887,6 +956,11 @@ function UploadZone({
         />
       </div>
 
+      {value && lowRes && !error && (
+        <div className="cr-field-warn" role="status">
+          Low resolution ({dims.w}×{dims.h} px): the result will look blurry. Use a photo at least 768 px wide for sharp detail.
+        </div>
+      )}
       {error && (
         <div className="cr-field-error">
           <svg
@@ -942,6 +1016,7 @@ const WF_COLORS = {
   mannequin: { ...BRAND, time: "~50 sec" },
   accessories: { ...BRAND, time: "~40 sec" },
   infographic: { ...BRAND, time: "~90 sec" },
+  group: { ...BRAND, time: "~2–4 min" },
 };
 
 // ── Step navigation ───────────────────────────────────────────────────────────
@@ -1143,9 +1218,15 @@ function InfographicAddon({
           style={{ padding: "12px 14px 14px", borderTop: "1px solid var(--surface-2)" }}
         >
           <div style={{ marginBottom: "10px" }}>
+            <FieldLabel hint="optional: fills the description below">
+              Fill from a Shopify product
+            </FieldLabel>
+            <ShopifyProductAutofill onFill={(product, text) => { if (product) onDescriptionChange(text); }} />
+          </div>
+          <div style={{ marginBottom: "10px" }}>
             <FieldLabel
               required
-              hint="AI extracts 3–4 short highlights — no sentences"
+              hint="AI extracts 3–4 short highlights: no sentences"
             >
               Product Description
             </FieldLabel>
@@ -1159,7 +1240,7 @@ function InfographicAddon({
             />
           </div>
           <div style={{ marginBottom: "10px" }}>
-            <FieldLabel hint="optional — describe how you want the background/theme to look">
+            <FieldLabel hint="optional: describe how you want the background/theme to look">
               Custom Background / Theme
             </FieldLabel>
             <textarea
@@ -1172,14 +1253,14 @@ function InfographicAddon({
             />
           </div>
           <div style={{ marginBottom: "10px" }}>
-            <FieldLabel hint="optional — upload an example infographic to replicate its exact design instead of AI auto-picking one">
+            <FieldLabel hint="optional: upload an example infographic to replicate its exact design instead of AI auto-picking one">
               Match a Reference Design
             </FieldLabel>
             <UploadZone
               compact
               value={referenceImageUrl}
               onChange={onReferenceImageChange}
-              note="If set, this overrides auto-detection — the layout, palette, and label style are copied from this image."
+              note="If set, this overrides auto-detection: the layout, palette, and label style are copied from this image."
             />
           </div>
           <label
@@ -1210,6 +1291,7 @@ function InfographicAddon({
 // ── Product Type Selector ─────────────────────────────────────────────────────
 
 const PT_GROUPS = [
+  { label: "Full Outfit", key: "outfit" },
   { label: "Ethnic / Full-Body Wear", key: "ethnic" },
   { label: "Top Wear", key: "top-wear" },
   { label: "Bottom Wear", key: "bottom-wear" },
@@ -1217,42 +1299,93 @@ const PT_GROUPS = [
   { label: "Other", key: "other" },
 ];
 
+const catLabel = (c, audience) => (audience === "men" && c.menLabel) || c.label;
+
 // Dropdown pairing of garment type + model shot type, used as a single step
 // after the image/model uploads (replaces the old ProductTypeStep button grid).
-function TypeShotStep({ productType, wearType, onTypeChange, onWearChange }) {
+// Men / Women / Unisex narrows the list; the paired "Top + Bottom" outfit adds a
+// second upload for the bottom wear (the earlier product image is the top).
+function TypeShotStep({ productType, wearType, onTypeChange, onWearChange, modelGender, bottomUrl, onBottomChange }) {
   const selected = PRODUCT_CATS.find((c) => c.id === productType);
+  const [audience, setAudience] = useState(() => {
+    if (selected?.audience?.length === 1) return selected.audience[0];
+    return modelGender === "male" ? "men" : "women";
+  });
   const isClothing = selected && CLOTHING_GROUPS.includes(selected.group);
+  const isOutfit = !!selected?.outfit;
   const options = [
     { value: "", label: "Select a type…" },
     ...PT_GROUPS.flatMap((g) =>
-      PRODUCT_CATS.filter((c) => c.group === g.key).map((c) => ({
+      PRODUCT_CATS.filter((c) => c.group === g.key && c.audience.includes(audience)).map((c) => ({
         value: c.id,
-        label: `${c.label} — ${g.label}`,
+        label: `${catLabel(c, audience)} · ${g.label}`,
       })),
     ),
   ];
 
+  const changeAudience = (a) => {
+    setAudience(a);
+    // Drop a pick that doesn't exist in the new category (e.g. Saree → Men).
+    if (selected && !selected.audience.includes(a)) {
+      onTypeChange(null);
+      onBottomChange?.(null);
+    }
+  };
+
   return (
-    <div className="cr-settings-grid">
-      <CrSelect
-        label="Garment Type"
-        required
-        value={productType ?? ""}
-        onChange={(v) => {
-          onTypeChange(v || null);
-          const cat = PRODUCT_CATS.find((c) => c.id === v);
-          if (cat) onWearChange(cat.garmentType);
-        }}
-        options={options}
-      />
-      {isClothing && (
+    <div>
+      <FieldLabel required>Category</FieldLabel>
+      <div className="cr-model-tabs" role="tablist" aria-label="Category">
+        {AUDIENCES.map((a) => (
+          <button
+            key={a.id}
+            type="button"
+            role="tab"
+            aria-selected={audience === a.id}
+            className={`cr-model-tab ${audience === a.id ? "active" : ""}`}
+            onClick={() => changeAudience(a.id)}
+          >
+            {a.label}
+          </button>
+        ))}
+      </div>
+      <div className="cr-settings-grid">
         <CrSelect
-          label="Model Shot Type"
-          hint="how should the model display this garment?"
-          value={wearType}
-          onChange={onWearChange}
-          options={WEAR_TYPES.map((w) => ({ value: w.id, label: w.label }))}
+          label="Garment Type"
+          required
+          value={productType ?? ""}
+          onChange={(v) => {
+            onTypeChange(v || null);
+            const cat = PRODUCT_CATS.find((c) => c.id === v);
+            if (cat) onWearChange(cat.garmentType);
+            if (!cat?.outfit) onBottomChange?.(null);
+          }}
+          options={options}
         />
+        {isClothing && !isOutfit && (
+          <CrSelect
+            label="Model Shot Type"
+            hint="how should the model display this garment?"
+            value={wearType}
+            onChange={onWearChange}
+            options={WEAR_TYPES.map((w) => ({ value: w.id, label: w.label }))}
+          />
+        )}
+      </div>
+      {isOutfit && (
+        <div className="cr-outfit">
+          <p className="cr-outfit-note">
+            <strong>Paired outfit, full-body shot.</strong> The product image you uploaded earlier is used as the
+            top wear. Add the bottom wear below and both are dressed on the model together in one result.
+          </p>
+          <UploadZone
+            label="Bottom Wear Photo (pant, skirt, jeans…)"
+            required
+            value={bottomUrl}
+            onChange={onBottomChange}
+            compact
+          />
+        </div>
       )}
     </div>
   );
@@ -1332,7 +1465,7 @@ function ModelSelector({ models, selectedKey, onSelect }) {
                 <div
                   key={m.model_key}
                   className={`cr-model-card ${sel ? "selected" : ""}`}
-                  title={`${m.name} — ${m.look}, ${m.age_group}`}
+                  title={`${m.name}: ${m.look}, ${m.age_group}`}
                   role="button"
                   tabIndex={0}
                   aria-pressed={sel}
@@ -1370,7 +1503,7 @@ function ModelSelector({ models, selectedKey, onSelect }) {
             }}
           >
             Upload a full-body, front-facing model photo on a clean background.
-            Min 768×1024 px. Max 5 MB.
+            Min 768×1024 px. No file-size limit.
           </p>
           <UploadZone
             label="Model Photo"
@@ -1379,7 +1512,9 @@ function ModelSelector({ models, selectedKey, onSelect }) {
             onChange={(url) => {
               setNewUrl(url);
               setLibPick(null);
-              onSelect("__custom__", url, "female");
+              // Removing the photo also clears the selection so the step can't proceed without a model.
+              if (url) onSelect("__custom__", url, "female");
+              else if (selectedKey === "__custom__") onSelect(null, null, null);
             }}
           />
           {newUrl && (
@@ -1432,7 +1567,7 @@ function ModelSelector({ models, selectedKey, onSelect }) {
                   gridColumn: "1 / -1",
                 }}
               >
-                No saved model photos yet — go to Studio Models to add one, or
+                No saved model photos yet: go to Studio Models to add one, or
                 upload a new model above.
               </p>
             )}
@@ -1509,7 +1644,7 @@ function GeneratingScreen({ wfId }) {
 
       <h3 className="cr-gen-title">Creating your image…</h3>
       <p className="cr-gen-sub">
-        Do not close this tab — generation is in progress.
+        Do not close this tab. Generation is in progress.
       </p>
 
       {/* Progress bar */}
@@ -1650,7 +1785,11 @@ function OutputScreen({
         encType: "application/json",
       },
     );
-  const download = () => downloadUrl(result, `studio_${Date.now()}.jpg`);
+  // Downloading counts as keeping it — the image moves out of Drafts too.
+  const download = () => {
+    downloadUrl(result, `studio_${Date.now()}.jpg`);
+    if (sessionId && !saved) save();
+  };
 
   // ── Infographic "regenerate" (up to 5 visually distinct variations) ────────
   const regenJob = useInfographicJob();
@@ -1906,7 +2045,7 @@ function OutputScreen({
                         <Spin size={13} color="#059669" /> Generating…
                       </>
                     ) : (
-                      `Regenerate — Try a Different Idea (${regenCount}/5)`
+                      `Regenerate: Try a Different Idea (${regenCount}/5)`
                     )}
                   </button>
                 ) : (
@@ -2198,7 +2337,7 @@ function InfographicCard({ result, onUpdate }) {
               applyEdit();
             }
           }}
-          placeholder="Describe a change and regenerate — e.g. “remove the bottom label”, “add a festive theme”"
+          placeholder="Describe a change and regenerate: e.g. “remove the bottom label”, “add a festive theme”"
           disabled={isEditing}
         />
         <button
@@ -2301,7 +2440,7 @@ function InfographicCard({ result, onUpdate }) {
               </button>
             ))}
           </div>
-          <FieldLabel hint="optional — solid color">Background</FieldLabel>
+          <FieldLabel hint="optional: solid color">Background</FieldLabel>
           <div
             style={{
               display: "flex",
@@ -2344,7 +2483,7 @@ function InfographicCard({ result, onUpdate }) {
               }}
             />
           </div>
-          <FieldLabel hint="optional — linear gradient">
+          <FieldLabel hint="optional: linear gradient">
             Gradient Background
           </FieldLabel>
           <div
@@ -2375,7 +2514,7 @@ function InfographicCard({ result, onUpdate }) {
               />
             ))}
           </div>
-          <FieldLabel hint="optional — upload your own background photo">
+          <FieldLabel hint="optional: upload your own background photo">
             Image Background
           </FieldLabel>
           <div
@@ -2509,6 +2648,7 @@ function WorkflowModelGeneration({ models }) {
   const [step, setStep] = useState(0);
   const [productType, setProductType] = useState(null);
   const [wearType, setWearType] = useState("full");
+  const [bottomUrl, setBottomUrl] = useState(null);
   const [frontUrl, setFrontUrl] = useState(null);
   const [backUrl, setBackUrl] = useState(null);
   const [extraUrls, setExtraUrls] = useState([]);
@@ -2523,7 +2663,7 @@ function WorkflowModelGeneration({ models }) {
     ageGroup: "adult",
     ethnicity: "any",
     bodyType: "average",
-    pose: "standing-natural",
+    poseReferenceUrl: null,
     background: "clean-white",
     aspectRatio: "3:4",
   });
@@ -2531,6 +2671,7 @@ function WorkflowModelGeneration({ models }) {
   const [result, setResult] = useState(null);
   const [sessionId, setSessionId] = useState(null);
   const [pendingSessionId, setPendingSessionId] = useState(null);
+  const [resultWarning, setResultWarning] = useState(null);
   const [error, setError] = useState(null);
   const [withInfographic, setWithInfographic] = useState(false);
   const [infoDescription, setInfoDescription] = useState("");
@@ -2580,6 +2721,8 @@ function WorkflowModelGeneration({ models }) {
     if (statusFetcher.state === "idle" && statusFetcher.data) {
       if (statusFetcher.data.status === "completed") {
         setResult(statusFetcher.data.result_image);
+        // e.g. pose/background or the paired bottom couldn't be applied.
+        setResultWarning(statusFetcher.data.warning ?? null);
         setSessionId(statusFetcher.data.session_id ?? null);
         setPendingSessionId(null);
       } else if (statusFetcher.data.status === "failed") {
@@ -2606,10 +2749,6 @@ function WorkflowModelGeneration({ models }) {
     if (!file || extraUrls.length >= 3) return;
     if (!file.type.startsWith("image/")) {
       setExtraErr("Images only.");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setExtraErr("Max 5 MB.");
       return;
     }
     setUploadingExtra(true);
@@ -2642,6 +2781,7 @@ function WorkflowModelGeneration({ models }) {
         model_gender: selectedModel === "__custom__" ? modelGender : null,
         garment_type: productCat?.garmentType ?? wearType ?? "full",
         product_type: productType,
+        bottom_image_url: isOutfitType(productType) ? bottomUrl : null,
         clothing_prompt: productPrompt || null,
         ...settings,
       },
@@ -2668,6 +2808,7 @@ function WorkflowModelGeneration({ models }) {
   if (result)
     return (
       <div>
+        {resultWarning && <ErrBanner msg={resultWarning} onDismiss={() => setResultWarning(null)} />}
         <Card>
           <OutputScreen
             result={result}
@@ -2721,7 +2862,7 @@ function WorkflowModelGeneration({ models }) {
         <Card>
           <SectionTitle>Upload Product Images</SectionTitle>
           <SectionDesc>
-            Add front, back and detail shots — more angles give the AI better
+            Add front, back and detail shots: more angles give the AI better
             accuracy and drape results.
           </SectionDesc>
           <div className="cr-req-row">
@@ -2748,7 +2889,7 @@ function WorkflowModelGeneration({ models }) {
             />
           </div>
           <div style={{ marginBottom: "4px" }}>
-            <FieldLabel hint="optional — up to 3 more">
+            <FieldLabel hint="optional: up to 3 more">
               Additional Detail Images
             </FieldLabel>
             <div className="cr-img-grid">
@@ -2896,11 +3037,14 @@ function WorkflowModelGeneration({ models }) {
             wearType={wearType}
             onTypeChange={setProductType}
             onWearChange={setWearType}
+            modelGender={modelGender}
+            bottomUrl={bottomUrl}
+            onBottomChange={setBottomUrl}
           />
           <StepNav
             onBack={() => setStep(1)}
             onNext={() => setStep(3)}
-            nextDisabled={!productType}
+            nextDisabled={!productType || (isOutfitType(productType) && !bottomUrl)}
           />
         </Card>
       )}
@@ -2934,17 +3078,12 @@ function WorkflowModelGeneration({ models }) {
                 { value: "mature", label: "Mature (40+)" },
               ]}
             />
-            <CrSelect
-              label="Pose"
-              value={settings.pose}
-              onChange={(v) => S("pose", v)}
-              options={[
-                { value: "standing-natural", label: "Standing (Natural)" },
-                { value: "standing-hands-on-hips", label: "Hands on Hips" },
-                { value: "walking", label: "Walking" },
-                { value: "sitting", label: "Sitting" },
-                { value: "dynamic", label: "Dynamic / Editorial" },
-              ]}
+            <UploadZone
+              label="Pose Reference"
+              hint="optional: a photo of the pose you want; the model copies it"
+              value={settings.poseReferenceUrl ?? null}
+              onChange={(v) => S("poseReferenceUrl", v)}
+              compact
             />
             <CrSelect
               label="Background"
@@ -2957,8 +3096,18 @@ function WorkflowModelGeneration({ models }) {
                 { value: "lifestyle-indoor", label: "Lifestyle Indoor" },
                 { value: "lifestyle-outdoor", label: "Lifestyle Outdoor" },
                 { value: "studio", label: "Studio Lighting" },
+                { value: "custom", label: "Upload your own…" },
               ]}
             />
+            {settings.background === "custom" && (
+              <UploadZone
+                label="Background Image"
+                hint="your own scene: the model is placed into it"
+                value={settings.backgroundImageUrl ?? null}
+                onChange={(v) => S("backgroundImageUrl", v)}
+                compact
+              />
+            )}
           </div>
           <InfographicAddon
             checked={withInfographic}
@@ -2998,6 +3147,7 @@ function WorkflowFlatLay({ models }) {
   const [step, setStep] = useState(0);
   const [productType, setProductType] = useState(null);
   const [wearType, setWearType] = useState("full");
+  const [bottomUrl, setBottomUrl] = useState(null);
   const [flatUrl, setFlatUrl] = useState(null);
   const [selectedModel, setSelectedModel] = useState(null);
   const [modelUrl, setModelUrl] = useState(null);
@@ -3010,7 +3160,7 @@ function WorkflowFlatLay({ models }) {
     notes: "",
   });
   const [settings, setSettings] = useState({
-    pose: "standing-natural",
+    poseReferenceUrl: null,
     background: "clean-white",
     aspectRatio: "3:4",
     resolution: "standard",
@@ -3018,6 +3168,7 @@ function WorkflowFlatLay({ models }) {
   const [result, setResult] = useState(null);
   const [sessionId, setSessionId] = useState(null);
   const [pendingSessionId, setPendingSessionId] = useState(null);
+  const [resultWarning, setResultWarning] = useState(null);
   const [error, setError] = useState(null);
   const [withInfographic, setWithInfographic] = useState(false);
   const [infoDescription, setInfoDescription] = useState("");
@@ -3064,6 +3215,8 @@ function WorkflowFlatLay({ models }) {
     if (statusFetcher.state === "idle" && statusFetcher.data) {
       if (statusFetcher.data.status === "completed") {
         setResult(statusFetcher.data.result_image);
+        // e.g. pose/background or the paired bottom couldn't be applied.
+        setResultWarning(statusFetcher.data.warning ?? null);
         setSessionId(statusFetcher.data.session_id ?? null);
         setPendingSessionId(null);
       } else if (statusFetcher.data.status === "failed") {
@@ -3112,6 +3265,7 @@ function WorkflowFlatLay({ models }) {
         model_gender: selectedModel === "__custom__" ? modelGender : null,
         garment_type: productCat?.garmentType ?? wearType ?? "full",
         product_type: productType,
+        bottom_image_url: isOutfitType(productType) ? bottomUrl : null,
         clothing_prompt: fullPrompt || null,
         ...settings,
       },
@@ -3139,6 +3293,7 @@ function WorkflowFlatLay({ models }) {
   if (result)
     return (
       <div>
+        {resultWarning && <ErrBanner msg={resultWarning} onDismiss={() => setResultWarning(null)} />}
         <Card>
           <OutputScreen
             result={result}
@@ -3237,11 +3392,14 @@ function WorkflowFlatLay({ models }) {
             wearType={wearType}
             onTypeChange={setProductType}
             onWearChange={setWearType}
+            modelGender={modelGender}
+            bottomUrl={bottomUrl}
+            onBottomChange={setBottomUrl}
           />
           <StepNav
             onBack={() => setStep(1)}
             onNext={() => setStep(3)}
-            nextDisabled={!productType}
+            nextDisabled={!productType || (isOutfitType(productType) && !bottomUrl)}
           />
         </Card>
       )}
@@ -3250,7 +3408,7 @@ function WorkflowFlatLay({ models }) {
         <Card>
           <SectionTitle>Details &amp; Settings</SectionTitle>
           <SectionDesc>
-            Prompt is required — the more context you give, the more accurately
+            Prompt is required: the more context you give, the more accurately
             the AI can recreate the garment.
           </SectionDesc>
           <div className="cr-two-col">
@@ -3277,16 +3435,12 @@ function WorkflowFlatLay({ models }) {
             placeholder="e.g. Drape the dupatta over the left shoulder."
           />
           <div className="cr-settings-grid">
-            <CrSelect
-              label="Pose"
-              value={settings.pose}
-              onChange={(v) => S("pose", v)}
-              options={[
-                { value: "standing-natural", label: "Standing (Natural)" },
-                { value: "standing-hands-on-hips", label: "Hands on Hips" },
-                { value: "walking", label: "Walking" },
-                { value: "sitting", label: "Sitting" },
-              ]}
+            <UploadZone
+              label="Pose Reference"
+              hint="optional: a photo of the pose you want; the model copies it"
+              value={settings.poseReferenceUrl ?? null}
+              onChange={(v) => S("poseReferenceUrl", v)}
+              compact
             />
             <CrSelect
               label="Background"
@@ -3298,8 +3452,18 @@ function WorkflowFlatLay({ models }) {
                 { value: "gradient-soft", label: "Soft Gradient" },
                 { value: "lifestyle-indoor", label: "Lifestyle Indoor" },
                 { value: "lifestyle-outdoor", label: "Lifestyle Outdoor" },
+                { value: "custom", label: "Upload your own…" },
               ]}
             />
+            {settings.background === "custom" && (
+              <UploadZone
+                label="Background Image"
+                hint="your own scene: the model is placed into it"
+                value={settings.backgroundImageUrl ?? null}
+                onChange={(v) => S("backgroundImageUrl", v)}
+                compact
+              />
+            )}
           </div>
           <InfographicAddon
             checked={withInfographic}
@@ -3340,12 +3504,13 @@ function WorkflowMannequin({ models }) {
   const [step, setStep] = useState(0);
   const [productType, setProductType] = useState(null);
   const [wearType, setWearType] = useState("full");
+  const [bottomUrl, setBottomUrl] = useState(null);
   const [mannUrl, setMannUrl] = useState(null);
   const [selectedModel, setSelectedModel] = useState(null);
   const [modelUrl, setModelUrl] = useState(null);
   const [modelGender, setModelGender] = useState(null);
   const [settings, setSettings] = useState({
-    pose: "standing-natural",
+    poseReferenceUrl: null,
     expression: "natural",
     background: "clean-white",
     cameraAngle: "front",
@@ -3353,6 +3518,7 @@ function WorkflowMannequin({ models }) {
   const [result, setResult] = useState(null);
   const [sessionId, setSessionId] = useState(null);
   const [pendingSessionId, setPendingSessionId] = useState(null);
+  const [resultWarning, setResultWarning] = useState(null);
   const [error, setError] = useState(null);
   const [withInfographic, setWithInfographic] = useState(false);
   const [infoDescription, setInfoDescription] = useState("");
@@ -3399,6 +3565,8 @@ function WorkflowMannequin({ models }) {
     if (statusFetcher.state === "idle" && statusFetcher.data) {
       if (statusFetcher.data.status === "completed") {
         setResult(statusFetcher.data.result_image);
+        // e.g. pose/background or the paired bottom couldn't be applied.
+        setResultWarning(statusFetcher.data.warning ?? null);
         setSessionId(statusFetcher.data.session_id ?? null);
         setPendingSessionId(null);
       } else if (statusFetcher.data.status === "failed") {
@@ -3436,6 +3604,7 @@ function WorkflowMannequin({ models }) {
         model_gender: selectedModel === "__custom__" ? modelGender : null,
         garment_type: productCat?.garmentType ?? wearType ?? "full",
         product_type: productType,
+        bottom_image_url: isOutfitType(productType) ? bottomUrl : null,
         clothing_prompt: productPrompt || null,
         ...settings,
       },
@@ -3462,6 +3631,7 @@ function WorkflowMannequin({ models }) {
   if (result)
     return (
       <div>
+        {resultWarning && <ErrBanner msg={resultWarning} onDismiss={() => setResultWarning(null)} />}
         <Card>
           <OutputScreen
             result={result}
@@ -3571,11 +3741,14 @@ function WorkflowMannequin({ models }) {
             wearType={wearType}
             onTypeChange={setProductType}
             onWearChange={setWearType}
+            modelGender={modelGender}
+            bottomUrl={bottomUrl}
+            onBottomChange={setBottomUrl}
           />
           <StepNav
             onBack={() => setStep(1)}
             onNext={() => setStep(3)}
-            nextDisabled={!productType}
+            nextDisabled={!productType || (isOutfitType(productType) && !bottomUrl)}
           />
         </Card>
       )}
@@ -3584,16 +3757,12 @@ function WorkflowMannequin({ models }) {
         <Card>
           <SectionTitle>Details &amp; Settings</SectionTitle>
           <div className="cr-settings-grid">
-            <CrSelect
-              label="Pose"
-              value={settings.pose}
-              onChange={(v) => S("pose", v)}
-              options={[
-                { value: "standing-natural", label: "Standing (Natural)" },
-                { value: "standing-hands-on-hips", label: "Hands on Hips" },
-                { value: "walking", label: "Walking" },
-                { value: "three-quarter", label: "Three-Quarter Turn" },
-              ]}
+            <UploadZone
+              label="Pose Reference"
+              hint="optional: a photo of the pose you want; the model copies it"
+              value={settings.poseReferenceUrl ?? null}
+              onChange={(v) => S("poseReferenceUrl", v)}
+              compact
             />
             <CrSelect
               label="Background"
@@ -3605,8 +3774,18 @@ function WorkflowMannequin({ models }) {
                 { value: "gradient-soft", label: "Soft Gradient" },
                 { value: "lifestyle-indoor", label: "Lifestyle Indoor" },
                 { value: "lifestyle-outdoor", label: "Lifestyle Outdoor" },
+                { value: "custom", label: "Upload your own…" },
               ]}
             />
+            {settings.background === "custom" && (
+              <UploadZone
+                label="Background Image"
+                hint="your own scene: the model is placed into it"
+                value={settings.backgroundImageUrl ?? null}
+                onChange={(v) => S("backgroundImageUrl", v)}
+                compact
+              />
+            )}
           </div>
           <InfographicAddon
             checked={withInfographic}
@@ -3654,13 +3833,14 @@ function WorkflowAccessories({ models }) {
   const [modelGender, setModelGender] = useState(null);
   const [placement, setPlacement] = useState(ACCESSORY_PLACEMENTS["watch"][0]);
   const [settings, setSettings] = useState({
-    pose: "standing-natural",
+    poseReferenceUrl: null,
     background: "clean-white",
     styling: "editorial",
   });
   const [result, setResult] = useState(null);
   const [sessionId, setSessionId] = useState(null);
   const [pendingSessionId, setPendingSessionId] = useState(null);
+  const [resultWarning, setResultWarning] = useState(null);
   const [error, setError] = useState(null);
   const [withInfographic, setWithInfographic] = useState(false);
   const [infoDescription, setInfoDescription] = useState("");
@@ -3712,6 +3892,8 @@ function WorkflowAccessories({ models }) {
     if (statusFetcher.state === "idle" && statusFetcher.data) {
       if (statusFetcher.data.status === "completed") {
         setResult(statusFetcher.data.result_image);
+        // e.g. pose/background or the paired bottom couldn't be applied.
+        setResultWarning(statusFetcher.data.warning ?? null);
         setSessionId(statusFetcher.data.session_id ?? null);
         setPendingSessionId(null);
       } else if (statusFetcher.data.status === "failed") {
@@ -3778,6 +3960,7 @@ function WorkflowAccessories({ models }) {
   if (result)
     return (
       <div>
+        {resultWarning && <ErrBanner msg={resultWarning} onDismiss={() => setResultWarning(null)} />}
         <Card>
           <OutputScreen
             result={result}
@@ -3838,7 +4021,7 @@ function WorkflowAccessories({ models }) {
             required
             value={accUrl}
             onChange={setAccUrl}
-            note="Clean product-only shot on a plain white or transparent background, with the whole item in frame (handle, clasp, strap, chain, pendant). No model, no props, nothing covering it — the result can only be as accurate as this photo."
+            note="Clean product-only shot on a plain white or transparent background, with the whole item in frame (handle, clasp, strap, chain, pendant). No model, no props, nothing covering it: the result can only be as accurate as this photo."
           />
           <StepNav onNext={() => setStep(1)} nextDisabled={!accUrl} />
         </Card>
@@ -3904,17 +4087,6 @@ function WorkflowAccessories({ models }) {
           <SectionTitle>Details &amp; Settings</SectionTitle>
           <div className="cr-settings-grid">
             <CrSelect
-              label="Pose"
-              value={settings.pose}
-              onChange={(v) => S("pose", v)}
-              options={[
-                { value: "standing-natural", label: "Standing (Natural)" },
-                { value: "posed", label: "Editorial Pose" },
-                { value: "walking", label: "Walking" },
-                { value: "sitting", label: "Sitting" },
-              ]}
-            />
-            <CrSelect
               label="Background"
               value={settings.background}
               onChange={(v) => S("background", v)}
@@ -3923,8 +4095,18 @@ function WorkflowAccessories({ models }) {
                 { value: "solid-light-grey", label: "Light Grey" },
                 { value: "lifestyle-indoor", label: "Lifestyle Indoor" },
                 { value: "luxury-studio", label: "Luxury Studio" },
+                { value: "custom", label: "Upload your own…" },
               ]}
             />
+            {settings.background === "custom" && (
+              <UploadZone
+                label="Background Image"
+                hint="your own scene: the model is placed into it"
+                value={settings.backgroundImageUrl ?? null}
+                onChange={(v) => S("backgroundImageUrl", v)}
+                compact
+              />
+            )}
           </div>
           <InfographicAddon
             checked={withInfographic}
@@ -3957,6 +4139,126 @@ function WorkflowAccessories({ models }) {
 // WORKFLOW 5 — MARKETING INFOGRAPHIC (standalone)
 // ════════════════════════════════════════════════════════════════════════════
 
+// ── Shopify product auto-fill (infographic fields) ───────────────────────────
+
+// Turns real Shopify product details into the paragraph the infographic
+// key-point extractor reads — title, description, options, type and tags.
+function productToDescription(p) {
+  const parts = [];
+  parts.push(`${p.title}${p.vendor ? ` by ${p.vendor}` : ""}.`);
+  if (p.description?.trim()) parts.push(p.description.trim());
+  if (p.options?.length) {
+    parts.push(p.options.map((o) => `${o.name}: ${o.values.join(", ")}`).join(". ") + ".");
+  }
+  if (p.productType) parts.push(`Category: ${p.productType}.`);
+  if (p.tags?.length) parts.push(`Tags: ${p.tags.slice(0, 10).join(", ")}.`);
+  return parts.join("\n").slice(0, 1500);
+}
+
+function ShopifyProductAutofill({ onFill, onPickImage, selectedImageUrl }) {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const [picked, setPicked] = useState(null); // full product details once loaded
+  const [loadingId, setLoadingId] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (picked) return undefined;
+    let cancelled = false;
+    const t = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const res = await fetch(`/api/studio-products?q=${encodeURIComponent(query.trim())}`);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Couldn't load products");
+        if (!cancelled) { setResults(data.products ?? []); setError(null); }
+      } catch (e) {
+        if (!cancelled) setError(e.message);
+      } finally {
+        if (!cancelled) setSearching(false);
+      }
+    }, 300);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [query, picked]);
+
+  const pick = async (item) => {
+    setLoadingId(item.id);
+    setError(null);
+    try {
+      const res = await fetch(`/api/studio-products?id=${encodeURIComponent(item.id)}`);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.product) throw new Error(data.error || "Couldn't load product details");
+      setPicked(data.product);
+      onFill(data.product, productToDescription(data.product));
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
+  if (picked) {
+    return (
+      <div className="cr-pf-picked">
+        <div className="cr-pf-head">
+          <span className="cr-pf-thumb">{picked.images[0] ? <img src={picked.images[0].url} alt="" /> : null}</span>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div className="cr-pf-title">{picked.title}</div>
+            <div className="cr-pf-meta">
+              Fields filled from Shopify{picked.vendor ? ` · ${picked.vendor}` : ""}{picked.productType ? ` · ${picked.productType}` : ""}
+            </div>
+          </div>
+          <button type="button" className="cr-pf-link" onClick={() => onFill(picked, productToDescription(picked))}>Refill</button>
+          <button type="button" className="cr-pf-link" onClick={() => { setPicked(null); onFill(null, null); }}>Change</button>
+        </div>
+        {onPickImage && picked.images.length > 0 && (
+          <div>
+            <p className="cr-pf-meta" style={{ margin: "10px 0 6px" }}>Use a product photo for the infographic:</p>
+            <div className="cr-pf-images">
+              {picked.images.map((img) => (
+                <button key={img.url} type="button" className={`cr-pf-img ${selectedImageUrl === img.url ? "on" : ""}`}
+                  aria-pressed={selectedImageUrl === img.url} aria-label={img.alt || "Product photo"} onClick={() => onPickImage(img.url)}>
+                  <img src={img.url} alt="" />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <input
+        type="search"
+        className="cr-input"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Search your Shopify products…"
+        aria-label="Search Shopify products"
+        style={{ marginBottom: "6px" }}
+      />
+      <div className="cr-pf-list" aria-busy={searching}>
+        {error && <div className="cr-pf-empty" style={{ color: "#B91C1C" }}>{error}</div>}
+        {!error && searching && results.length === 0 && <div className="cr-pf-empty">Loading products…</div>}
+        {!error && !searching && results.length === 0 && <div className="cr-pf-empty">No products match “{query}”.</div>}
+        {results.map((p) => (
+          <button key={p.id} type="button" className="cr-pf-row" disabled={!!loadingId} onClick={() => pick(p)}>
+            <span className="cr-pf-thumb">{p.image ? <img src={p.image} alt="" /> : null}</span>
+            <span style={{ minWidth: 0, flex: 1 }}>
+              <span className="cr-pf-title">{p.title}</span>
+              {p.vendor && <span className="cr-pf-meta">{p.vendor}</span>}
+            </span>
+            {loadingId === p.id ? <Spin size={14} /> : <span className="cr-pf-fill">Fill</span>}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function WorkflowInfographic({ savedGenerations, products = [], ragStatus }) {
   const igJob = useInfographicJob();
   const reindexFetcher = useFetcher();
@@ -3969,7 +4271,6 @@ function WorkflowInfographic({ savedGenerations, products = [], ragStatus }) {
   // points from its real title/vendor/type/tags/description instead of only
   // this free-text box (see docs/rag-qdrant-implementation-plan.md).
   const [igProductId, setIgProductId] = useState(null);
-  const [igProductQuery, setIgProductQuery] = useState("");
   const [igSize, setIgSize] = useState("portrait");
   const [igCollage, setIgCollage] = useState(false);
   const [igReferenceUrl, setIgReferenceUrl] = useState(null);
@@ -4076,7 +4377,7 @@ function WorkflowInfographic({ savedGenerations, products = [], ragStatus }) {
                 <>
                   AI matched this photo to the{" "}
                   <strong>{igArchetype.name}</strong> design
-                  {igArchetype.category ? ` (${igArchetype.category})` : ""} —
+                  {igArchetype.category ? ` (${igArchetype.category})` : ""}:
                   picked automatically from the photo itself.
                 </>
               )}
@@ -4101,7 +4402,7 @@ function WorkflowInfographic({ savedGenerations, products = [], ragStatus }) {
                   {typeof igQuality.overall_score === "number"
                     ? `: ${igQuality.overall_score}/10`
                     : ""}{" "}
-                  — already auto-retried once server-side; consider
+                  . Already auto-retried once server-side; consider
                   Regenerating again if it still isn&apos;t right:
                 </p>
                 {igQuality.issues?.length > 0 && (
@@ -4217,7 +4518,7 @@ function WorkflowInfographic({ savedGenerations, products = [], ragStatus }) {
                     <div
                       key={g.id}
                       className={`cr-model-card ${sel ? "selected" : ""}`}
-                      title={`${label} — ${fmt(g.created_at)}`}
+                      title={`${label}: ${fmt(g.created_at)}`}
                       role="button"
                       tabIndex={0}
                       onClick={() => setIgImageUrl(g.result_image_url)}
@@ -4319,9 +4620,9 @@ function WorkflowInfographic({ savedGenerations, products = [], ragStatus }) {
         <Card>
           <SectionTitle>Ground It in a Real Product</SectionTitle>
           <SectionDesc>
-            Pick one of your synced products so AI extracts highlights from its
-            actual title, vendor, type, tags and description — instead of only
-            guessing from free text. Picking a product is optional; the
+            Pick one of your Shopify products and its title, description,
+            options, type and tags are filled in below automatically: edit
+            anything before generating. Picking a product is optional; the
             description box below still works on its own.
           </SectionDesc>
 
@@ -4377,103 +4678,31 @@ function WorkflowInfographic({ savedGenerations, products = [], ragStatus }) {
             </div>
           ) : null}
 
-          {products.length > 0 && (
-            <div style={{ marginBottom: "18px" }}>
-              <FieldLabel hint="optional — grounds the AI in this product's real facts">
-                Product
-              </FieldLabel>
-              {igProductId ? (
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: "10px 12px",
-                    border: "1px solid var(--vto-border, var(--border-subtle))",
-                    borderRadius: "8px",
-                    background: "#F8FAFC",
-                  }}
-                >
-                  <span style={{ fontSize: "13px", fontWeight: 600 }}>
-                    {products.find((p) => String(p.id) === String(igProductId))
-                      ?.title ?? `Product #${igProductId}`}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setIgProductId(null)}
-                    style={{
-                      border: "none",
-                      background: "transparent",
-                      color: "#64748B",
-                      cursor: "pointer",
-                      fontSize: "12px",
-                    }}
-                  >
-                    Change
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <input
-                    type="text"
-                    value={igProductQuery}
-                    onChange={(e) => setIgProductQuery(e.target.value)}
-                    placeholder="Search your products…"
-                    style={{
-                      width: "100%",
-                      padding: "10px 12px",
-                      border: "1px solid var(--vto-border, var(--border-subtle))",
-                      borderRadius: "8px",
-                      fontSize: "13px",
-                      marginBottom: "6px",
-                    }}
-                  />
-                  <div
-                    style={{
-                      maxHeight: "180px",
-                      overflowY: "auto",
-                      border: "1px solid var(--vto-border, var(--border-subtle))",
-                      borderRadius: "8px",
-                    }}
-                  >
-                    {products
-                      .filter((p) =>
-                        (p.title ?? "")
-                          .toLowerCase()
-                          .includes(igProductQuery.trim().toLowerCase()),
-                      )
-                      .slice(0, 25)
-                      .map((p) => (
-                        <button
-                          key={p.id}
-                          type="button"
-                          onClick={() => setIgProductId(p.id)}
-                          style={{
-                            display: "block",
-                            width: "100%",
-                            textAlign: "left",
-                            padding: "8px 12px",
-                            border: "none",
-                            borderBottom: "1px solid var(--surface-2)",
-                            background: "white",
-                            cursor: "pointer",
-                            fontSize: "13px",
-                          }}
-                        >
-                          {p.title || `Product #${p.id}`}
-                        </button>
-                      ))}
-                  </div>
-                </>
-              )}
-            </div>
-          )}
+          <div style={{ marginBottom: "18px" }}>
+            <FieldLabel hint="optional: fills the description from the product's real details">
+              Fill from a Shopify product
+            </FieldLabel>
+            <ShopifyProductAutofill
+              selectedImageUrl={igImageUrl}
+              onPickImage={setIgImageUrl}
+              onFill={(product, text) => {
+                if (!product) {
+                  setIgProductId(null);
+                  return;
+                }
+                setIgDesc(text);
+                // Synced products also get RAG grounding on the PHP side.
+                const synced = products.find((p) => String(p.shopify_product_id) === product.numericId);
+                setIgProductId(synced?.id ?? null);
+              }}
+            />
+          </div>
 
           <SectionTitle>Describe Your Product</SectionTitle>
           <SectionDesc>
             {igProductId
-              ? "Optional — add any extra notes AI should consider alongside the selected product's real facts."
-              : "Write a short paragraph about the product. AI will extract 3–4 short highlights — no full sentences — and overlay them as bold badges on the infographic."}
+              ? "Optional: add any extra notes AI should consider alongside the selected product's real facts."
+              : "Write a short paragraph about the product. AI will extract 3–4 short highlights, no full sentences, and overlay them as bold badges on the infographic."}
           </SectionDesc>
           <CrTextarea
             label="Product Description"
@@ -4493,7 +4722,7 @@ function WorkflowInfographic({ savedGenerations, products = [], ragStatus }) {
           >
             AI extracts highlights like <em>&ldquo;18k Gold Plated&rdquo;</em>,{" "}
             <em>&ldquo;Sapphire Crystal&rdquo;</em>,{" "}
-            <em>&ldquo;50m Water Resistant&rdquo;</em> — short phrases only,
+            <em>&ldquo;50m Water Resistant&rdquo;</em>: short phrases only,
             never sentences.
           </p>
           <StepNav
@@ -4509,7 +4738,7 @@ function WorkflowInfographic({ savedGenerations, products = [], ragStatus }) {
           <SectionTitle>Output Options</SectionTitle>
           <SectionDesc>
             AI looks at your product photo itself and picks whichever real
-            design layout suits it — no style or product-type picker needed.
+            design layout suits it: no style or product-type picker needed.
             These options control the output format only.
           </SectionDesc>
           <div style={{ marginBottom: "18px" }}>
@@ -4551,18 +4780,18 @@ function WorkflowInfographic({ savedGenerations, products = [], ragStatus }) {
             </div>
           </div>
           <div style={{ marginBottom: "18px" }}>
-            <FieldLabel hint="optional — upload an example infographic to replicate its exact design instead of AI auto-picking one">
+            <FieldLabel hint="optional: upload an example infographic to replicate its exact design instead of AI auto-picking one">
               Match a Reference Design
             </FieldLabel>
             <UploadZone
               compact
               value={igReferenceUrl}
               onChange={setIgReferenceUrl}
-              note="If set, this overrides auto-detection and disables Collage — the layout, palette, and label style are copied from this image."
+              note="If set, this overrides auto-detection and disables Collage: the layout, palette, and label style are copied from this image."
             />
           </div>
           <div>
-            <FieldLabel hint="optional — describe how you want the background/theme to look">
+            <FieldLabel hint="optional: describe how you want the background/theme to look">
               Custom Background / Theme
             </FieldLabel>
             <textarea
@@ -4602,6 +4831,467 @@ function WorkflowInfographic({ savedGenerations, products = [], ragStatus }) {
 
 // ── Workflow Selector ─────────────────────────────────────────────────────────
 
+// ═══════════════════════════════════════════════════════════════════════════
+// WORKFLOW 6 — DUO & GROUP (2-4 people in one photo, each in their own outfit)
+// ═══════════════════════════════════════════════════════════════════════════
+// The try-on engine dresses one person per image, so each person is generated
+// as a normal single try-on (one after another: the RunPod endpoint runs one
+// worker), then PHP combines the dressed people into one photo in the chosen
+// left-to-right order (api.studio-group → /studio/group/compose).
+
+const GROUP_PRESETS = [
+  { id: "couple", label: "Woman + man", slots: ["female", "male"] },
+  { id: "two-women", label: "Two women", slots: ["female", "female"] },
+  { id: "two-men", label: "Two men", slots: ["male", "male"] },
+  { id: "unisex-duo", label: "Unisex duo", slots: ["any", "any"] },
+  { id: "trio", label: "Group of 3", slots: ["any", "any", "any"] },
+  { id: "four", label: "Group of 4", slots: ["any", "any", "any", "any"] },
+];
+
+const GROUP_POSITIONS = {
+  2: ["Left", "Right"],
+  3: ["Left", "Center", "Right"],
+  4: ["Far left", "Center left", "Center right", "Far right"],
+};
+
+const GENDER_LABELS = { female: "Woman", male: "Man", any: "Person" };
+
+const GROUP_ARRANGEMENTS = [
+  { value: "side_by_side", label: "Side by side" },
+  { value: "together", label: "Close together" },
+  { value: "walking", label: "Walking" },
+];
+
+const GROUP_BACKGROUNDS = [
+  { value: "clean-white", label: "Clean White" },
+  { value: "solid-light-grey", label: "Light Grey" },
+  { value: "gradient-soft", label: "Soft Gradient" },
+  { value: "lifestyle-indoor", label: "Lifestyle Indoor" },
+  { value: "lifestyle-outdoor", label: "Lifestyle Outdoor" },
+  { value: "studio", label: "Studio Lighting" },
+  { value: "custom", label: "Upload your own…" },
+];
+
+const emptyPerson = (gender) => ({
+  gender, modelKey: null, modelUrl: null, modelGender: gender === "male" ? "male" : gender === "female" ? "female" : null,
+  frontUrl: null, productType: null, wearType: "full", bottomUrl: null,
+});
+
+const personReady = (p) => !!p.modelKey && !!p.frontUrl && !!p.productType && (!isOutfitType(p.productType) || !!p.bottomUrl);
+
+async function groupPost(body) {
+  const res = await fetch("/api/studio-group", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok && !data.session_id) throw new Error(data.error || `Request failed (${res.status})`);
+  return data;
+}
+
+/** Polls one session until it finishes; resolves with its status payload. */
+async function waitForSession(sessionId, maxMs = 8 * 60 * 1000) {
+  const started = Date.now();
+  for (;;) {
+    await new Promise((r) => setTimeout(r, 3000));
+    let data = null;
+    try { data = await groupPost({ _action: "status", session_id: sessionId }); } catch { data = null; } // transient: keep polling
+    if (data?.status === "completed") return data;
+    if (data?.status === "failed") throw new Error(data.error || "Generation failed.");
+    if (Date.now() - started > maxMs) throw new Error("This is taking too long. Please try again.");
+  }
+}
+
+function GroupFigures({ slots, active, done, onPick }) {
+  return (
+    <div className="cr-grp-figures" role="tablist" aria-label="People, left to right">
+      {slots.map((g, i) => (
+        <button key={i} type="button" role="tab" aria-selected={active === i}
+          className={`cr-grp-figure${active === i ? " is-on" : ""}${done[i] ? " is-done" : ""}`} onClick={() => onPick(i)}>
+          <svg viewBox="0 0 40 52" width="30" height="39" aria-hidden="true">
+            <circle cx="20" cy="12" r="7" fill="currentColor" />
+            <path d={g === "female" ? "M6 52c1-16 6-30 14-30s13 14 14 30z" : "M8 52V30c0-5 5-8 12-8s12 3 12 8v22z"} fill="currentColor" />
+          </svg>
+          <span className="cr-grp-figure-pos">{GROUP_POSITIONS[slots.length][i]}</span>
+          <span className="cr-grp-figure-who">{done[i] ? "Ready" : GENDER_LABELS[g]}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+const equalSplits = (n) => Array.from({ length: n - 1 }, (_, i) => (i + 1) / n);
+
+/** The group photo with draggable dividers marking where each person stands. */
+function GroupSplitter({ src, splits, onChange, positions }) {
+  const boxRef = useRef(null);
+  const [dragging, setDragging] = useState(null);
+
+  const move = (e) => {
+    if (dragging === null || !boxRef.current) return;
+    const r = boxRef.current.getBoundingClientRect();
+    const f = (e.clientX - r.left) / r.width;
+    const lo = (dragging === 0 ? 0 : splits[dragging - 1]) + 0.08;
+    const hi = (dragging === splits.length - 1 ? 1 : splits[dragging + 1]) - 0.08;
+    onChange(splits.map((v, i) => (i === dragging ? Math.min(hi, Math.max(lo, f)) : v)));
+  };
+  const nudge = (i, d) => {
+    const lo = (i === 0 ? 0 : splits[i - 1]) + 0.08;
+    const hi = (i === splits.length - 1 ? 1 : splits[i + 1]) - 0.08;
+    onChange(splits.map((v, j) => (j === i ? Math.min(hi, Math.max(lo, v + d)) : v)));
+  };
+  const edges = [0, ...splits, 1];
+
+  return (
+    <div
+      ref={boxRef}
+      className="cr-split"
+      onPointerMove={move}
+      onPointerUp={() => setDragging(null)}
+      onPointerLeave={() => setDragging(null)}
+    >
+      <img src={src} alt="The group, with dividers between people" draggable={false} />
+      {positions.map((label, i) => (
+        <span key={label} className="cr-split-label" style={{ left: `${((edges[i] + edges[i + 1]) / 2) * 100}%` }}>{label}</span>
+      ))}
+      {splits.map((f, i) => (
+        <button
+          key={i}
+          type="button"
+          className={`cr-split-line${dragging === i ? " is-drag" : ""}`}
+          style={{ left: `${f * 100}%` }}
+          aria-label={`Divider between ${positions[i]} and ${positions[i + 1]}`}
+          onPointerDown={(e) => { e.currentTarget.setPointerCapture?.(e.pointerId); setDragging(i); }}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowLeft") { e.preventDefault(); nudge(i, -0.01); }
+            if (e.key === "ArrowRight") { e.preventDefault(); nudge(i, 0.01); }
+          }}
+        >
+          <span className="cr-split-grip" aria-hidden="true">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="m9 6-6 6 6 6M15 6l6 6-6 6" /></svg>
+          </span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function WorkflowGroup({ models }) {
+  const wfId = "group";
+  const [step, setStep] = useState(0);
+  const [presetId, setPresetId] = useState("couple");
+  const preset = GROUP_PRESETS.find((p) => p.id === presetId) ?? GROUP_PRESETS[0];
+  const [people, setPeople] = useState(() => preset.slots.map(emptyPerson));
+  const [active, setActive] = useState(0);
+  // "models": each person from their own model photo; "photo": one photo with everyone.
+  const [source, setSource] = useState("models");
+  const [groupPhoto, setGroupPhoto] = useState(null);
+  const [splits, setSplits] = useState(() => equalSplits(preset.slots.length));
+  const [splitting, setSplitting] = useState(false);
+  const [scene, setScene] = useState({ background: "clean-white", backgroundImageUrl: null, arrangement: "side_by_side", size: "landscape" });
+  const [progress, setProgress] = useState(null); // [{ label, state }] while generating
+  const [result, setResult] = useState(null);
+  const [sessionId, setSessionId] = useState(null);
+  const [error, setError] = useState(null);
+
+  const choosePreset = (id) => {
+    const p = GROUP_PRESETS.find((x) => x.id === id);
+    setPresetId(id);
+    // Keep what's already filled in where the slot still exists.
+    setPeople((prev) => p.slots.map((g, i) => (prev[i] ? { ...prev[i], gender: g } : emptyPerson(g))));
+    setSplits(equalSplits(p.slots.length));
+    setActive(0);
+  };
+
+  // One photo: cut it into one image per person, each used as that person's model.
+  const splitPhoto = async () => {
+    setError(null);
+    setSplitting(true);
+    try {
+      const res = await groupPost({ _action: "split", image_url: groupPhoto, splits });
+      if (!Array.isArray(res.people) || res.people.length !== people.length) throw new Error(res.error || "Couldn't separate the people.");
+      setPeople((prev) => prev.map((p, i) => ({
+        ...p,
+        modelKey: "__custom__",
+        modelUrl: res.people[i].url,
+        modelGender: p.gender === "male" ? "male" : "female",
+      })));
+      setActive(0);
+      setStep(1);
+    } catch (e) {
+      setError(e.message || "Couldn't separate the people.");
+    } finally {
+      setSplitting(false);
+    }
+  };
+  const update = (i, patch) => setPeople((prev) => prev.map((p, j) => (j === i ? { ...p, ...patch } : p)));
+  const swap = () => { setPeople((prev) => [...prev].reverse()); setActive(0); };
+  const photoMode = source === "photo";
+  const ready = people.map(personReady);
+  const allReady = ready.every(Boolean);
+  const positions = GROUP_POSITIONS[people.length];
+  const slotsByPerson = people.map((p) => p.gender);
+
+  const generate = async () => {
+    setError(null);
+    const labels = people.map((p, i) => `${positions[i]} · ${GENDER_LABELS[p.gender]}`);
+    const finalLabel = photoMode ? "Putting everyone back into your photo" : "Combining into one photo";
+    const steps = [...labels.map((l) => ({ label: `Dressing ${l}`, state: "waiting" })), { label: finalLabel, state: "waiting" }];
+    setProgress(steps);
+    const mark = (i, state) => setProgress((prev) => prev.map((s, j) => (j === i ? { ...s, state } : s)));
+    try {
+      const memberIds = [];
+      // One person at a time: the try-on endpoint runs a single worker.
+      for (let i = 0; i < people.length; i++) {
+        const p = people[i];
+        mark(i, "running");
+        const cat = PRODUCT_CATS.find((c) => c.id === p.productType);
+        const start = await groupPost({
+          _action: "generate",
+          workflow_type: "model-generation",
+          front_image_url: p.frontUrl,
+          bottom_image_url: isOutfitType(p.productType) ? p.bottomUrl : null,
+          model_key: p.modelKey !== "__custom__" ? p.modelKey : null,
+          model_image_url: p.modelKey === "__custom__" ? p.modelUrl : null,
+          model_gender: p.modelGender,
+          garment_type: cat?.garmentType ?? p.wearType ?? "full",
+          product_type: p.productType,
+          clothing_prompt: buildProductPrompt(p.productType, p.wearType) || null,
+        });
+        if (!start.session_id) throw new Error(start.error || "Couldn't start the try-on.");
+        await waitForSession(start.session_id);
+        memberIds.push(start.session_id);
+        mark(i, "done");
+      }
+      const last = people.length;
+      mark(last, "running");
+      if (photoMode) {
+        // Pure image work on the server: the result comes straight back.
+        const stitched = await groupPost({ _action: "stitch", image_url: groupPhoto, splits, member_session_ids: memberIds });
+        if (!stitched.result_image) throw new Error(stitched.error || "Couldn't put everyone back into the photo.");
+        mark(last, "done");
+        setResult(stitched.result_image);
+        setSessionId(stitched.session_id);
+        setProgress(null);
+        return;
+      }
+      const compose = await groupPost({
+        _action: "compose",
+        member_session_ids: memberIds,
+        background: scene.background,
+        background_image_url: scene.background === "custom" ? scene.backgroundImageUrl : null,
+        arrangement: scene.arrangement,
+        size: scene.size,
+      });
+      if (!compose.session_id) throw new Error(compose.error || "Couldn't combine the photo.");
+      const done = await waitForSession(compose.session_id, 6 * 60 * 1000);
+      mark(last, "done");
+      setResult(done.result_image);
+      setSessionId(compose.session_id);
+      setProgress(null);
+    } catch (e) {
+      setProgress(null);
+      setError(e.message || "Generation failed. Please try again.");
+      setStep(photoMode ? 1 : 2);
+    }
+  };
+
+  if (result)
+    return (
+      <div>
+        <Card>
+          <OutputScreen
+            result={result}
+            sessionId={sessionId}
+            wfId={wfId}
+            onRegenerate={() => { setResult(null); setSessionId(null); setStep(photoMode ? 1 : 2); }}
+          />
+        </Card>
+      </div>
+    );
+
+  if (progress)
+    return (
+      <Card>
+        <div className="cr-grp-progress">
+          <h3 className="cr-gen-title">Creating your {people.length === 2 ? "duo" : "group"} photo…</h3>
+          <p className="cr-gen-sub">Each person is dressed one at a time, then combined. Keep this tab open.</p>
+          <ul className="cr-grp-steps">
+            {progress.map((s) => (
+              <li key={s.label} className={`cr-grp-step is-${s.state}`}>
+                <span className="cr-grp-step-mark" aria-hidden="true">
+                  {s.state === "done" ? <FsIcon name="check" size={13} strokeWidth={3} /> : s.state === "running" ? <Spin size={14} /> : null}
+                </span>
+                <span>{s.label}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </Card>
+    );
+
+  const person = people[active];
+
+  return (
+    <div>
+      {error && <ErrBanner msg={error} onDismiss={() => setError(null)} />}
+
+      {step === 0 && (
+        <Card>
+          <SectionTitle>Who&apos;s in the photo?</SectionTitle>
+          <SectionDesc>Pick the group. You choose each person&apos;s outfit next, by position from left to right.</SectionDesc>
+          <div className="cr-grp-sources" role="radiogroup" aria-label="Where the people come from">
+            {[
+              ["models", "Separate model photos", "Pick a model for each person; they're combined into one photo."],
+              ["photo", "One photo with everyone", "Upload a photo of the group; each person gets their own outfit."],
+            ].map(([v, label, sub]) => (
+              <button key={v} type="button" role="radio" aria-checked={source === v}
+                className={`cr-grp-source${source === v ? " is-on" : ""}`} onClick={() => setSource(v)}>
+                <span className="cr-grp-preset-label">{label}</span>
+                <span className="cr-grp-preset-sub">{sub}</span>
+              </button>
+            ))}
+          </div>
+          <div className="cr-grp-presets" role="radiogroup" aria-label="Group type">
+            {GROUP_PRESETS.map((p) => (
+              <button key={p.id} type="button" role="radio" aria-checked={presetId === p.id}
+                className={`cr-grp-preset${presetId === p.id ? " is-on" : ""}`} onClick={() => choosePreset(p.id)}>
+                <span className="cr-grp-preset-icons" aria-hidden="true">
+                  {p.slots.map((g, i) => (
+                    <svg key={i} viewBox="0 0 40 52" width="16" height="21"><circle cx="20" cy="12" r="7" fill="currentColor" /><path d={g === "female" ? "M6 52c1-16 6-30 14-30s13 14 14 30z" : "M8 52V30c0-5 5-8 12-8s12 3 12 8v22z"} fill="currentColor" /></svg>
+                  ))}
+                </span>
+                <span className="cr-grp-preset-label">{p.label}</span>
+                <span className="cr-grp-preset-sub">{p.slots.length} people</span>
+              </button>
+            ))}
+          </div>
+          {photoMode && (
+            <div style={{ marginTop: 14 }}>
+              <UploadZone
+                label="Group photo"
+                required
+                hint="everyone standing side by side, full body"
+                value={groupPhoto}
+                onChange={(url) => { setGroupPhoto(url); setSplits(equalSplits(people.length)); }}
+              />
+              {groupPhoto && (
+                <>
+                  <FieldLabel hint="drag the white lines so each section holds one person">Mark where each person stands</FieldLabel>
+                  <GroupSplitter src={groupPhoto} splits={splits} onChange={setSplits} positions={positions} />
+                </>
+              )}
+            </div>
+          )}
+          <StepNav
+            onNext={photoMode ? splitPhoto : () => setStep(1)}
+            nextLabel={photoMode ? (splitting ? "Separating…" : "Continue") : "Continue"}
+            nextDisabled={photoMode && (!groupPhoto || splitting)}
+          />
+        </Card>
+      )}
+
+      {step === 1 && (
+        <Card>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+            <div>
+              <SectionTitle>Dress each person</SectionTitle>
+              <SectionDesc>Select a position, then choose that person&apos;s model and what they wear.</SectionDesc>
+            </div>
+            {people.length === 2 && !photoMode && (
+              <button type="button" className="cr-btn cr-btn-outline" style={{ padding: "5px 10px", fontSize: 12 }} onClick={swap}>Swap left and right</button>
+            )}
+          </div>
+          <GroupFigures slots={slotsByPerson} active={active} done={ready} onPick={setActive} />
+
+          <div key={`person-${active}-${presetId}`} className="cr-grp-person">
+            <p className="cr-grp-person-head">{positions[active]} · {GENDER_LABELS[person.gender]}</p>
+            {photoMode ? (
+              <div className="cr-grp-crop">
+                {person.modelUrl && <img src={person.modelUrl} alt={`${positions[active]} person`} />}
+                <span>This person, cut from your photo. If the cut is wrong, go Back and move the dividers.</span>
+              </div>
+            ) : (
+              <>
+                <FieldLabel required>Model</FieldLabel>
+                <ModelSelector
+                  models={models}
+                  selectedKey={person.modelKey}
+                  onSelect={(k, u, g) => update(active, { modelKey: k, modelUrl: u, modelGender: g ?? person.modelGender })}
+                />
+              </>
+            )}
+            <UploadZone
+              label="What they wear (product photo)"
+              required
+              value={person.frontUrl}
+              onChange={(url) => update(active, { frontUrl: url })}
+            />
+            <TypeShotStep
+              productType={person.productType}
+              wearType={person.wearType}
+              onTypeChange={(v) => update(active, { productType: v })}
+              onWearChange={(v) => update(active, { wearType: v })}
+              modelGender={person.gender === "any" ? person.modelGender : person.gender}
+              bottomUrl={person.bottomUrl}
+              onBottomChange={(v) => update(active, { bottomUrl: v })}
+            />
+          </div>
+
+          <StepNav
+            onBack={() => setStep(0)}
+            onNext={() => {
+              const next = ready.findIndex((r) => !r);
+              if (next !== -1) { setActive(next); return; }
+              if (photoMode) generate(); else setStep(2);
+            }}
+            nextLabel={allReady ? (photoMode ? `Generate ${people.length === 2 ? "duo" : "group"} photo` : "Continue") : `Next: ${positions[ready.findIndex((r) => !r)] ?? ""}`}
+            isGenerate={allReady && photoMode}
+            nextDisabled={!ready[active]}
+          />
+        </Card>
+      )}
+
+      {step === 2 && (
+        <Card>
+          <SectionTitle>Scene</SectionTitle>
+          <SectionDesc>Where the {people.length === 2 ? "two of them stand" : "group stands"} and how the photo is framed.</SectionDesc>
+          <div className="cr-settings-grid">
+            <CrSelect label="Arrangement" value={scene.arrangement} onChange={(v) => setScene((s) => ({ ...s, arrangement: v }))} options={GROUP_ARRANGEMENTS} />
+            <CrSelect label="Image shape" value={scene.size} onChange={(v) => setScene((s) => ({ ...s, size: v }))}
+              options={[{ value: "landscape", label: "Landscape (best for groups)" }, { value: "portrait", label: "Portrait" }, { value: "square", label: "Square" }]} />
+            <CrSelect label="Background" value={scene.background} onChange={(v) => setScene((s) => ({ ...s, background: v }))} options={GROUP_BACKGROUNDS} />
+            {scene.background === "custom" && (
+              <UploadZone label="Background Image" hint="your own scene; the group is placed into it" value={scene.backgroundImageUrl}
+                onChange={(v) => setScene((s) => ({ ...s, backgroundImageUrl: v }))} compact />
+            )}
+          </div>
+          <div className="cr-grp-summary">
+            {people.map((p, i) => (
+              <span key={i} className="cr-grp-chip">
+                {p.frontUrl && <img src={p.frontUrl} alt="" />}
+                {positions[i]}: {catName(p.productType)}
+              </span>
+            ))}
+          </div>
+          <StepNav
+            onBack={() => setStep(1)}
+            onNext={generate}
+            nextLabel={`Generate ${people.length === 2 ? "duo" : "group"} photo`}
+            isGenerate
+            nextDisabled={!allReady || (scene.background === "custom" && !scene.backgroundImageUrl)}
+          />
+        </Card>
+      )}
+    </div>
+  );
+}
+
+function catName(productType) {
+  return PRODUCT_CATS.find((c) => c.id === productType)?.label ?? "Outfit";
+}
+
 function WorkflowSelector({ onSelect }) {
   return (
     <div>
@@ -4609,7 +5299,7 @@ function WorkflowSelector({ onSelect }) {
         <p className="cr-sel-label">Create new asset</p>
         <h2 className="cr-sel-title">What would you like to make?</h2>
         <p className="cr-sel-sub">
-          Pick the workflow that matches the photo you have — we&apos;ll guide
+          Pick the workflow that matches the photo you have: we&apos;ll guide
           you step by step.
         </p>
       </div>
@@ -4645,6 +5335,7 @@ export default function CreatePage() {
 
   return (
     <>
+      <PageTour id={TOURS.studioCreate.id} steps={TOURS.studioCreate.steps} />
       <div className="cr-page">
         {/* Header */}
         <div className="cr-page-hdr">
@@ -4683,6 +5374,9 @@ export default function CreatePage() {
           )}
           {phase === "workflow" && wfType === "accessories" && (
             <WorkflowAccessories models={models} />
+          )}
+          {phase === "workflow" && wfType === "group" && GROUP_WORKFLOW_ENABLED && (
+            <WorkflowGroup models={models} />
           )}
           {phase === "workflow" && wfType === "infographic" && (
             <WorkflowInfographic

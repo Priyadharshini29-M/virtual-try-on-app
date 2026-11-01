@@ -1,0 +1,1080 @@
+{
+ "base": "http://localhost:8080",
+ "shop": "perf-test.myshopify.com",
+ "when": "2026-10-24 09:57:43",
+ "rows": [
+  {
+   "module": "Widget",
+   "method": "GET",
+   "path": "/api/widget-settings",
+   "kind": "public",
+   "anon": {
+    "status": 200,
+    "ms": 61,
+    "json": true,
+    "snippet": "{\"widget_title\":\"Try On This Look\",\"widget_subtitle\":\"See how it fits before you buy\",\"button_color\":\"#111827\""
+   },
+   "issues": [],
+   "result": "PASS"
+  },
+  {
+   "module": "Widget",
+   "method": "POST",
+   "path": "/api/widget-event",
+   "kind": "public_post",
+   "anon": {
+    "status": 200,
+    "ms": 5,
+    "json": true,
+    "snippet": "{\"ok\":true}"
+   },
+   "issues": [],
+   "result": "PASS"
+  },
+  {
+   "module": "Widget settings (admin)",
+   "method": "GET",
+   "path": "/widget/settings",
+   "kind": "admin_read",
+   "no_key": {
+    "status": 401,
+    "ms": 5,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "bad_key": {
+    "status": 401,
+    "ms": 7,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "good_key": {
+    "status": 200,
+    "ms": 7,
+    "json": true,
+    "snippet": "{\"shop_id\":1,\"button_config\":{\"button_text\":\"Try On This Look\",\"widget_subtitle\":\"See how it fits before you b"
+   },
+   "issues": [],
+   "result": "PASS"
+  },
+  {
+   "module": "Widget settings (admin)",
+   "method": "PATCH",
+   "path": "/widget/settings",
+   "kind": "admin_write",
+   "no_key": {
+    "status": 401,
+    "ms": 4,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "bad_key": {
+    "status": 401,
+    "ms": 6,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "issues": [],
+   "result": "PASS"
+  },
+  {
+   "module": "Settings",
+   "method": "GET",
+   "path": "/settings",
+   "kind": "admin_read",
+   "no_key": {
+    "status": 401,
+    "ms": 4,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "bad_key": {
+    "status": 401,
+    "ms": 7,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "good_key": {
+    "status": 200,
+    "ms": 22,
+    "json": true,
+    "snippet": "{\"merchant_id\":1,\"widget_title\":\"Try On This Look\",\"widget_subtitle\":\"See how it fits before you buy\",\"button_"
+   },
+   "issues": [],
+   "result": "PASS"
+  },
+  {
+   "module": "Settings",
+   "method": "POST",
+   "path": "/settings",
+   "kind": "admin_write",
+   "no_key": {
+    "status": 401,
+    "ms": 7,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "bad_key": {
+    "status": 401,
+    "ms": 9,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "issues": [],
+   "result": "PASS"
+  },
+  {
+   "module": "Product Catalog",
+   "method": "GET",
+   "path": "/products",
+   "kind": "admin_read",
+   "no_key": {
+    "status": 401,
+    "ms": 4,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "bad_key": {
+    "status": 401,
+    "ms": 6,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "good_key": {
+    "status": 200,
+    "ms": 7,
+    "json": true,
+    "snippet": "[]"
+   },
+   "issues": [],
+   "result": "PASS"
+  },
+  {
+   "module": "Product Catalog",
+   "method": "POST",
+   "path": "/products/sync",
+   "kind": "admin_write",
+   "no_key": {
+    "status": 401,
+    "ms": 4,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "bad_key": {
+    "status": 401,
+    "ms": 16,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "issues": [],
+   "result": "PASS"
+  },
+  {
+   "module": "Product Catalog",
+   "method": "GET",
+   "path": "/variants/mapping",
+   "kind": "admin_read",
+   "no_key": {
+    "status": 401,
+    "ms": 5,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "bad_key": {
+    "status": 401,
+    "ms": 7,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "good_key": {
+    "status": 400,
+    "ms": 7,
+    "json": true,
+    "snippet": "{\"error\":\"product_id is required\"}"
+   },
+   "issues": [],
+   "result": "PASS"
+  },
+  {
+   "module": "Product Catalog",
+   "method": "GET",
+   "path": "/shop/products",
+   "kind": "admin_read",
+   "no_key": {
+    "status": 401,
+    "ms": 5,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "bad_key": {
+    "status": 401,
+    "ms": 7,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "good_key": {
+    "status": 500,
+    "ms": 9,
+    "json": false,
+    "snippet": ""
+   },
+   "issues": [
+    "good_key->500 server error"
+   ],
+   "result": "FAIL"
+  },
+  {
+   "module": "Product Catalog",
+   "method": "POST",
+   "path": "/shopify/sync",
+   "kind": "admin_write",
+   "no_key": {
+    "status": 401,
+    "ms": 5,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "bad_key": {
+    "status": 401,
+    "ms": 7,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "issues": [],
+   "result": "PASS"
+  },
+  {
+   "module": "Shop",
+   "method": "GET",
+   "path": "/shop",
+   "kind": "admin_read",
+   "no_key": {
+    "status": 401,
+    "ms": 6,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "bad_key": {
+    "status": 401,
+    "ms": 7,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "good_key": {
+    "status": 200,
+    "ms": 8,
+    "json": true,
+    "snippet": "{\"shop_id\":1,\"shop_domain\":\"perf-test.myshopify.com\",\"app_status\":\"enabled\",\"app_plan\":\"premium\",\"shopify_plan"
+   },
+   "issues": [],
+   "result": "PASS"
+  },
+  {
+   "module": "Analytics",
+   "method": "GET",
+   "path": "/analytics",
+   "kind": "admin_read",
+   "no_key": {
+    "status": 401,
+    "ms": 4,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "bad_key": {
+    "status": 401,
+    "ms": 9,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "good_key": {
+    "status": 200,
+    "ms": 12,
+    "json": true,
+    "snippet": "{\"summary\":{\"widget_open_count\":9,\"camera_granted_count\":0,\"tryon_initiated\":0,\"add_to_cart_count\":0,\"order_co"
+   },
+   "issues": [],
+   "result": "PASS"
+  },
+  {
+   "module": "Analytics",
+   "method": "POST",
+   "path": "/conversion",
+   "kind": "admin_write",
+   "no_key": {
+    "status": 401,
+    "ms": 5,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "bad_key": {
+    "status": 401,
+    "ms": 8,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "issues": [],
+   "result": "PASS"
+  },
+  {
+   "module": "Plans & usage",
+   "method": "GET",
+   "path": "/plans",
+   "kind": "admin_read",
+   "no_key": {
+    "status": 401,
+    "ms": 6,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "bad_key": {
+    "status": 401,
+    "ms": 8,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "good_key": {
+    "status": 200,
+    "ms": 11,
+    "json": true,
+    "snippet": "{\"ok\":true,\"plans\":[{\"plan\":\"basic\",\"monthly_tryon_limit\":100,\"max_products\":1,\"analytics_enabled\":0,\"custom_a"
+   },
+   "issues": [],
+   "result": "PASS"
+  },
+  {
+   "module": "Plans & usage",
+   "method": "GET",
+   "path": "/plan/limit",
+   "kind": "admin_read",
+   "no_key": {
+    "status": 401,
+    "ms": 8,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "bad_key": {
+    "status": 401,
+    "ms": 10,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "good_key": {
+    "status": 200,
+    "ms": 14,
+    "json": true,
+    "snippet": "{\"ok\":true,\"plan\":\"premium\",\"used\":1,\"limit\":10000,\"remaining\":9999,\"is_unlimited\":false}"
+   },
+   "issues": [],
+   "result": "PASS"
+  },
+  {
+   "module": "Plans & usage",
+   "method": "POST",
+   "path": "/plan/update",
+   "kind": "admin_write",
+   "no_key": {
+    "status": 401,
+    "ms": 7,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "bad_key": {
+    "status": 401,
+    "ms": 8,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "issues": [],
+   "result": "PASS"
+  },
+  {
+   "module": "Leads",
+   "method": "GET",
+   "path": "/leads",
+   "kind": "shop_auth_read",
+   "no_key": {
+    "status": 200,
+    "ms": 10,
+    "json": true,
+    "snippet": "{\"leads\":[{\"id\":\"9ba5b0d5-2d4e-4350-bbf0-2e9edc978bc4\",\"merchant_id\":1,\"session_id\":null,\"email\":\"qa-synthetic"
+   },
+   "bad_key": {
+    "status": 200,
+    "ms": 12,
+    "json": true,
+    "snippet": "{\"leads\":[{\"id\":\"9ba5b0d5-2d4e-4350-bbf0-2e9edc978bc4\",\"merchant_id\":1,\"session_id\":null,\"email\":\"qa-synthetic"
+   },
+   "no_shop": {
+    "status": 401,
+    "ms": 4,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "issues": [
+    "FINDING: accepts shop domain alone (no secret) -> data readable by anyone who knows the domain"
+   ],
+   "result": "FAIL"
+  },
+  {
+   "module": "Leads",
+   "method": "GET",
+   "path": "/lead/list",
+   "kind": "master_only",
+   "no_key": {
+    "status": 401,
+    "ms": 4,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "bad_key": {
+    "status": 401,
+    "ms": 5,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "issues": [],
+   "result": "PASS"
+  },
+  {
+   "module": "Leads",
+   "method": "POST",
+   "path": "/api/lead/capture",
+   "kind": "public_post",
+   "anon": {
+    "status": 400,
+    "ms": 8,
+    "json": true,
+    "snippet": "{\"error\":\"A valid email address is required\"}"
+   },
+   "issues": [],
+   "result": "PASS"
+  },
+  {
+   "module": "Sessions",
+   "method": "POST",
+   "path": "/api/session/create",
+   "kind": "public_post",
+   "anon": {
+    "status": 400,
+    "ms": 13,
+    "json": true,
+    "snippet": "{\"error\":\"product_id is required\"}"
+   },
+   "issues": [],
+   "result": "PASS"
+  },
+  {
+   "module": "Merchant",
+   "method": "GET",
+   "path": "/merchant/by-domain",
+   "kind": "admin_read",
+   "no_key": {
+    "status": 401,
+    "ms": 4,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "bad_key": {
+    "status": 401,
+    "ms": 8,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "good_key": {
+    "status": 400,
+    "ms": 7,
+    "json": true,
+    "snippet": "{\"error\":\"domain is required\"}"
+   },
+   "issues": [],
+   "result": "PASS"
+  },
+  {
+   "module": "Merchant",
+   "method": "GET",
+   "path": "/merchant/onboarding",
+   "kind": "admin_read",
+   "no_key": {
+    "status": 401,
+    "ms": 8,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "bad_key": {
+    "status": 401,
+    "ms": 8,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "good_key": {
+    "status": 200,
+    "ms": 10,
+    "json": true,
+    "snippet": "{\"onboarding\":null}"
+   },
+   "issues": [],
+   "result": "PASS"
+  },
+  {
+   "module": "Merchant",
+   "method": "POST",
+   "path": "/merchant/deactivate",
+   "kind": "admin_write",
+   "no_key": {
+    "status": 401,
+    "ms": 5,
+    "json": true,
+    "snippet": "{\"error\":\"Invalid HMAC\"}"
+   },
+   "bad_key": {
+    "status": 401,
+    "ms": 5,
+    "json": true,
+    "snippet": "{\"error\":\"Invalid HMAC\"}"
+   },
+   "issues": [],
+   "result": "PASS"
+  },
+  {
+   "module": "Size Chart",
+   "method": "GET",
+   "path": "/size-chart",
+   "kind": "admin_read",
+   "no_key": {
+    "status": 401,
+    "ms": 4,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "bad_key": {
+    "status": 401,
+    "ms": 7,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "good_key": {
+    "status": 200,
+    "ms": 13,
+    "json": true,
+    "snippet": "{\"enabled\":false,\"charts\":[],\"assignments\":[]}"
+   },
+   "issues": [],
+   "result": "PASS"
+  },
+  {
+   "module": "Size Chart",
+   "method": "GET",
+   "path": "/api/size-chart",
+   "kind": "public",
+   "anon": {
+    "status": 200,
+    "ms": 5,
+    "json": true,
+    "snippet": "{\"chart\":null}"
+   },
+   "issues": [],
+   "result": "PASS"
+  },
+  {
+   "module": "Complete Look",
+   "method": "GET",
+   "path": "/complete-look",
+   "kind": "admin_read",
+   "no_key": {
+    "status": 401,
+    "ms": 4,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "bad_key": {
+    "status": 401,
+    "ms": 11,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "good_key": {
+    "status": 200,
+    "ms": 22,
+    "json": true,
+    "snippet": "{\"enabled\":false,\"pairings\":[]}"
+   },
+   "issues": [],
+   "result": "PASS"
+  },
+  {
+   "module": "Complete Look",
+   "method": "GET",
+   "path": "/api/complete-look",
+   "kind": "public",
+   "anon": {
+    "status": 200,
+    "ms": 5,
+    "json": true,
+    "snippet": "{\"products\":[]}"
+   },
+   "issues": [],
+   "result": "PASS"
+  },
+  {
+   "module": "AI Studio v1 / Garment Studio",
+   "method": "GET",
+   "path": "/studio/setup-check",
+   "kind": "shop_auth_read",
+   "no_key": {
+    "status": 200,
+    "ms": 6,
+    "json": true,
+    "snippet": "{\"ok\":false,\"models_dir\":\"\\/var\\/www\\/html\\/models\",\"dir_exists\":false,\"dir_writable\":false,\"gd_available\":tru"
+   },
+   "bad_key": {
+    "status": 200,
+    "ms": 5,
+    "json": true,
+    "snippet": "{\"ok\":false,\"models_dir\":\"\\/var\\/www\\/html\\/models\",\"dir_exists\":false,\"dir_writable\":false,\"gd_available\":tru"
+   },
+   "no_shop": {
+    "status": 200,
+    "ms": 4,
+    "json": true,
+    "snippet": "{\"ok\":false,\"models_dir\":\"\\/var\\/www\\/html\\/models\",\"dir_exists\":false,\"dir_writable\":false,\"gd_available\":tru"
+   },
+   "issues": [
+    "no shop/no key -> 200 (expected 401)",
+    "FINDING: accepts shop domain alone (no secret) -> data readable by anyone who knows the domain"
+   ],
+   "result": "FAIL"
+  },
+  {
+   "module": "AI Studio v1 / Garment Studio",
+   "method": "GET",
+   "path": "/studio/models",
+   "kind": "shop_auth_read",
+   "no_key": {
+    "status": 200,
+    "ms": 4,
+    "json": true,
+    "snippet": "{\"models\":{\"female_child_5_8\":{\"key\":\"female_child_5_8\",\"label\":\"Female Child (5\\u20138 yrs)\",\"gender\":\"female"
+   },
+   "bad_key": {
+    "status": 200,
+    "ms": 6,
+    "json": true,
+    "snippet": "{\"models\":{\"female_child_5_8\":{\"key\":\"female_child_5_8\",\"label\":\"Female Child (5\\u20138 yrs)\",\"gender\":\"female"
+   },
+   "no_shop": {
+    "status": 200,
+    "ms": 6,
+    "json": true,
+    "snippet": "{\"models\":{\"female_child_5_8\":{\"key\":\"female_child_5_8\",\"label\":\"Female Child (5\\u20138 yrs)\",\"gender\":\"female"
+   },
+   "issues": [
+    "no shop/no key -> 200 (expected 401)",
+    "FINDING: accepts shop domain alone (no secret) -> data readable by anyone who knows the domain"
+   ],
+   "result": "FAIL"
+  },
+  {
+   "module": "AI Studio v1 / Garment Studio",
+   "method": "GET",
+   "path": "/studio/sessions",
+   "kind": "shop_auth_read",
+   "no_key": {
+    "status": 200,
+    "ms": 41,
+    "json": true,
+    "snippet": "{\"sessions\":[{\"id\":\"c95cb17d-735a-44d7-aae4-4887a0718c87\",\"merchant_id\":1,\"product_id\":null,\"shopify_variant_i"
+   },
+   "bad_key": {
+    "status": 200,
+    "ms": 34,
+    "json": true,
+    "snippet": "{\"sessions\":[{\"id\":\"c95cb17d-735a-44d7-aae4-4887a0718c87\",\"merchant_id\":1,\"product_id\":null,\"shopify_variant_i"
+   },
+   "no_shop": {
+    "status": 401,
+    "ms": 10,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "issues": [
+    "FINDING: accepts shop domain alone (no secret) -> data readable by anyone who knows the domain"
+   ],
+   "result": "FAIL"
+  },
+  {
+   "module": "AI Studio v1 / Garment Studio",
+   "method": "GET",
+   "path": "/studio/default-models",
+   "kind": "admin_read",
+   "no_key": {
+    "status": 401,
+    "ms": 7,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "bad_key": {
+    "status": 401,
+    "ms": 7,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "good_key": {
+    "status": 200,
+    "ms": 13,
+    "json": true,
+    "snippet": "{\"models\":[{\"model_key\":\"f-amara\",\"name\":\"Amara\",\"gender\":\"female\",\"look\":\"South Asian\",\"skin_tone\":\"fair\",\"bo"
+   },
+   "issues": [],
+   "result": "PASS"
+  },
+  {
+   "module": "AI Studio v1 / Garment Studio",
+   "method": "POST",
+   "path": "/studio/generate",
+   "kind": "shop_auth_write",
+   "no_key": {
+    "status": 400,
+    "ms": 7,
+    "json": true,
+    "snippet": "{\"error\":\"front_image_url is required\"}"
+   },
+   "bad_key": {
+    "status": 400,
+    "ms": 7,
+    "json": true,
+    "snippet": "{\"error\":\"front_image_url is required\"}"
+   },
+   "no_shop": {
+    "status": 401,
+    "ms": 5,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "issues": [
+    "FINDING: shop-only auth reaches handler (status 400); AI-cost endpoint"
+   ],
+   "result": "FAIL"
+  },
+  {
+   "module": "AI Studio v1 / Garment Studio",
+   "method": "POST",
+   "path": "/studio/pose-variant",
+   "kind": "shop_auth_write",
+   "no_key": {
+    "status": 404,
+    "ms": 5,
+    "json": true,
+    "snippet": "{\"error\":\"Not Found\"}"
+   },
+   "bad_key": {
+    "status": 404,
+    "ms": 5,
+    "json": true,
+    "snippet": "{\"error\":\"Not Found\"}"
+   },
+   "no_shop": {
+    "status": 404,
+    "ms": 5,
+    "json": true,
+    "snippet": "{\"error\":\"Not Found\"}"
+   },
+   "issues": [
+    "no shop/no key -> 404 (expected 401)",
+    "FINDING: shop-only auth reaches handler (status 404); AI-cost endpoint"
+   ],
+   "result": "FAIL"
+  },
+  {
+   "module": "AI Studio v2 / Asset Library",
+   "method": "GET",
+   "path": "/studio-v2/models",
+   "kind": "shop_auth_read",
+   "no_key": {
+    "status": 200,
+    "ms": 10,
+    "json": true,
+    "snippet": "{\"models\":[]}"
+   },
+   "bad_key": {
+    "status": 200,
+    "ms": 8,
+    "json": true,
+    "snippet": "{\"models\":[]}"
+   },
+   "no_shop": {
+    "status": 401,
+    "ms": 9,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "issues": [
+    "FINDING: accepts shop domain alone (no secret) -> data readable by anyone who knows the domain"
+   ],
+   "result": "FAIL"
+  },
+  {
+   "module": "AI Studio v2 / Asset Library",
+   "method": "GET",
+   "path": "/studio-v2/generations",
+   "kind": "shop_auth_read",
+   "no_key": {
+    "status": 200,
+    "ms": 9,
+    "json": true,
+    "snippet": "{\"generations\":[]}"
+   },
+   "bad_key": {
+    "status": 200,
+    "ms": 9,
+    "json": true,
+    "snippet": "{\"generations\":[]}"
+   },
+   "no_shop": {
+    "status": 401,
+    "ms": 5,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "issues": [
+    "FINDING: accepts shop domain alone (no secret) -> data readable by anyone who knows the domain"
+   ],
+   "result": "FAIL"
+  },
+  {
+   "module": "AI Studio v2 / Asset Library",
+   "method": "GET",
+   "path": "/studio-v2/assets",
+   "kind": "shop_auth_read",
+   "no_key": {
+    "status": 200,
+    "ms": 11,
+    "json": true,
+    "snippet": "{\"assets\":[]}"
+   },
+   "bad_key": {
+    "status": 200,
+    "ms": 23,
+    "json": true,
+    "snippet": "{\"assets\":[]}"
+   },
+   "no_shop": {
+    "status": 401,
+    "ms": 5,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "issues": [
+    "FINDING: accepts shop domain alone (no secret) -> data readable by anyone who knows the domain"
+   ],
+   "result": "FAIL"
+  },
+  {
+   "module": "AI Studio v2 / Asset Library",
+   "method": "POST",
+   "path": "/studio-v2/generate",
+   "kind": "shop_auth_write",
+   "no_key": {
+    "status": 400,
+    "ms": 9,
+    "json": true,
+    "snippet": "{\"error\":\"product_image_url is required\"}"
+   },
+   "bad_key": {
+    "status": 400,
+    "ms": 9,
+    "json": true,
+    "snippet": "{\"error\":\"product_image_url is required\"}"
+   },
+   "no_shop": {
+    "status": 401,
+    "ms": 5,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "issues": [
+    "FINDING: shop-only auth reaches handler (status 400); AI-cost endpoint"
+   ],
+   "result": "FAIL"
+  },
+  {
+   "module": "AI Studio v2 / Asset Library",
+   "method": "POST",
+   "path": "/studio-v2/regenerate-infographics",
+   "kind": "shop_auth_write",
+   "no_key": {
+    "status": 400,
+    "ms": 9,
+    "json": true,
+    "snippet": "{\"error\":\"generation_id is required\"}"
+   },
+   "bad_key": {
+    "status": 400,
+    "ms": 9,
+    "json": true,
+    "snippet": "{\"error\":\"generation_id is required\"}"
+   },
+   "no_shop": {
+    "status": 401,
+    "ms": 5,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "issues": [
+    "FINDING: shop-only auth reaches handler (status 400); AI-cost endpoint"
+   ],
+   "result": "FAIL"
+  },
+  {
+   "module": "Infographic",
+   "method": "POST",
+   "path": "/infographic/generate",
+   "kind": "shop_auth_write",
+   "no_key": {
+    "status": 503,
+    "ms": 11,
+    "json": true,
+    "snippet": "{\"error\":\"OpenAI API key is not configured.\"}"
+   },
+   "bad_key": {
+    "status": 503,
+    "ms": 6,
+    "json": true,
+    "snippet": "{\"error\":\"OpenAI API key is not configured.\"}"
+   },
+   "no_shop": {
+    "status": 400,
+    "ms": 5,
+    "json": true,
+    "snippet": "{\"error\":\"shop parameter is required\"}"
+   },
+   "issues": [
+    "no shop/no key -> 400 (expected 401)",
+    "FINDING: shop-only auth reaches handler (status 503); AI-cost endpoint"
+   ],
+   "result": "FAIL"
+  },
+  {
+   "module": "Infographic",
+   "method": "POST",
+   "path": "/infographic/extract-points",
+   "kind": "shop_auth_write",
+   "no_key": {
+    "status": 503,
+    "ms": 5,
+    "json": true,
+    "snippet": "{\"error\":\"OpenAI API key is not configured.\"}"
+   },
+   "bad_key": {
+    "status": 503,
+    "ms": 6,
+    "json": true,
+    "snippet": "{\"error\":\"OpenAI API key is not configured.\"}"
+   },
+   "no_shop": {
+    "status": 503,
+    "ms": 4,
+    "json": true,
+    "snippet": "{\"error\":\"OpenAI API key is not configured.\"}"
+   },
+   "issues": [
+    "no shop/no key -> 503 (expected 401)",
+    "FINDING: shop-only auth reaches handler (status 503); AI-cost endpoint"
+   ],
+   "result": "FAIL"
+  },
+  {
+   "module": "RAG index",
+   "method": "GET",
+   "path": "/rag/status",
+   "kind": "admin_read",
+   "no_key": {
+    "status": 401,
+    "ms": 5,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "bad_key": {
+    "status": 401,
+    "ms": 7,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "good_key": {
+    "status": 200,
+    "ms": 7,
+    "json": true,
+    "snippet": "{\"enabled\":false,\"indexed_products\":0,\"last_indexed_at\":null}"
+   },
+   "issues": [],
+   "result": "PASS"
+  },
+  {
+   "module": "RAG index",
+   "method": "POST",
+   "path": "/rag/reindex",
+   "kind": "admin_write",
+   "no_key": {
+    "status": 401,
+    "ms": 5,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "bad_key": {
+    "status": 401,
+    "ms": 8,
+    "json": true,
+    "snippet": "{\"error\":\"Unauthorized\"}"
+   },
+   "issues": [],
+   "result": "PASS"
+  },
+  {
+   "module": "Accessory worker",
+   "method": "POST",
+   "path": "/accessory-worker",
+   "kind": "hmac_only",
+   "no_key": {
+    "status": 403,
+    "ms": 5,
+    "json": true,
+    "snippet": "{\"error\":\"Forbidden\"}"
+   },
+   "bad_key": {
+    "status": 403,
+    "ms": 5,
+    "json": true,
+    "snippet": "{\"error\":\"Forbidden\"}"
+   },
+   "issues": [],
+   "result": "PASS"
+  },
+  {
+   "module": "Try-on",
+   "method": "GET",
+   "path": "/api/tryon-status",
+   "kind": "public_status",
+   "anon": {
+    "status": 400,
+    "ms": 5,
+    "json": true,
+    "snippet": "{\"error\":\"job_id is required\"}"
+   },
+   "issues": [],
+   "result": "PASS"
+  },
+  {
+   "module": "Upload",
+   "method": "POST",
+   "path": "/upload-temp",
+   "kind": "public_post",
+   "anon": {
+    "status": 400,
+    "ms": 5,
+    "json": true,
+    "snippet": "{\"error\":\"Upload error: No file was uploaded\"}"
+   },
+   "issues": [],
+   "result": "PASS"
+  }
+ ]
+}

@@ -180,7 +180,7 @@ class InfographicController
         $knowledge = $this->buildKnowledge($openai, $merchantId, $productId);
         $keyPoints = $openai->extractKeyPointsGrounded($description, $knowledge);
         if (empty($keyPoints)) {
-            respondJson(['error' => 'Could not extract key points — try rephrasing the description.'], 422);
+            respondJson(['error' => 'Could not extract key points: try rephrasing the description.'], 422);
             return;
         }
         respondJson(['key_points' => $keyPoints, 'sources' => $this->toSources($knowledge)]);
@@ -340,7 +340,7 @@ class InfographicController
             $structured = $this->resolveStructuredInfo($openai, $description, $knowledge, $refPlan['category']);
             $keyPoints  = $structured['key_points'];
             if (empty($keyPoints)) {
-                throw new \RuntimeException('Could not extract key points — try rephrasing the description.');
+                throw new \RuntimeException('Could not extract key points: try rephrasing the description.');
             }
 
             $scenePlan = $this->planScene($openai, $keyPoints, $refPlan['layout_name'], 'reference');
@@ -363,7 +363,7 @@ class InfographicController
         if ($collage) {
             $keyPoints = $openai->extractKeyPointsGrounded($description, $knowledge);
             if (empty($keyPoints)) {
-                throw new \RuntimeException('Could not extract key points — try rephrasing the description.');
+                throw new \RuntimeException('Could not extract key points: try rephrasing the description.');
             }
             $results = $this->composeCollageFromPath($openai, $merchantId, $tempPath, $keyPoints, $description, $customStyle, $size);
             return ['results' => $results, 'key_points' => $keyPoints, 'sources' => $this->toSources($knowledge)];
@@ -383,7 +383,7 @@ class InfographicController
         $structured = $this->resolveStructuredInfo($openai, $description, $knowledge, $plan['category']);
         $keyPoints  = $structured['key_points'];
         if (empty($keyPoints)) {
-            throw new \RuntimeException('Could not extract key points — try rephrasing the description.');
+            throw new \RuntimeException('Could not extract key points: try rephrasing the description.');
         }
         $this->logStage('extraction_done', $requestStartedAt);
 

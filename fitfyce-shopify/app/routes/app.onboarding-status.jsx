@@ -81,9 +81,9 @@ export default function OnboardingStatus() {
   const resetFetcher = useFetcher();
   const mf = d.metafield?.value;
   const wizardState = !mf ? "Will open on the dashboard (step 1)"
-    : mf.completed ? "Finished — won't open again"
-      : mf.skipped ? "Skipped — shows a Resume banner"
-        : `In progress — resumes at step ${Number(mf.step ?? 0) + 1}`;
+    : mf.completed ? "Finished: won't open again"
+      : mf.skipped ? "Skipped: shows a Resume banner"
+        : `In progress: resumes at step ${Number(mf.step ?? 0) + 1}`;
 
   return (
     <FsPage
@@ -100,13 +100,13 @@ export default function OnboardingStatus() {
     >
       <div className="fs-banner fs-banner--info">
         <FsIcon name="info" size={16} />
-        <span><strong>Wizard:</strong> {wizardState}.{resetFetcher.data?.reset ? " Setup restarted — open the Dashboard to see it." : ""}{resetFetcher.data?.error ? ` Reset failed: ${resetFetcher.data.error}` : ""}</span>
+        <span><strong>Wizard:</strong> {wizardState}.{resetFetcher.data?.reset ? " Setup restarted: open the Dashboard to see it." : ""}{resetFetcher.data?.error ? ` Reset failed: ${resetFetcher.data.error}` : ""}</span>
       </div>
       <div className="fs-grid-12">
         <FsCard className="fs-span-4" title="1. Backend reachable" action={<Status ok={d.backendReachable.ok} label={d.backendReachable.ok ? "Online" : "Failing"} />}>
           <p className="fs-help" style={{ margin: 0 }}>{d.backendUrl}</p>
           {!d.backendReachable.ok && (
-            <p style={{ margin: 0, fontSize: 13 }}>HTTP {d.backendReachable.status || "—"} · {d.backendReachable.error || "no response"}. Every backend save fails until this is fixed — check the PHP error log on the server.</p>
+            <p style={{ margin: 0, fontSize: 13 }}>HTTP {d.backendReachable.status || "—"} · {d.backendReachable.error || "no response"}. Every backend save fails until this is fixed: check the PHP error log on the server.</p>
           )}
         </FsCard>
         <FsCard className="fs-span-4" title="2. Database row" action={<Status ok={!!d.backendRow.data} label={d.backendRow.data ? "Saved" : "Not found"} />}>
@@ -120,7 +120,7 @@ export default function OnboardingStatus() {
         </FsCard>
         <FsCard className="fs-span-4" title="3. Shopify metafield" action={<Status ok={!!d.metafield} label={d.metafield ? "Saved" : "Empty"} />}>
           <p style={{ margin: 0, fontSize: 13 }}>
-            {d.metafield ? `Step ${Number(d.metafield.value?.step ?? 0) + 1} · updated ${new Date(d.metafield.updatedAt).toLocaleString()}` : d.metafieldError || "Nothing saved yet — complete a wizard step first."}
+            {d.metafield ? `Step ${Number(d.metafield.value?.step ?? 0) + 1} · updated ${new Date(d.metafield.updatedAt).toLocaleString()}` : d.metafieldError || "Nothing saved yet: complete a wizard step first."}
           </p>
         </FsCard>
       </div>

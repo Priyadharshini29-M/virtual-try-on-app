@@ -1,0 +1,48 @@
+{
+ "run": "20261021-191908-spike",
+ "profile": "spike",
+ "integration": "MOCKED (AI provider) / local Docker replica of PHP+MariaDB",
+ "args": {
+  "profile": "spike",
+  "mock_workers": 10,
+  "mock_gen_ms": 14000,
+  "mock_fail_rate": 0.0,
+  "mock_max_queue": 0,
+  "app_workers": 20,
+  "max_vus": 200,
+  "dur_scale": 1.0,
+  "rate_scale": 1.0,
+  "soak_min": 30,
+  "only": "",
+  "widget_event": "1",
+  "keepalive": "Off",
+  "no_restart": false,
+  "extra_polls": 0,
+  "yes_i_am_authorised": true
+ },
+ "started": 1792590567.728174,
+ "ended": 1792643809.534763,
+ "duration_s": 53241.8,
+ "k6_exit_code": 99,
+ "pre": {
+  "count_m1": 0,
+  "count_m2": 95
+ },
+ "post": {
+  "count_m1": 86,
+  "count_m2": 95,
+  "analytics_completed": "86",
+  "result_files": "86",
+  "db_slow_queries": "571",
+  "db_max_used_connections": "22",
+  "app_error_log_tail": ""
+ },
+ "mock_stats": null,
+ "k6_tryon_completed": 86,
+ "consistency": {
+  "merchant1_count_delta": 86,
+  "k6_completed_jobs": 86,
+  "double_counted": 0,
+  "analytics_completed": "86"
+ }
+}

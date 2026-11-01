@@ -1,0 +1,153 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+     execution: local
+        script: /work/k6/main.js
+ web dashboard: http://127.0.0.1:5665
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 20 max VUs, 5m30s max duration (incl. graceful stop):
+              * quota: 20 iterations shared among 20 VUs (maxDuration: 5m0s, exec: quota, gracefulStop: 30s)
+
+
+running (0m00.6s), 20/20 VUs, 0 complete and 0 interrupted iterations
+quota   [   0% ] 20 VUs  0m00.6s/5m0s  00/20 shared iters
+
+running (0m01.6s), 20/20 VUs, 0 complete and 0 interrupted iterations
+quota   [   0% ] 20 VUs  0m01.6s/5m0s  00/20 shared iters
+
+running (0m02.6s), 20/20 VUs, 0 complete and 0 interrupted iterations
+quota   [   0% ] 20 VUs  0m02.6s/5m0s  00/20 shared iters
+
+running (0m03.6s), 20/20 VUs, 0 complete and 0 interrupted iterations
+quota   [   0% ] 20 VUs  0m03.6s/5m0s  00/20 shared iters
+
+running (0m04.6s), 20/20 VUs, 0 complete and 0 interrupted iterations
+quota   [   0% ] 20 VUs  0m04.6s/5m0s  00/20 shared iters
+
+running (0m05.6s), 19/20 VUs, 1 complete and 0 interrupted iterations
+quota   [   5% ] 20 VUs  0m05.6s/5m0s  01/20 shared iters
+
+running (0m06.6s), 19/20 VUs, 1 complete and 0 interrupted iterations
+quota   [   5% ] 20 VUs  0m06.6s/5m0s  01/20 shared iters
+
+running (0m07.6s), 19/20 VUs, 1 complete and 0 interrupted iterations
+quota   [   5% ] 20 VUs  0m07.6s/5m0s  01/20 shared iters
+
+running (0m08.6s), 17/20 VUs, 3 complete and 0 interrupted iterations
+quota   [  15% ] 20 VUs  0m08.6s/5m0s  03/20 shared iters
+
+running (0m09.6s), 17/20 VUs, 3 complete and 0 interrupted iterations
+quota   [  15% ] 20 VUs  0m09.6s/5m0s  03/20 shared iters
+
+running (0m10.6s), 16/20 VUs, 4 complete and 0 interrupted iterations
+quota   [  20% ] 20 VUs  0m10.6s/5m0s  04/20 shared iters
+
+running (0m11.6s), 16/20 VUs, 4 complete and 0 interrupted iterations
+quota   [  20% ] 20 VUs  0m11.6s/5m0s  04/20 shared iters
+
+running (0m12.6s), 16/20 VUs, 4 complete and 0 interrupted iterations
+quota   [  20% ] 20 VUs  0m12.6s/5m0s  04/20 shared iters
+
+running (0m13.6s), 15/20 VUs, 5 complete and 0 interrupted iterations
+quota   [  25% ] 20 VUs  0m13.6s/5m0s  05/20 shared iters
+
+running (0m14.6s), 13/20 VUs, 7 complete and 0 interrupted iterations
+quota   [  35% ] 20 VUs  0m14.6s/5m0s  07/20 shared iters
+
+running (0m15.6s), 13/20 VUs, 7 complete and 0 interrupted iterations
+quota   [  35% ] 20 VUs  0m15.6s/5m0s  07/20 shared iters
+
+running (0m16.6s), 13/20 VUs, 7 complete and 0 interrupted iterations
+quota   [  35% ] 20 VUs  0m16.6s/5m0s  07/20 shared iters
+
+running (0m17.6s), 13/20 VUs, 7 complete and 0 interrupted iterations
+quota   [  35% ] 20 VUs  0m17.6s/5m0s  07/20 shared iters
+
+running (0m18.6s), 12/20 VUs, 8 complete and 0 interrupted iterations
+quota   [  40% ] 20 VUs  0m18.6s/5m0s  08/20 shared iters
+
+running (0m19.6s), 12/20 VUs, 8 complete and 0 interrupted iterations
+quota   [  40% ] 20 VUs  0m19.6s/5m0s  08/20 shared iters
+
+running (0m20.6s), 11/20 VUs, 9 complete and 0 interrupted iterations
+quota   [  45% ] 20 VUs  0m20.6s/5m0s  09/20 shared iters
+
+running (0m21.6s), 11/20 VUs, 9 complete and 0 interrupted iterations
+quota   [  45% ] 20 VUs  0m21.6s/5m0s  09/20 shared iters
+
+running (0m22.6s), 11/20 VUs, 9 complete and 0 interrupted iterations
+quota   [  45% ] 20 VUs  0m22.6s/5m0s  09/20 shared iters
+
+running (0m23.6s), 09/20 VUs, 11 complete and 0 interrupted iterations
+quota   [  55% ] 20 VUs  0m23.6s/5m0s  11/20 shared iters
+
+running (0m24.6s), 08/20 VUs, 12 complete and 0 interrupted iterations
+quota   [  60% ] 20 VUs  0m24.6s/5m0s  12/20 shared iters
+
+running (0m25.6s), 08/20 VUs, 12 complete and 0 interrupted iterations
+quota   [  60% ] 20 VUs  0m25.6s/5m0s  12/20 shared iters
+
+running (0m26.6s), 07/20 VUs, 13 complete and 0 interrupted iterations
+quota   [  65% ] 20 VUs  0m26.6s/5m0s  13/20 shared iters
+
+running (0m27.6s), 07/20 VUs, 13 complete and 0 interrupted iterations
+quota   [  65% ] 20 VUs  0m27.6s/5m0s  13/20 shared iters
+
+running (0m28.6s), 07/20 VUs, 13 complete and 0 interrupted iterations
+quota   [  65% ] 20 VUs  0m28.6s/5m0s  13/20 shared iters
+
+running (0m29.6s), 06/20 VUs, 14 complete and 0 interrupted iterations
+quota   [  70% ] 20 VUs  0m29.6s/5m0s  14/20 shared iters
+
+running (0m30.6s), 06/20 VUs, 14 complete and 0 interrupted iterations
+quota   [  70% ] 20 VUs  0m30.6s/5m0s  14/20 shared iters
+
+running (0m31.6s), 05/20 VUs, 15 complete and 0 interrupted iterations
+quota   [  75% ] 20 VUs  0m31.6s/5m0s  15/20 shared iters
+
+running (0m32.6s), 05/20 VUs, 15 complete and 0 interrupted iterations
+quota   [  75% ] 20 VUs  0m32.6s/5m0s  15/20 shared iters
+
+running (0m33.6s), 05/20 VUs, 15 complete and 0 interrupted iterations
+quota   [  75% ] 20 VUs  0m33.6s/5m0s  15/20 shared iters
+
+running (0m34.6s), 04/20 VUs, 16 complete and 0 interrupted iterations
+quota   [  80% ] 20 VUs  0m34.6s/5m0s  16/20 shared iters
+
+running (0m35.6s), 04/20 VUs, 16 complete and 0 interrupted iterations
+quota   [  80% ] 20 VUs  0m35.6s/5m0s  16/20 shared iters
+
+running (0m36.6s), 02/20 VUs, 18 complete and 0 interrupted iterations
+quota   [  90% ] 20 VUs  0m36.6s/5m0s  18/20 shared iters
+
+running (0m37.6s), 02/20 VUs, 18 complete and 0 interrupted iterations
+quota   [  90% ] 20 VUs  0m37.6s/5m0s  18/20 shared iters
+
+running (0m38.6s), 02/20 VUs, 18 complete and 0 interrupted iterations
+quota   [  90% ] 20 VUs  0m38.6s/5m0s  18/20 shared iters
+
+running (0m39.6s), 01/20 VUs, 19 complete and 0 interrupted iterations
+quota   [  95% ] 20 VUs  0m39.6s/5m0s  19/20 shared iters
+
+running (0m40.6s), 01/20 VUs, 19 complete and 0 interrupted iterations
+quota   [  95% ] 20 VUs  0m40.6s/5m0s  19/20 shared iters
+
+running (0m41.6s), 01/20 VUs, 19 complete and 0 interrupted iterations
+quota   [  95% ] 20 VUs  0m41.6s/5m0s  19/20 shared iters
+PROFILE=quota BASE=http://app:80
+iterations=20 http_reqs=181 rps=4.3 failed=0.00% vus_max=20
+http p95 ms: 2560.3
+submit p95 ms: 3647.6
+status p95 ms: 55.0
+
+running (0m42.4s), 00/20 VUs, 20 complete and 0 interrupted iterations
+quota ✓ [ 100% ] 20 VUs  0m42.4s/5m0s  20/20 shared iters
+
+--- stderr ---
+ Container brixperf-k6-run-763b791f5d0e Creating 
+ Container brixperf-k6-run-763b791f5d0e Created 

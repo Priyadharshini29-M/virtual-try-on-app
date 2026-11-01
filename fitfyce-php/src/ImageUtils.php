@@ -107,6 +107,78 @@ final class ImageUtils
         return is_file($newPath) ? $newPath : $path;
     }
 
+    /**
+     * Re-encodes any image as JPEG, shrinking the longest side to $maxEdge when it is larger — keeps large uploads
+     * within GD's memory and the request size of external image APIs. Null when the bytes are not a decodable image.
+     */
+    public static function jpegBytesMaxEdge(string $bytes, int $maxEdge = 2048): ?string
+    {
+        @ini_set('memory_limit', '1024M');
+        $src = @imagecreatefromstring($bytes);
+        if ($src === false) {
+            return null;
+        }
+        $w = imagesx($src);
+        $h = imagesy($src);
+        if (max($w, $h) > $maxEdge) {
+            $scale   = $maxEdge / max($w, $h);
+            $resized = imagescale($src, max(1, (int) round($w * $scale)), max(1, (int) round($h * $scale)));
+            imagedestroy($src);
+            if ($resized === false) {
+                return null;
+            }
+            $src = $resized;
+        }
+        ob_start();
+        imagejpeg($src, null, 92);
+        $out = (string) ob_get_clean();
+        imagedestroy($src);
+        return $out !== '' ? $out : null;
+    }
+
+    /**
+     * Enlarges a small try-on result for display and sharpens it lightly.
+     * The FASHN VTON 1.5 worker renders at roughly 576x864, which looks soft
+     * when shown at catalogue size. This is a bicubic resample plus a mild
+     * sharpen, not AI super-resolution: it restores crispness, it can't
+     * invent detail the engine never produced. Overwrites $path in place;
+     * returns false (leaving the file untouched) when GD can't do it.
+     */
+    public static function upscaleForDisplay(string $path, int $targetLongEdge = 1728): bool
+    {
+        if (!function_exists('imagecreatefromstring') || !function_exists('imageconvolution')) {
+            return false;
+        }
+        @ini_set('memory_limit', '1024M');
+        $src = @imagecreatefromstring((string) @file_get_contents($path));
+        if ($src === false) {
+            return false;
+        }
+
+        $w    = imagesx($src);
+        $h    = imagesy($src);
+        $long = max($w, $h);
+        if ($long >= $targetLongEdge) {
+            imagedestroy($src);
+            return false;
+        }
+
+        $scale = min(3.0, $targetLongEdge / max($long, 1));
+        imagesetinterpolation($src, IMG_BICUBIC);
+        $dst = imagescale($src, (int) round($w * $scale), (int) round($h * $scale), IMG_BICUBIC);
+        imagedestroy($src);
+        if ($dst === false) {
+            return false;
+        }
+
+        // Mild sharpen (centre 12, cross -1, divisor 8) to offset the resample softening.
+        imageconvolution($dst, [[0, -1, 0], [-1, 12, -1], [0, -1, 0]], 8, 0);
+
+        $ok = @imagejpeg($dst, $path, 95);
+        imagedestroy($dst);
+        return $ok;
+    }
+
     public static function saveImageBytes(string $bytes, string $outputPath): bool
     {
         $dir = dirname($outputPath);

@@ -1,0 +1,23 @@
+/* Right-to-left overrides for Arabic. Loaded only when html[dir="rtl"].
+ * Polaris v13 already ships with CSS logical properties for most layout, so
+ * this file is intentionally minimal — add overrides only where the auto
+ * mirror breaks (fixed-position chevrons, decorative arrows, custom nav).
+ */
+
+html[dir="rtl"] body {
+  direction: rtl;
+  text-align: start;
+}
+
+html[dir="rtl"] .Polaris-Navigation {
+  right: 0;
+  left: auto;
+}
+
+/* Chevrons / arrows that imply direction should flip. Polaris icons that are
+ * marked bidirectional handle this themselves; this covers inline SVGs or
+ * class-based arrows the app renders directly. */
+html[dir="rtl"] .ff-flip-rtl,
+html[dir="rtl"] [data-flip-rtl] {
+  transform: scaleX(-1);
+}

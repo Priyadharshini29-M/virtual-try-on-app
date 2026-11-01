@@ -1,0 +1,62 @@
+[
+  {
+    "id": "P1",
+    "name": "Unsigned / forged platform calls rejected",
+    "pass": true,
+    "evidence": "FitFyce /platform/stores unsigned=401 forged=401; VTO platform.php unsigned=401"
+  },
+  {
+    "id": "P2",
+    "name": "Sync now: all stores + ledger + balances match FitFyce",
+    "pass": true,
+    "evidence": "\"Synced 3 stores from FitFyce, 0 new wallet transactions.\" stores 3/3, ledger 9/9, balances equal=true"
+  },
+  {
+    "id": "P3",
+    "name": "Merchant login reaches the admin panel",
+    "pass": true,
+    "evidence": "store #1 last_event=login last_login_at=2026-11-01 14:08:53; visible 73 ms after login (page load 10231 ms total)"
+  },
+  {
+    "id": "P4",
+    "name": "Wallet credit in FitFyce shows in admin immediately",
+    "pass": true,
+    "evidence": "balance 25 → 30 in 53 ms after the credit (script incl.: 272 ms); ledger #10 5 admin_grant \"integration test grant\""
+  },
+  {
+    "id": "P5",
+    "name": "Open admin page updates by itself (no manual refresh)",
+    "pass": true,
+    "evidence": "store page showed balance 26 1397 ms after the credit"
+  },
+  {
+    "id": "P6",
+    "name": "Wallet rules from admin are live in the FitFyce app",
+    "pass": true,
+    "evidence": "\"Wallet rules saved. They are live in the FitFyce app now.\"; FitFyce DB costs={\"tryon\":2,\"studio\":1,\"infographic\":1} by admin@test.local; merchant Credits page shows ₹1,799 Growth pack (4862 ms from Save to page rendered)"
+  },
+  {
+    "id": "P7",
+    "name": "VTO try-on debits the linked FitFyce wallet",
+    "pass": true,
+    "evidence": "tryon #12 done credits_charged=2; FitFyce ledger #14 -2 tryon vto/vto-12; admin balance 25 → 23"
+  },
+  {
+    "id": "P8",
+    "name": "Not enough credits: try-on refused, wallet untouched",
+    "pass": true,
+    "evidence": "shopper sees \"Virtual try-on is not available for this store right now.\"; balance 23 → 23"
+  },
+  {
+    "id": "P9",
+    "name": "Wallet rules reset to defaults after the test",
+    "pass": true,
+    "evidence": "admin shows try-on cost 1 (FitFyce constants)"
+  },
+  {
+    "id": "P10",
+    "name": "Admin pages 200, no PHP warnings",
+    "pass": true,
+    "evidence": "stores.php=200 store.php?id=1=200 wallet.php=200 site.php?id=1=200 index.php=200 live.php=200"
+  }
+]

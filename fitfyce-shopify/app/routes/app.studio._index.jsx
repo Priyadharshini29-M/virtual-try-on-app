@@ -3,9 +3,11 @@
  */
 
 import { useState, useRef, useEffect } from "react";
+import { shrinkImageIfLarge } from "../lib/shrink-image.client";
 import PropTypes from "prop-types";
 import { useFetcher, useLoaderData, useNavigate, useNavigation } from "react-router";
 import { FsPage, FsCard, FsButton, FsEmpty, FsIcon } from "../components/fs-ui";
+import { TOURS } from "../lib/tours";
 import WorkflowCards from "../components/WorkflowCards";
 import { authenticate } from "../shopify.server";
 import { ensureMerchant } from "../lib/merchant.server";
@@ -18,13 +20,36 @@ export const loader = async ({ request }) => {
   const { session } = await authenticate.admin(request);
   const apiKey = await ensureMerchant(session);
   const api = phpApiClient(apiKey, PHP_API_URL, session.shop);
-  const [assetsRes, modelsRes, defaultsRes] = await Promise.all([
+  const [assetsRes, modelsRes, defaultsRes, sessionsRes] = await Promise.all([
     api.studioV2ListAssets(),
     api.studioV2ListModels(),
     api.getDefaultModels(),
+    api.studioListSessions({ limit: 200 }),
   ]);
+  const assets = assetsRes.ok ? (assetsRes.data?.assets ?? []) : [];
+
+  // Finished try-on generations: saved (or downloaded) ones belong in the
+  // asset library; everything else is kept automatically as a draft so a
+  // result is never lost just because the merchant navigated away.
+  const finished = (sessionsRes.ok ? (sessionsRes.data?.sessions ?? []) : [])
+    .filter((s) => s.status === "completed" && s.result_image_url);
+  const knownUrls = new Set(assets.map((a) => a.url));
+  const savedGenerations = finished
+    .filter((s) => Number(s.saved_to_gallery) === 1 && !knownUrls.has(s.result_image_url))
+    .map((s) => ({
+      id: s.id,
+      url: s.result_image_url,
+      thumbnail_url: s.result_image_url,
+      source_type: "generation",
+      created_at: s.created_at,
+    }));
+  const drafts = finished
+    .filter((s) => Number(s.saved_to_gallery) === 0)
+    .map((s) => ({ id: s.id, url: s.result_image_url, garment_type: s.garment_type, created_at: s.created_at }));
+
   return {
-    assets: assetsRes.ok ? (assetsRes.data?.assets ?? []) : [],
+    assets: [...assets, ...savedGenerations],
+    drafts,
     models: modelsRes.ok ? (modelsRes.data?.models ?? []) : [],
     defaultModels: defaultsRes.ok ? (defaultsRes.data?.models ?? []) : [],
     shop:   session.shop,
@@ -49,6 +74,10 @@ export const action = async ({ request }) => {
     const res = await api.studioV2DeleteModel(body.saved_model_id);
     return Response.json(res.ok ? res.data : { error: res.error }, { status: res.ok ? 200 : 500 });
   }
+  if (body._action === "save-draft") {
+    const res = await api.studioSaveGallery(body.session_id);
+    return Response.json(res.ok ? { ok: true } : { error: res.error }, { status: res.ok ? 200 : 500 });
+  }
   if (body._action === "toggle-default-model") {
     const res = await api.setDefaultModelActive(body.model_key, body.active);
     return Response.json(res.ok ? res.data : { error: res.error }, { status: res.ok ? 200 : 500 });
@@ -68,12 +97,13 @@ const PER_PAGE = 12;
 
 async function uploadToTemp(file) {
   const fd = new FormData();
-  fd.append("photo", file);
+  // No size limit: big originals are downscaled in the browser first (see shrink-image.client.js).
+  fd.append("photo", await shrinkImageIfLarge(file));
   let res;
   try {
     res = await fetch("/api/upload", { method: "POST", body: fd });
   } catch {
-    throw new Error("Network error — check your connection and try again.");
+    throw new Error("Network error: check your connection and try again.");
   }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error ?? `Upload failed (${res.status})`);
@@ -82,11 +112,9 @@ async function uploadToTemp(file) {
 }
 
 const ACCEPTED_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10 MB
 
 function validateModelFile(file) {
   if (!ACCEPTED_TYPES.includes(file.type)) return "Only JPG, PNG, or WEBP images are supported.";
-  if (file.size > MAX_FILE_BYTES) return "File exceeds the 10 MB limit.";
   return null;
 }
 
@@ -180,23 +208,25 @@ function DashboardView({ assets, loading, onCreate }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-        <label className="fs-search">
-          <FsIcon name="search" size={16} />
+      <div className="fs-lib-toolbar">
+        <label className="fs-lib-search">
+          <FsIcon name="search" size={15} />
           <input type="search" placeholder="Search assets" aria-label="Search assets" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
         </label>
-        <div role="group" aria-label="Filter by type" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <div className="fs-lib-filters" role="group" aria-label="Filter by type">
           {[["all", "All", assets.length], ...Object.entries(SOURCE_LABELS).map(([k, v]) => [k, v, counts[k] ?? 0])].map(([k, label, n]) => (
-            <button key={k} type="button" className={`fs-chip${typeFilter === k ? " is-on" : ""}`} aria-pressed={typeFilter === k} onClick={() => { setTypeFilter(k); setPage(1); }}>
-              {label} <small className="fs-tabular">{n}</small>
+            <button key={k} type="button" className={`fs-lib-filter${typeFilter === k ? " is-on" : ""}`} aria-pressed={typeFilter === k}
+              disabled={k !== "all" && n === 0} onClick={() => { setTypeFilter(k); setPage(1); }}>
+              {label}<span className="fs-tabular">{n}</span>
             </button>
           ))}
         </div>
-        <div style={{ flex: 1 }} />
-        <select className="fs-select" style={{ width: 160 }} aria-label="Sort" value={sort} onChange={(e) => setSort(e.target.value)}>
-          <option value="newest">Newest first</option>
-          <option value="oldest">Oldest first</option>
-        </select>
+        <button type="button" className="fs-lib-sort" aria-label={`Sort: ${sort === "newest" ? "newest first" : "oldest first"}`}
+          onClick={() => setSort((v) => (v === "newest" ? "oldest" : "newest"))}>
+          <FsIcon name="clock" size={14} />
+          {sort === "newest" ? "Newest" : "Oldest"}
+          <FsIcon name="chevronRight" size={12} style={{ transform: sort === "newest" ? "rotate(90deg)" : "rotate(-90deg)" }} />
+        </button>
       </div>
 
       {filtered.length === 0 ? (
@@ -209,13 +239,13 @@ function DashboardView({ assets, loading, onCreate }) {
                 <AssetImage src={a.thumbnail_url || a.url} alt={SOURCE_LABELS[a.source_type] ?? "Asset"} />
                 <span className="fs-pill fs-asset-tag">{SOURCE_LABELS[a.source_type] ?? a.source_type}</span>
                 <div className="fs-asset-hover">
-                  <a className="fs-btn fs-btn--primary" href={a.url} target="_blank" rel="noreferrer" style={{ width: "100%" }}><FsIcon name="eye" size={15} />Open full size</a>
-                  <a className="fs-btn" href={`/api/download?url=${encodeURIComponent(a.url)}&filename=${encodeURIComponent(`brix-tryon-${a.id}.jpg`)}`} style={{ width: "100%", background: "#FFFFFF", color: "var(--fs-ink)" }}><FsIcon name="download" size={15} />Download</a>
+                  <a className="fs-btn fs-btn--primary fs-btn--sm" href={a.url} target="_blank" rel="noreferrer" style={{ width: "100%" }}><FsIcon name="eye" size={13} />Open</a>
+                  <a className="fs-btn fs-btn--sm" href={`/api/download?url=${encodeURIComponent(a.url)}&filename=${encodeURIComponent(`brix-tryon-${a.id}.jpg`)}`} style={{ width: "100%", background: "#FFFFFF", color: "var(--fs-ink)" }}><FsIcon name="download" size={13} />Download</a>
                 </div>
               </div>
               <div className="fs-asset-body">
-                <div style={{ fontSize: 14, fontWeight: 600 }}>{SOURCE_LABELS[a.source_type] ?? "Asset"}</div>
-                <div style={{ fontSize: 12, color: "var(--fs-muted)", marginTop: 3 }}>{fmtDate(a.created_at)}</div>
+                <div className="fs-asset-title">{SOURCE_LABELS[a.source_type] ?? "Asset"}</div>
+                <div className="fs-asset-date">{fmtDate(a.created_at)}</div>
               </div>
             </article>
           ))}
@@ -240,6 +270,70 @@ function DashboardView({ assets, loading, onCreate }) {
 }
 
 DashboardView.propTypes = { assets: PropTypes.array, loading: PropTypes.bool, onCreate: PropTypes.func };
+
+// ── Drafts ────────────────────────────────────────────────────────────────────
+
+const GARMENT_LABELS = { top: "Top wear", bottom: "Bottom wear", full: "Full body", outfit: "Paired outfit", group: "Duo / group" };
+
+/**
+ * Finished generations the merchant hasn't saved or downloaded yet. They are
+ * kept here automatically; saving or downloading moves one into the library.
+ */
+function DraftsView({ drafts, loading, onCreate }) {
+  const fetcher = useFetcher();
+  const [moved, setMoved] = useState(() => new Set());
+  const visible = drafts.filter((d) => !moved.has(d.id));
+
+  const keep = (id) => {
+    setMoved((prev) => new Set(prev).add(id));
+    fetcher.submit({ _action: "save-draft", session_id: id }, { method: "POST", encType: "application/json" });
+  };
+
+  if (loading) {
+    return <div className="fs-asset-grid">{Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}</div>;
+  }
+  if (visible.length === 0) {
+    return (
+      <FsCard>
+        <FsEmpty icon="image" text="No drafts. Generated images you haven't saved or downloaded yet are kept here automatically." cta="Create new asset" onClick={onCreate} />
+      </FsCard>
+    );
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <p className="fs-sub" style={{ fontSize: 12, margin: 0 }}>
+        Kept automatically: save or download a draft to move it into your asset library.
+      </p>
+      <div className="fs-asset-grid">
+        {visible.map((d) => (
+          <article key={d.id} className="fs-card fs-asset">
+            <div className="fs-asset-img">
+              <AssetImage src={d.url} alt="Draft" />
+              <span className="fs-pill fs-asset-tag">Draft</span>
+              <div className="fs-asset-hover">
+                <button type="button" className="fs-btn fs-btn--primary fs-btn--sm" style={{ width: "100%" }} onClick={() => keep(d.id)}>
+                  <FsIcon name="check" size={13} />Save to library
+                </button>
+                <a className="fs-btn fs-btn--sm" style={{ width: "100%", background: "#FFFFFF", color: "var(--fs-ink)" }}
+                  href={`/api/download?url=${encodeURIComponent(d.url)}&filename=${encodeURIComponent(`brix-tryon-${d.id}.jpg`)}`}
+                  onClick={() => keep(d.id)}>
+                  <FsIcon name="download" size={13} />Download
+                </a>
+              </div>
+            </div>
+            <div className="fs-asset-body">
+              <div className="fs-asset-title">{GARMENT_LABELS[d.garment_type] ?? "Generated image"}</div>
+              <div className="fs-asset-date">{fmtDate(d.created_at)}</div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+DraftsView.propTypes = { drafts: PropTypes.array, loading: PropTypes.bool, onCreate: PropTypes.func };
 
 // ── Saved Models (flat, no categorization) ────────────────────────────────────
 
@@ -299,7 +393,7 @@ function ModelsView({ models, loading }) {
         <span className="fs-tile-icon"><FsIcon name="users" size={20} /></span>
         <div style={{ flex: 1, minWidth: 220 }}>
           <div style={{ fontSize: 15, fontWeight: 600 }}>Custom models</div>
-          <p className="fs-card-sub" style={{ marginTop: 2 }}>Front-facing, full body, clean background · JPG, PNG or WEBP up to 10 MB</p>
+          <p className="fs-card-sub" style={{ marginTop: 2 }}>Front-facing, full body, clean background · JPG, PNG or WEBP, any size</p>
         </div>
         <FsButton icon="upload" disabled={uploading} onClick={() => inputRef.current?.click()}>{uploading ? "Uploading…" : "Upload model"}</FsButton>
         <input ref={inputRef} type="file" accept="image/jpeg,image/jpg,image/png,image/webp" style={{ display: "none" }} aria-label="Upload model photo"
@@ -423,7 +517,7 @@ DefaultLibrary.propTypes = { models: PropTypes.array };
 // ── Page root ─────────────────────────────────────────────────────────────────
 
 export default function StudioPage() {
-  const { assets, models, defaultModels = [] } = useLoaderData();
+  const { assets, drafts = [], models, defaultModels = [] } = useLoaderData();
   const navigate = useNavigate();
   const navigation = useNavigation();
   const [tab, setTab] = useState("assets");
@@ -432,6 +526,7 @@ export default function StudioPage() {
 
   return (
     <FsPage
+      tour={TOURS.studio}
       title="AI Studio"
       subtitle="Turn one product photo into on-model images and marketing creatives."
       actions={<FsButton icon="plus" onClick={createNew}>Create new asset</FsButton>}
@@ -439,22 +534,29 @@ export default function StudioPage() {
       <section style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         <div>
           <h3 className="fs-h2">Start a workflow</h3>
-          <p className="fs-sub" style={{ fontSize: 13 }}>Pick what you have — we&apos;ll guide you step by step.</p>
+          <p className="fs-sub" style={{ fontSize: 13 }}>Pick what you have: we&apos;ll guide you step by step.</p>
         </div>
         <WorkflowCards />
       </section>
 
       <section style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 8 }}>
-        <div role="tablist" aria-label="Library" className="fs-tabs">
-          <button type="button" role="tab" aria-selected={tab === "assets"} className={tab === "assets" ? "is-on" : ""} onClick={() => setTab("assets")}>
-            Asset library <span className="fs-pill fs-pill--neutral" style={{ height: 20, padding: "0 7px" }}>{assets.length}</span>
-          </button>
-          <button type="button" role="tab" aria-selected={tab === "models"} className={tab === "models" ? "is-on" : ""} onClick={() => setTab("models")}>
-            Models <span className="fs-pill fs-pill--neutral" style={{ height: 20, padding: "0 7px" }}>{models.length + defaultModels.filter((m) => m.status === "ready").length}</span>
-          </button>
+        <div role="tablist" aria-label="Library" className="fs-lib-tabs">
+          {[
+            ["assets", "Asset library", "image", assets.length],
+            ["drafts", "Drafts", "clock", drafts.length],
+            ["models", "Models", "users", models.length + defaultModels.filter((m) => m.status === "ready").length],
+          ].map(([id, label, icon, n]) => (
+            <button key={id} type="button" role="tab" aria-selected={tab === id} className={`fs-lib-tab${tab === id ? " is-on" : ""}`} onClick={() => setTab(id)}>
+              <FsIcon name={icon} size={15} />
+              {label}
+              <span className={`fs-lib-count fs-tabular${id === "drafts" && n > 0 ? " is-alert" : ""}`}>{n}</span>
+            </button>
+          ))}
         </div>
         {tab === "assets"
           ? <DashboardView assets={assets} loading={loading} onCreate={createNew} />
+          : tab === "drafts"
+          ? <DraftsView drafts={drafts} loading={loading} onCreate={createNew} />
           : (
             <>
               <ModelsView models={models} loading={loading} />

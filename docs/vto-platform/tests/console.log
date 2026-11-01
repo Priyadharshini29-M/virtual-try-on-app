@@ -1,0 +1,86 @@
+[a] [VTO] config {ok: true, site: Object, plans: Array(3), ui: Object, patterns: Object}
+[a] [VTO] page type: collection
+[a] [VTO] zone cards plan scrapy found nothing → fallback
+[a] [VTO] zone cards → injected by plan block 4 {plan: block, learned: Array(3), cards: Array(4), cardSelector: div.tile-wrap}
+[b] [VTO] config {ok: true, site: Object, plans: Array(3), ui: Object, patterns: Object}
+[b] [VTO] page type: product
+[b] [VTO] zone product plan scrapy found nothing → fallback
+[b] [VTO] zone product → injected by plan block 2 {plan: block, learned: Array(2), addToCart: button.x9-btn, productImage: img}
+[b] [VTO] zone cards plan scrapy found nothing → fallback
+[b] [VTO] zone cards plan block found nothing → fallback
+[b] [VTO] zone cards plan inspect found nothing → fallback
+[b] [VTO] zone cards plan scrapy found nothing → fallback
+[b] [VTO] zone cards plan block found nothing → fallback
+[b] [VTO] zone cards plan inspect found nothing → fallback
+[b] [VTO] zone cards plan scrapy found nothing → fallback
+[b] [VTO] zone cards plan block found nothing → fallback
+[b] [VTO] zone cards plan inspect found nothing → fallback
+[b] [VTO] zone cards plan scrapy found nothing → fallback
+[b] [VTO] zone cards plan block found nothing → fallback
+[b] [VTO] zone cards plan inspect found nothing → fallback
+[d] [VTO] config {ok: true, site: Object, plans: Array(3), ui: Object, patterns: Object}
+[d] [VTO] page type: product
+[d] [VTO] zone product → injected by plan inspect 2 {plan: inspect, learned: Array(2), addToCart: button.x9-btn, productImage: img}
+[d] [VTO] zone cards plan inspect found nothing → fallback
+[d] [VTO] zone cards plan block found nothing → fallback
+[d] [VTO] zone cards plan scrapy found nothing → fallback
+[d] [VTO] zone cards plan inspect found nothing → fallback
+[d] [VTO] zone cards plan block found nothing → fallback
+[d] [VTO] zone cards plan scrapy found nothing → fallback
+[d] [VTO] zone cards plan inspect found nothing → fallback
+[d] [VTO] zone cards plan block found nothing → fallback
+[d] [VTO] zone cards plan scrapy found nothing → fallback
+[e1-collection] [VTO] config {ok: true, site: Object, plans: Array(3), ui: Object, patterns: Object}
+[e1-collection] [VTO] page type: collection
+[e1-collection] [VTO] zone cards plan scrapy found nothing → fallback
+[e1-collection] [VTO] zone cards → injected by plan block 4 {plan: block, learned: Array(3), cards: Array(4), cardSelector: div.tile-wrap}
+[e1-product] [VTO] config {ok: true, site: Object, plans: Array(3), ui: Object, patterns: Object}
+[e1-product] [VTO] page type: product
+[e1-product] [VTO] zone product plan scrapy found nothing → fallback
+[e1-product] [VTO] zone product → injected by plan block 2 {plan: block, learned: Array(2), addToCart: button.x9-btn, productImage: img}
+[e1-product] [VTO] zone cards plan scrapy found nothing → fallback
+[e1-product] [VTO] zone cards plan block found nothing → fallback
+[e1-product] [VTO] zone cards plan inspect found nothing → fallback
+[e1-product] [VTO] zone cards plan scrapy found nothing → fallback
+[e1-product] [VTO] zone cards plan block found nothing → fallback
+[e1-product] [VTO] zone cards plan inspect found nothing → fallback
+[e2-collection] [VTO] config {ok: true, site: Object, plans: Array(3), ui: Object, patterns: Object}
+[e2-collection] [VTO] page type: collection
+[e2-collection] [VTO] zone cards plan scrapy found nothing → fallback
+[e2-collection] [VTO] zone cards → injected by plan block 4 {plan: block, learned: Array(3), cards: Array(4), cardSelector: div.tile-wrap}
+[e2-product] [VTO] config {ok: true, site: Object, plans: Array(3), ui: Object, patterns: Object}
+[e2-product] [VTO] page type: product
+[e2-product] [VTO] zone product → injected by plan scrapy 2 {plan: scrapy, hits: Array(2), misses: Array(0), learned: Array(0), addToCart: button.x9-btn}
+[e2-product] [VTO] zone cards plan scrapy found nothing → fallback
+[e2-product] [VTO] zone cards plan block found nothing → fallback
+[e2-product] [VTO] zone cards plan inspect found nothing → fallback
+[e2-product] [VTO] zone cards plan scrapy found nothing → fallback
+[e2-product] [VTO] zone cards plan block found nothing → fallback
+[e2-product] [VTO] zone cards plan inspect found nothing → fallback
+[e3-collection] [VTO] config {ok: true, site: Object, plans: Array(3), ui: Object, patterns: Object}
+[e3-collection] [VTO] page type: collection
+[e3-collection] [VTO] zone cards → injected by plan scrapy 4 {plan: scrapy, hits: Array(1), misses: Array(0), learned: Array(0), cards: Array(4)}
+[e3-product] [VTO] config {ok: true, site: Object, plans: Array(3), ui: Object, patterns: Object}
+[e3-product] [VTO] page type: product
+[e3-product] [VTO] zone product → injected by plan scrapy 2 {plan: scrapy, hits: Array(2), misses: Array(0), learned: Array(0), addToCart: button.x9-btn}
+[e3-product] [VTO] zone cards plan scrapy found nothing → fallback
+[e3-product] [VTO] zone cards plan block found nothing → fallback
+[e3-product] [VTO] zone cards plan inspect found nothing → fallback
+[e3-product] [VTO] zone cards plan scrapy found nothing → fallback
+[e3-product] [VTO] zone cards plan block found nothing → fallback
+[e3-product] [VTO] zone cards plan inspect found nothing → fallback
+[e4-collection] [VTO] config {ok: true, site: Object, plans: Array(3), ui: Object, patterns: Object}
+[e4-collection] [VTO] page type: collection
+[e4-collection] [VTO] zone cards → injected by plan scrapy 4 {plan: scrapy, hits: Array(1), misses: Array(0), learned: Array(0), cards: Array(4)}
+[e4-product] [VTO] config {ok: true, site: Object, plans: Array(3), ui: Object, patterns: Object}
+[e4-product] [VTO] page type: product
+[e4-product] [VTO] zone product → injected by plan scrapy 2 {plan: scrapy, hits: Array(2), misses: Array(0), learned: Array(0), addToCart: button.x9-btn}
+[e4-product] [VTO] zone cards plan scrapy found nothing → fallback
+[e4-product] [VTO] zone cards plan block found nothing → fallback
+[e4-product] [VTO] zone cards plan inspect found nothing → fallback
+[e4-product] [VTO] zone cards plan scrapy found nothing → fallback
+[e4-product] [VTO] zone cards plan block found nothing → fallback
+[e4-product] [VTO] zone cards plan inspect found nothing → fallback
+[e4-product] [VTO] zone cards plan scrapy found nothing → fallback
+[e4-product] [VTO] zone cards plan block found nothing → fallback
+[e4-product] [VTO] zone cards plan inspect found nothing → fallback

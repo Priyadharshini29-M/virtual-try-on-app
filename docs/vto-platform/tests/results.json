@@ -1,0 +1,426 @@
+{
+  "results": [
+    {
+      "id": "a1",
+      "name": "Collection: card icons injected",
+      "pass": true,
+      "plan": "block",
+      "evidence": "4 icons; log \"[VTO] zone cards → injected by plan block 4 {plan: block, learned: Array(3), cards: Array(4), cardSelector: div.tile-wrap}\"; event #220 inject_ok/block {\"injected\":4,\"tried\":[\"scrapy\",\"block\"]}"
+    },
+    {
+      "id": "a2",
+      "name": "Collection: more icons after infinite scroll (observer)",
+      "pass": true,
+      "plan": "block",
+      "evidence": "4 → 8 card icons after the 2.5 s append"
+    },
+    {
+      "id": "b1",
+      "name": "Product: Try-On button directly after \"ADD TO BAG\"",
+      "pass": true,
+      "plan": "block",
+      "evidence": "previous sibling = BUTTON.x9-btn \"ADD TO BAG\"; 1 empty plan attempts before the 1.2 s render; event #222 inject_ok/block {\"injected\":2,\"tried\":[\"scrapy\",\"block\"]}"
+    },
+    {
+      "id": "b2",
+      "name": "Product: icon on main image",
+      "pass": true,
+      "plan": "block",
+      "evidence": ".vto-icon.vto-main inside .media"
+    },
+    {
+      "id": "c",
+      "name": "Try-on: upload → Generate my look → result image",
+      "pass": true,
+      "plan": "block",
+      "evidence": "result http://localhost:8080/backend/media.php?f=result%2F0da261d4df311cdd69d6de141eb9b81e.jpg; tryon_sessions #14 mock/done/product_button/block 74 ms"
+    },
+    {
+      "id": "d",
+      "name": "plan_order=inspect,block,scrapy → Plan C injects product page",
+      "pass": true,
+      "plan": "inspect",
+      "evidence": "log \"[VTO] zone product → injected by plan inspect 2 {plan: inspect, learned: Array(2), addToCart: button.x9-btn, productImage: img}\"; event #226 inject_ok/inspect"
+    },
+    {
+      "id": "e1",
+      "name": "Learned selectors pending → active",
+      "pass": true,
+      "plan": "block/inspect",
+      "evidence": "#139 collection.card=\"div.tile-wrap\" block hits=4 active; #140 collection.card_image=\"img\" block hits=3 active; #141 collection.card_link=\"a[href]\" block hits=3 active; #142 product.add_to_cart=\"button.x9-btn\" block hits=5 active; #143 product.product_image=\"div.media > img\" block hits=5 active"
+    },
+    {
+      "id": "e2",
+      "name": "Next visit: Plan A (scrapy) wins on both pages",
+      "pass": true,
+      "plan": "scrapy",
+      "evidence": "visit plans #1: cards=block product=block | #2: cards=block product=scrapy | #3: cards=scrapy product=scrapy | #4: cards=scrapy product=scrapy"
+    },
+    {
+      "id": "f",
+      "name": "Scan queued → worker.py --once → done, selectors saved",
+      "pass": true,
+      "plan": "scrapy",
+      "evidence": "scan #9 done pages=7 selectors=3; card=\"div.tile-wrap\" active conf=0.730, card_image=\"img\" active conf=0.760, card_link=\"a[href]\" active conf=0.760"
+    },
+    {
+      "id": "g",
+      "name": "Admin: login + all pages 200, no PHP warnings",
+      "pass": true,
+      "plan": "-",
+      "evidence": "index.php=200 sites.php=200 site.php?id=1=200 scans.php=200 scans.php?id=9=200 tryons.php=200 events.php=200 events.php?export=csv=200 admins.php=200 | server log PHP warnings: 0"
+    }
+  ],
+  "snapshots": {
+    "selectors_initial": [],
+    "tryon": {
+      "id": "14",
+      "provider": "mock",
+      "status": "done",
+      "trigger_from": "product_button",
+      "plan_used": "block",
+      "duration_ms": "74",
+      "result_image": "result/0da261d4df311cdd69d6de141eb9b81e.jpg"
+    },
+    "selectors_before_learning": [
+      {
+        "id": "139",
+        "page_type": "collection",
+        "target": "card",
+        "selector": "div.tile-wrap",
+        "source": "block",
+        "confidence": "0.500",
+        "hits": "1",
+        "misses": "0",
+        "status": "pending"
+      },
+      {
+        "id": "140",
+        "page_type": "collection",
+        "target": "card_image",
+        "selector": "img",
+        "source": "block",
+        "confidence": "0.600",
+        "hits": "1",
+        "misses": "0",
+        "status": "pending"
+      },
+      {
+        "id": "141",
+        "page_type": "collection",
+        "target": "card_link",
+        "selector": "a[href]",
+        "source": "block",
+        "confidence": "0.600",
+        "hits": "1",
+        "misses": "0",
+        "status": "pending"
+      },
+      {
+        "id": "142",
+        "page_type": "product",
+        "target": "add_to_cart",
+        "selector": "button.x9-btn",
+        "source": "block",
+        "confidence": "0.900",
+        "hits": "2",
+        "misses": "0",
+        "status": "pending"
+      },
+      {
+        "id": "143",
+        "page_type": "product",
+        "target": "product_image",
+        "selector": "div.media > img",
+        "source": "block",
+        "confidence": "0.650",
+        "hits": "2",
+        "misses": "0",
+        "status": "pending"
+      }
+    ],
+    "selectors_after_learning": [
+      {
+        "id": "139",
+        "page_type": "collection",
+        "target": "card",
+        "selector": "div.tile-wrap",
+        "source": "block",
+        "confidence": "0.500",
+        "hits": "4",
+        "misses": "0",
+        "status": "active"
+      },
+      {
+        "id": "140",
+        "page_type": "collection",
+        "target": "card_image",
+        "selector": "img",
+        "source": "block",
+        "confidence": "0.600",
+        "hits": "3",
+        "misses": "0",
+        "status": "active"
+      },
+      {
+        "id": "141",
+        "page_type": "collection",
+        "target": "card_link",
+        "selector": "a[href]",
+        "source": "block",
+        "confidence": "0.600",
+        "hits": "3",
+        "misses": "0",
+        "status": "active"
+      },
+      {
+        "id": "142",
+        "page_type": "product",
+        "target": "add_to_cart",
+        "selector": "button.x9-btn",
+        "source": "block",
+        "confidence": "0.900",
+        "hits": "5",
+        "misses": "0",
+        "status": "active"
+      },
+      {
+        "id": "143",
+        "page_type": "product",
+        "target": "product_image",
+        "selector": "div.media > img",
+        "source": "block",
+        "confidence": "0.650",
+        "hits": "5",
+        "misses": "0",
+        "status": "active"
+      }
+    ],
+    "learning_visits": [
+      {
+        "visit": 1,
+        "collection": "block",
+        "product": "block",
+        "selectors": "card:pending/2 card_image:pending/2 card_link:pending/2 add_to_cart:active/3 product_image:active/3"
+      },
+      {
+        "visit": 2,
+        "collection": "block",
+        "product": "scrapy",
+        "selectors": "card:active/3 card_image:active/3 card_link:active/3 add_to_cart:active/4 product_image:active/4"
+      },
+      {
+        "visit": 3,
+        "collection": "scrapy",
+        "product": "scrapy",
+        "selectors": "card:active/4 card_image:active/3 card_link:active/3 add_to_cart:active/5 product_image:active/5"
+      },
+      {
+        "visit": 4,
+        "collection": "scrapy",
+        "product": "scrapy"
+      }
+    ],
+    "scan": {
+      "id": "9",
+      "status": "done",
+      "pages_crawled": "7",
+      "selectors_found": "3",
+      "started_at": "2026-11-01 14:10:19",
+      "finished_at": "2026-11-01 14:10:26",
+      "log": "[collection] http://localhost:8080/demo/index.html -> card, card_image, card_link\\n[product] http://localhost:8080/demo/product.html?id=4 -> nothing\\n[product] http://localhost:8080/demo/product.html?id=3 -> nothing\\n[product] http://localhost:8080/demo/product.html?id=2 -> nothing\\n[product] http://localhost:8080/demo/product.html?id=1 -> nothing\\n[product] http://localhost:8080/demo/product.html -> nothing\\n[collection] http://localhost:8080/demo/index.html -> card, card_image, card_link\\ncollection.card: div.tile-wrap  (pages=2/2, conf=0.73)\\ncollection.card_image: img  (pages=2/2, conf=0.76)\\ncollection.card_link: a[href]  (pages=2/2, conf=0.76)\\nFinished (finished). pages=7 product=5 collection=2 selectors=3\\n"
+    },
+    "worker_output": "→ scan #9\r\n✓ scan #9 exit=0\r\n",
+    "selectors_after_scan": [
+      {
+        "id": "139",
+        "page_type": "collection",
+        "target": "card",
+        "selector": "div.tile-wrap",
+        "source": "block",
+        "confidence": "0.730",
+        "hits": "5",
+        "misses": "0",
+        "status": "active"
+      },
+      {
+        "id": "140",
+        "page_type": "collection",
+        "target": "card_image",
+        "selector": "img",
+        "source": "block",
+        "confidence": "0.760",
+        "hits": "3",
+        "misses": "0",
+        "status": "active"
+      },
+      {
+        "id": "141",
+        "page_type": "collection",
+        "target": "card_link",
+        "selector": "a[href]",
+        "source": "block",
+        "confidence": "0.760",
+        "hits": "3",
+        "misses": "0",
+        "status": "active"
+      },
+      {
+        "id": "142",
+        "page_type": "product",
+        "target": "add_to_cart",
+        "selector": "button.x9-btn",
+        "source": "block",
+        "confidence": "0.900",
+        "hits": "6",
+        "misses": "0",
+        "status": "active"
+      },
+      {
+        "id": "143",
+        "page_type": "product",
+        "target": "product_image",
+        "selector": "div.media > img",
+        "source": "block",
+        "confidence": "0.650",
+        "hits": "6",
+        "misses": "0",
+        "status": "active"
+      }
+    ],
+    "admin_pages": [
+      {
+        "page": "index.php",
+        "status": 200,
+        "warning": null
+      },
+      {
+        "page": "sites.php",
+        "status": 200,
+        "warning": null
+      },
+      {
+        "page": "site.php?id=1",
+        "status": 200,
+        "warning": null
+      },
+      {
+        "page": "scans.php",
+        "status": 200,
+        "warning": null
+      },
+      {
+        "page": "scans.php?id=9",
+        "status": 200,
+        "warning": null
+      },
+      {
+        "page": "tryons.php",
+        "status": 200,
+        "warning": null
+      },
+      {
+        "page": "events.php",
+        "status": 200,
+        "warning": null
+      },
+      {
+        "page": "events.php?export=csv",
+        "status": 200,
+        "warning": null
+      },
+      {
+        "page": "admins.php",
+        "status": 200,
+        "warning": null
+      }
+    ],
+    "server_log_warnings": [],
+    "events_tail": [
+      {
+        "id": "237",
+        "type": "inject_ok",
+        "plan": "scrapy",
+        "page_type": "product",
+        "meta": "{\"injected\":2,\"tried\":[\"scrapy\"]}"
+      },
+      {
+        "id": "236",
+        "type": "inject_ok",
+        "plan": "scrapy",
+        "page_type": "collection",
+        "meta": "{\"injected\":4,\"tried\":[\"scrapy\"]}"
+      },
+      {
+        "id": "235",
+        "type": "inject_ok",
+        "plan": "scrapy",
+        "page_type": "product",
+        "meta": "{\"injected\":2,\"tried\":[\"scrapy\"]}"
+      },
+      {
+        "id": "234",
+        "type": "inject_ok",
+        "plan": "scrapy",
+        "page_type": "collection",
+        "meta": "{\"injected\":4,\"tried\":[\"scrapy\"]}"
+      },
+      {
+        "id": "233",
+        "type": "inject_ok",
+        "plan": "scrapy",
+        "page_type": "product",
+        "meta": "{\"injected\":2,\"tried\":[\"scrapy\"]}"
+      },
+      {
+        "id": "232",
+        "type": "plan_fallback",
+        "plan": "block",
+        "page_type": "collection",
+        "meta": "{\"tried\":[\"scrapy\",\"block\"]}"
+      },
+      {
+        "id": "231",
+        "type": "inject_ok",
+        "plan": "block",
+        "page_type": "collection",
+        "meta": "{\"injected\":4,\"tried\":[\"scrapy\",\"block\"]}"
+      },
+      {
+        "id": "230",
+        "type": "plan_fallback",
+        "plan": "block",
+        "page_type": "product",
+        "meta": "{\"tried\":[\"scrapy\",\"block\"]}"
+      },
+      {
+        "id": "229",
+        "type": "inject_ok",
+        "plan": "block",
+        "page_type": "product",
+        "meta": "{\"injected\":2,\"tried\":[\"scrapy\",\"block\"]}"
+      },
+      {
+        "id": "228",
+        "type": "plan_fallback",
+        "plan": "block",
+        "page_type": "collection",
+        "meta": "{\"tried\":[\"scrapy\",\"block\"]}"
+      },
+      {
+        "id": "227",
+        "type": "inject_ok",
+        "plan": "block",
+        "page_type": "collection",
+        "meta": "{\"injected\":4,\"tried\":[\"scrapy\",\"block\"]}"
+      },
+      {
+        "id": "226",
+        "type": "inject_ok",
+        "plan": "inspect",
+        "page_type": "product",
+        "meta": "{\"injected\":2,\"tried\":[\"inspect\"]}"
+      }
+    ]
+  }
+}

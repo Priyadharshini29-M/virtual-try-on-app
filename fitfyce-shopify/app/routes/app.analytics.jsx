@@ -9,6 +9,7 @@ import { ensureMerchant } from "../lib/merchant.server";
 import { PHP_API_URL } from "../lib/env.server";
 import { phpPlanToUi, planAtLeast } from "../lib/plans";
 import { FsPage, FsCard, FsButton, FsPill, FsSparkline, FsEmpty, FsIcon } from "../components/fs-ui";
+import { TOURS } from "../lib/tours";
 
 function getFromDate(range) {
   const d = new Date();
@@ -198,39 +199,23 @@ function Funnel({ kpis }) {
 Funnel.propTypes = { kpis: PropTypes.object };
 
 // Engagement funnel (widget open → camera permission → try-on → save →
-// cart). Unlike Funnel above, these steps aren't tracked yet — the widget
-// doesn't instrument camera-permission grants or count opens separately
-// from try-on starts — so this renders as an always-visible teaser (blurred
-// placeholder values, illustrative bar heights) gated behind the app's top
-// plan tier, the same pattern as the reference design's "Scale" lock, using
-// this app's actual top plan ("pro") instead since there's no Scale tier here.
-const ENGAGEMENT_STAGES = [
-  { label: "Widget Opens", h: 132 },
-  { label: "Camera Granted", h: 104 },
-  { label: "Try-on Attempted", h: 80 },
-  { label: "Looks Saved", h: 54 },
-  { label: "Add to Cart", h: 38 },
+// cart), gated behind the app's top plan tier, the same pattern as the
+// reference design's "Scale" lock, using this app's actual top plan ("pro")
+// instead since there's no Scale tier here.
+//
+// Horizontal proportional bars, not a line/dot chart: a line connecting five
+// points breaks down the moment any stage is 0 (a real possibility: e.g.
+// widget_open_count/camera_granted_count only recently started being
+// tracked, so early data can be sparse): it draws a misleading spike
+// instead of a funnel. Independent bars degrade gracefully instead: a
+// zero-value stage is just a thin/empty bar, never distorts the others.
+const ENGAGEMENT_STAGES_TEASER = [
+  { label: "Widget Opens", val: 100 },
+  { label: "Camera Granted", val: 78 },
+  { label: "Try-on Attempted", val: 58 },
+  { label: "Looks Saved", val: 34 },
+  { label: "Add to Cart", val: 19 },
 ];
-
-// Chart geometry — a combo bar+line funnel chart drawn in one SVG (bars,
-// baseline, connecting trend line and marker dots), not just floating divs.
-const CHART_W = 500;
-const CHART_H = 150;
-const CHART_PAD_TOP = 26; // headroom for the line/dots above the tallest bar
-const N = ENGAGEMENT_STAGES.length;
-const SLOT = CHART_W / N;
-const BAR_W = SLOT * 0.46;
-
-/** Builds {cx, barH, topY, barX} for each stage from an array of raw values. */
-function buildChartPoints(stages) {
-  const maxVal = Math.max(1, ...stages.map((s) => s.val));
-  return stages.map((s, i) => {
-    const cx = SLOT * i + SLOT / 2;
-    const barH = s.val > 0 ? Math.max(6, (s.val / maxVal) * (CHART_H - CHART_PAD_TOP)) : 0;
-    const topY = CHART_H - barH;
-    return { ...s, cx, barH, topY, barX: cx - BAR_W / 2 };
-  });
-}
 
 function EngagementFunnelTeaser({ currentPlan, kpis, className }) {
   const unlocked = planAtLeast(currentPlan, "pro");
@@ -244,14 +229,13 @@ function EngagementFunnelTeaser({ currentPlan, kpis, className }) {
   ];
   const hasRealData = realStages.some((s) => s.val > 0);
 
-  // Locked (teaser): illustrative descending shape, values always blurred —
+  // Locked (teaser): illustrative descending shape, values always blurred:
   // showing a brand-new shop's real (all-zero) funnel here would just look
   // broken, and the point of the teaser is "upgrade to see this", not to
   // leak accurate relative proportions for free.
   // Unlocked (Pro): the actual tracked counts.
-  const stages = unlocked ? realStages : ENGAGEMENT_STAGES.map((s) => ({ label: s.label, val: s.h }));
-  const points = buildChartPoints(stages);
-  const linePoints = points.map((p) => `${p.cx},${p.topY - 10}`).join(" ");
+  const stages = unlocked ? realStages : ENGAGEMENT_STAGES_TEASER;
+  const maxVal = Math.max(1, ...stages.map((s) => s.val));
 
   return (
     <FsCard
@@ -267,64 +251,49 @@ function EngagementFunnelTeaser({ currentPlan, kpis, className }) {
         ) : null
       }
     >
-      <div style={{ position: "relative", padding: "4px 4px 0" }}>
-        <svg
-          viewBox={`0 0 ${CHART_W} ${CHART_H}`}
-          preserveAspectRatio="none"
-          aria-hidden="true"
-          style={{ width: "100%", height: 170, display: "block" }}
-        >
-          <line x1="0" y1={CHART_H - 0.5} x2={CHART_W} y2={CHART_H - 0.5} stroke="#E5E7EB" strokeWidth="1" />
-          {points.map((p) => (
-            <rect key={p.label} x={p.barX} y={p.topY} width={BAR_W} height={p.barH} rx="8" fill="#D1D5DB" />
-          ))}
-          <polyline points={linePoints} fill="none" stroke="var(--fs-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-          {points.map((p) => (
-            <circle key={`${p.label}-dot`} cx={p.cx} cy={p.topY - 10} r="4.5" fill="#FFFFFF" stroke="var(--fs-primary)" strokeWidth="2.5" />
-          ))}
-        </svg>
-        {points.map((p) => (
-          unlocked ? (
-            <span
-              key={`${p.label}-val`}
-              className="fs-tabular"
-              style={{
-                position: "absolute",
-                left: `${(p.cx / CHART_W) * 100}%`,
-                top: `${((p.topY - 26) / CHART_H) * 100}%`,
-                transform: "translateX(-50%)",
-                fontSize: 12, fontWeight: 700, color: "var(--fs-ink)", whiteSpace: "nowrap",
-              }}
-            >
-              {p.val.toLocaleString()}
-            </span>
-          ) : (
-            <span
-              key={`${p.label}-blur`}
-              aria-hidden="true"
-              style={{
-                position: "absolute",
-                left: `${(p.cx / CHART_W) * 100}%`,
-                top: `${((p.topY - 30) / CHART_H) * 100}%`,
-                transform: "translateX(-50%)",
-                width: 30, height: 13, borderRadius: 6, background: "#D1D5DB", filter: "blur(3px)",
-              }}
-            />
-          )
-        ))}
-      </div>
-      <div style={{ display: "flex", justifyContent: "space-around", marginTop: 4 }}>
-        {stages.map((s) => (
-          <span key={s.label} style={{ flex: 1, minWidth: 0, textAlign: "center", fontSize: 11, color: "var(--fs-muted)", lineHeight: 1.3 }}>{s.label}</span>
-        ))}
+      <div style={{ display: "flex", flexDirection: "column", gap: 16, padding: "4px 2px 0" }}>
+        {stages.map((s, i) => {
+          const widthPct = s.val > 0 ? Math.max(3, (s.val / maxVal) * 100) : 0;
+          const prevVal = i > 0 ? stages[i - 1].val : null;
+          const stepRate = unlocked && prevVal ? Math.round((s.val / prevVal) * 100) : null;
+          return (
+            <div key={s.label} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "var(--fs-ink)" }}>{s.label}</span>
+                <span style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                  {stepRate !== null && (
+                    <span className="fs-tabular" style={{ fontSize: 11, color: "var(--fs-muted)" }}>{stepRate}% of prev.</span>
+                  )}
+                  {unlocked ? (
+                    <span className="fs-tabular" style={{ fontSize: 15, fontWeight: 700, color: "var(--fs-ink)" }}>{s.val.toLocaleString()}</span>
+                  ) : (
+                    <span aria-hidden="true" style={{ display: "inline-block", width: 32, height: 13, borderRadius: 6, background: "#D1D5DB", filter: "blur(3px)" }} />
+                  )}
+                </span>
+              </div>
+              <div style={{ height: 12, borderRadius: 999, background: "#F1F1F3", overflow: "hidden" }}>
+                <div
+                  style={{
+                    width: `${widthPct}%`,
+                    height: "100%",
+                    borderRadius: 999,
+                    background: unlocked ? "var(--fs-primary)" : "#D1D5DB",
+                    opacity: unlocked ? 1 - i * 0.12 : 1,
+                    transition: "width .2s ease",
+                  }}
+                />
+              </div>
+            </div>
+          );
+        })}
       </div>
       {!unlocked && (
-        <FsButton to="/app/plans" variant="plain" style={{ marginTop: 12 }}>
+        <FsButton to="/app/plans" variant="plain" style={{ marginTop: 4 }}>
           See your full engagement funnel → Upgrade to Pro
         </FsButton>
       )}
       {unlocked && !hasRealData && (
-        <p className="fs-help" style={{ marginTop: 8, textAlign: "center" }}>Not enough activity yet in this period to show real numbers.</p>
+        <p className="fs-help" style={{ marginTop: 4, textAlign: "center" }}>Not enough activity yet in this period to show real numbers.</p>
       )}
     </FsCard>
   );
@@ -388,17 +357,21 @@ function TopProducts({ products, currencyCode }) {
     return <FsEmpty icon="trophy" text="Your best-performing products will rank here after the first try-ons." cta="Enable products" to="/app/products" />;
   }
   const money = (v) => Number(v || 0).toLocaleString(undefined, { style: "currency", currency: currencyCode, maximumFractionDigits: 2 });
-  const maxTry = Math.max(...products.map((p) => Number(p.tryon_count) || 0), 1);
+  // "Share" = this product's percentage of total try-ons across the listed
+  // products: not relative to the top product, which the bar used to encode
+  // with no number shown at all.
+  const totalTry = products.reduce((n, p) => n + (Number(p.tryon_count) || 0), 0) || 1;
   return (
     <div className="fs-table-wrap">
       <table className="fs-table">
         <thead>
-          <tr><th style={{ width: 72 }}>Rank</th><th>Product</th><th className="num">Price</th><th className="num">Try-ons</th><th className="num">Orders</th><th className="num">Conversion</th><th style={{ width: 180 }}>Try-on share</th></tr>
+          <tr><th style={{ width: 72 }}>Rank</th><th>Product</th><th className="num">Price</th><th className="num">Try-ons</th><th className="num">Orders</th><th className="num">Conversion</th><th className="num">Try-on share</th></tr>
         </thead>
         <tbody>
           {products.slice(0, 10).map((p, i) => {
             const t = Number(p.tryon_count) || 0;
             const o = Number(p.buy_count) || 0;
+            const share = (t / totalTry) * 100;
             const m = MEDALS[i];
             return (
               <tr key={p.id || i}>
@@ -415,11 +388,7 @@ function TopProducts({ products, currencyCode }) {
                 <td className="num fs-tabular">{t.toLocaleString()}</td>
                 <td className="num fs-tabular">{o.toLocaleString()}</td>
                 <td className="num fs-tabular" style={{ fontWeight: 600 }}>{t > 0 ? `${((o / t) * 100).toFixed(1)}%` : "—"}</td>
-                <td>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <div className="fs-progress fs-progress--primary" style={{ height: 6, flex: 1 }}><span style={{ width: `${(t / maxTry) * 100}%` }} /></div>
-                  </div>
-                </td>
+                <td className="num fs-tabular" style={{ fontWeight: 600 }}>{share.toFixed(0)}%</td>
               </tr>
             );
           })}
@@ -599,6 +568,7 @@ export default function Analytics() {
   return (
     <PlanGate currentPlan={currentPlan} requiredPlan="growth" featureName="Analytics">
       <FsPage
+        tour={TOURS.analytics}
         title="Try-on performance"
         subtitle="How shoppers use virtual try-on, and what it earns you."
         actions={
@@ -670,7 +640,7 @@ export default function Analytics() {
               <div className="fs-note">
                 <FsIcon name="message" size={16} style={{ color: "var(--fs-primary)" }} />
                 {shareRate >= 10
-                  ? `${shareRate.toFixed(0)}% of shoppers share their try-on — social proof is working for you.`
+                  ? `${shareRate.toFixed(0)}% of shoppers share their try-on: social proof is working for you.`
                   : "Shoppers who share get a second opinion. Keep WhatsApp share switched on in Widget Settings."}
               </div>
             )}
@@ -681,9 +651,12 @@ export default function Analytics() {
         </div>
 
         <div className="fs-grid-12">
-          <EngagementFunnelTeaser currentPlan={currentPlan} kpis={kpis} className="fs-span-6" />
-          <FsCard className="fs-span-6" title="Top products" subtitle="Ranked by try-ons in this period" action={<FsButton to="/app/products" variant="plain">All products</FsButton>} style={{ paddingBottom: topProducts.length ? 0 : 24 }}>
-            <div style={{ margin: topProducts.length ? "0 -24px" : 0 }}>
+          <EngagementFunnelTeaser currentPlan={currentPlan} kpis={kpis} className="fs-span-12" />
+        </div>
+
+        <div className="fs-grid-12">
+          <FsCard className="fs-span-12" title="Top products" subtitle="Ranked by try-ons in this period" action={<FsButton to="/app/products" variant="plain">All products</FsButton>} style={{ paddingBottom: topProducts.length ? 0 : 24 }}>
+            <div style={{ margin: topProducts.length ? "0 -14px" : 0 }}>
               <TopProducts products={topProducts} currencyCode={currencyCode} />
             </div>
           </FsCard>

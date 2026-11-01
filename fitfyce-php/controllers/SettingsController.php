@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace TryFit\Controllers;
 
 use TryFit\AppConfig;
+use TryFit\Db\MerchantRepo;
 use TryFit\Db\WidgetSettingsRepo;
 use TryFit\Middleware\ApiKeyAuth;
+use TryFit\Src\I18n;
+use TryFit\Src\LocaleDetector;
 
 /**
  * GET  /settings  — returns all widget config fields the JSX settings page reads.
@@ -78,6 +81,17 @@ class SettingsController
             // Strip non-config keys before storing
             unset($body['shopify_domain'], $body['shop_id']);
 
+            // Try-on limit: keep the stored values inside what the widget understands.
+            if (array_key_exists('tryon_limit_enabled', $body)) {
+                $body['tryon_limit_enabled'] = (int)(bool)$body['tryon_limit_enabled'];
+            }
+            if (array_key_exists('tryon_limit_count', $body)) {
+                $body['tryon_limit_count'] = $this->clamp((int)$body['tryon_limit_count'], 1, 100);
+            }
+            if (array_key_exists('tryon_limit_reset', $body)) {
+                $body['tryon_limit_reset'] = $this->enum((string)$body['tryon_limit_reset'], ['never', 'day', 'week', 'month'], 'never');
+            }
+
             $repo   = new WidgetSettingsRepo();
             $result = $repo->patchButtonConfig($mid, $body);
 
@@ -88,6 +102,46 @@ class SettingsController
             error_log("[FitSnap Settings] ERROR ($class): " . $e->getMessage()
                 . " | file=" . $e->getFile() . ":" . $e->getLine());
             respondJson(['error' => 'Save failed: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * POST /api/settings/locale { "locale": "hi" }
+     * Writes the merchant's locale and clears the ff_locale cookie's precedence
+     * on the Remix side by returning the fresh value — the browser is expected
+     * to set its own cookie on receipt.
+     */
+    public function saveLocale(): void
+    {
+        try {
+            $merchant = ApiKeyAuth::handle();
+            $input    = (string)file_get_contents('php://input');
+            $body     = json_decode($input, true);
+            $raw      = is_array($body) ? ($body['locale'] ?? null) : null;
+
+            $locale = LocaleDetector::normalize(is_string($raw) ? $raw : null);
+            if ($locale === null) {
+                respondJson(['error' => I18n::t('settings.invalid_locale')], 400);
+                return;
+            }
+
+            if ((int)$merchant['id'] === 0) {
+                respondJson(['error' => I18n::t('errors.auth_required')], 401);
+                return;
+            }
+
+            $repo = new MerchantRepo();
+            $repo->setLocale((string)$merchant['shopify_domain'], $locale);
+            I18n::setLocale($locale);
+
+            respondJson([
+                'ok'      => true,
+                'locale'  => $locale,
+                'message' => I18n::t('settings.locale_updated', ['locale' => $locale]),
+            ]);
+        } catch (\Throwable $e) {
+            error_log('[FitSnap Settings] saveLocale error: ' . $e->getMessage());
+            respondJson(['error' => I18n::t('settings.save_error', ['reason' => $e->getMessage()])], 500);
         }
     }
 
@@ -161,6 +215,9 @@ class SettingsController
             'privacy_notice_shown'   => (bool)($css['privacy_notice_shown']  ?? $d['privacy_notice_shown']),
             'before_after_enabled'   => (bool)($css['before_after_enabled']  ?? $d['before_after_enabled']),
             'promo_video_url'        => $css['promo_video_url']         ?? $d['promo_video_url'],
+            'tryon_limit_enabled'    => (bool)($css['tryon_limit_enabled'] ?? $d['tryon_limit_enabled']),
+            'tryon_limit_count'      => (int)($css['tryon_limit_count']    ?? $d['tryon_limit_count']),
+            'tryon_limit_reset'      => $css['tryon_limit_reset']          ?? $d['tryon_limit_reset'],
             'promo_video_position'   => $css['promo_video_position']    ?? $d['promo_video_position'],
             'example_before_after_enabled' => (bool)($css['example_before_after_enabled'] ?? $d['example_before_after_enabled']),
             'example_before_image'   => $css['example_before_image']   ?? $d['example_before_image'],

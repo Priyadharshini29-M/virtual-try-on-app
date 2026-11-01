@@ -64,6 +64,10 @@ class MerchantRepo
 
     public function create(array $data): int
     {
+        // `plan` and `billing_cycle_start` still exist on the merchants table
+        // but no longer gate anything — set them to safe defaults so legacy
+        // rows and admin dashboards keep parsing. The wallet is seeded by
+        // the migration (015_wallet_credits.sql).
         $stmt = $this->db->prepare(
             'INSERT INTO merchants
              (shopify_domain, shopify_store_id, access_token, plan,
@@ -80,15 +84,17 @@ class MerchantRepo
             $data['billing_cycle_start'] ?? date('Y-m-d'),
             $data['is_active'] ?? 1,
         ]);
-        return (int)$this->db->lastInsertId();
-    }
+        $id = (int)$this->db->lastInsertId();
 
-    public function updatePlan(int $id, string $plan): void
-    {
-        $stmt = $this->db->prepare(
-            'UPDATE merchants SET plan = ? WHERE id = ?'
-        );
-        $stmt->execute([$plan, $id]);
+        // Welcome bonus mirrors the migration (015_wallet_credits.sql) so
+        // every new install starts with 25 credits.
+        try {
+            (new WalletRepo())->credit($id, 25, 'welcome_bonus', null, null, 'New install welcome bonus');
+        } catch (\Throwable $e) {
+            error_log('[FitFyce] welcome bonus failed for merchant ' . $id . ': ' . $e->getMessage());
+        }
+
+        return $id;
     }
 
     public function setSizeChartEnabled(int $id, bool $enabled): void
@@ -103,21 +109,57 @@ class MerchantRepo
         $stmt->execute([(int)$enabled, $id]);
     }
 
-    public function incrementTryonCount(int $id): void
+    /**
+     * Current stored locale for a merchant, or null if either the merchant row
+     * or the locale column is missing. Safe to call before the migration has
+     * run — returns null and the caller falls through the detection chain.
+     */
+    public function getLocale(string $shopDomain): ?string
     {
-        $stmt = $this->db->prepare(
-            'UPDATE merchants SET tryon_count_month = tryon_count_month + 1 WHERE id = ?'
-        );
-        $stmt->execute([$id]);
+        try {
+            $stmt = $this->db->prepare(
+                'SELECT locale FROM merchants WHERE shopify_domain = ? LIMIT 1'
+            );
+            $stmt->execute([$shopDomain]);
+            $val = $stmt->fetchColumn();
+            return (is_string($val) && $val !== '') ? $val : null;
+        } catch (\Throwable $e) {
+            // Column may not exist yet (pre-migration) — fall through silently.
+            return null;
+        }
     }
 
-    public function resetMonthlyCount(int $id): void
+    public function setLocale(string $shopDomain, string $locale): void
     {
         $stmt = $this->db->prepare(
-            'UPDATE merchants
-             SET tryon_count_month = 0, billing_cycle_start = CURDATE()
-             WHERE id = ?'
+            'UPDATE merchants SET locale = ? WHERE shopify_domain = ?'
         );
-        $stmt->execute([$id]);
+        $stmt->execute([$locale, $shopDomain]);
+    }
+
+    public function setDetectedCountry(string $shopDomain, string $cc): void
+    {
+        $stmt = $this->db->prepare(
+            'UPDATE merchants SET locale_detected_country = ? WHERE shopify_domain = ?'
+        );
+        $stmt->execute([strtoupper($cc), $shopDomain]);
+    }
+
+    /**
+     * Cached IP-derived country for the merchant. Null if we've never looked
+     * it up, or the column doesn't exist (pre-migration).
+     */
+    public function getDetectedCountry(string $shopDomain): ?string
+    {
+        try {
+            $stmt = $this->db->prepare(
+                'SELECT locale_detected_country FROM merchants WHERE shopify_domain = ? LIMIT 1'
+            );
+            $stmt->execute([$shopDomain]);
+            $val = $stmt->fetchColumn();
+            return (is_string($val) && $val !== '') ? strtoupper($val) : null;
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 }

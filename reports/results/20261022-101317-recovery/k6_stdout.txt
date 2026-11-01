@@ -1,0 +1,1294 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+     execution: local
+        script: /work/k6/main.js
+ web dashboard: http://127.0.0.1:5665
+        output: -
+
+     scenarios: (100.00%) 2 scenarios, 52 max VUs, 8m20s max duration (incl. graceful stop):
+              * journey: Up to 0.03 iterations/s for 5m0s over 1 stages (maxVUs: 3-50, exec: journey, gracefulStop: 3m20s)
+              * widget: Up to 2 looping VUs for 5m0s over 1 stages (gracefulRampDown: 10s, exec: widget, gracefulStop: 30s)
+
+
+running (0m00.5s), 00/05 VUs, 0 complete and 0 interrupted iterations
+journey   [   0% ] 00/03 VUs  0m00.5s/5m0s  0.03 iters/s
+widget    [   0% ] 0/2 VUs    0m00.5s/5m00.0s
+
+running (0m01.5s), 00/05 VUs, 0 complete and 0 interrupted iterations
+journey   [   0% ] 00/03 VUs  0m01.5s/5m0s  0.03 iters/s
+widget    [   0% ] 0/2 VUs    0m01.5s/5m00.0s
+
+running (0m02.5s), 00/05 VUs, 0 complete and 0 interrupted iterations
+journey   [   1% ] 00/03 VUs  0m02.5s/5m0s  0.03 iters/s
+widget    [   1% ] 0/2 VUs    0m02.5s/5m00.0s
+
+running (0m03.5s), 00/05 VUs, 0 complete and 0 interrupted iterations
+journey   [   1% ] 00/03 VUs  0m03.5s/5m0s  0.03 iters/s
+widget    [   1% ] 0/2 VUs    0m03.5s/5m00.0s
+
+running (0m04.5s), 00/05 VUs, 0 complete and 0 interrupted iterations
+journey   [   1% ] 00/03 VUs  0m04.5s/5m0s  0.03 iters/s
+widget    [   1% ] 0/2 VUs    0m04.5s/5m00.0s
+
+running (0m05.5s), 00/05 VUs, 0 complete and 0 interrupted iterations
+journey   [   2% ] 00/03 VUs  0m05.5s/5m0s  0.03 iters/s
+widget    [   2% ] 0/2 VUs    0m05.5s/5m00.0s
+
+running (0m06.5s), 00/05 VUs, 0 complete and 0 interrupted iterations
+journey   [   2% ] 00/03 VUs  0m06.5s/5m0s  0.03 iters/s
+widget    [   2% ] 0/2 VUs    0m06.5s/5m00.0s
+
+running (0m07.5s), 00/05 VUs, 0 complete and 0 interrupted iterations
+journey   [   2% ] 00/03 VUs  0m07.5s/5m0s  0.03 iters/s
+widget    [   2% ] 0/2 VUs    0m07.5s/5m00.0s
+
+running (0m08.5s), 00/05 VUs, 0 complete and 0 interrupted iterations
+journey   [   3% ] 00/03 VUs  0m08.5s/5m0s  0.03 iters/s
+widget    [   3% ] 0/2 VUs    0m08.5s/5m00.0s
+
+running (0m09.5s), 00/05 VUs, 0 complete and 0 interrupted iterations
+journey   [   3% ] 00/03 VUs  0m09.5s/5m0s  0.03 iters/s
+widget    [   3% ] 0/2 VUs    0m09.5s/5m00.0s
+
+running (0m10.5s), 00/05 VUs, 0 complete and 0 interrupted iterations
+journey   [   3% ] 00/03 VUs  0m10.5s/5m0s  0.03 iters/s
+widget    [   3% ] 0/2 VUs    0m10.5s/5m00.0s
+
+running (0m11.5s), 00/05 VUs, 0 complete and 0 interrupted iterations
+journey   [   4% ] 00/03 VUs  0m11.5s/5m0s  0.03 iters/s
+widget    [   4% ] 0/2 VUs    0m11.5s/5m00.0s
+
+running (0m12.5s), 00/05 VUs, 0 complete and 0 interrupted iterations
+journey   [   4% ] 00/03 VUs  0m12.5s/5m0s  0.03 iters/s
+widget    [   4% ] 0/2 VUs    0m12.5s/5m00.0s
+
+running (0m13.5s), 00/05 VUs, 0 complete and 0 interrupted iterations
+journey   [   4% ] 00/03 VUs  0m13.5s/5m0s  0.03 iters/s
+widget    [   4% ] 0/2 VUs    0m13.5s/5m00.0s
+
+running (0m14.5s), 00/05 VUs, 0 complete and 0 interrupted iterations
+journey   [   5% ] 00/03 VUs  0m14.5s/5m0s  0.03 iters/s
+widget    [   5% ] 0/2 VUs    0m14.5s/5m00.0s
+
+running (0m15.4s), 00/05 VUs, 0 complete and 0 interrupted iterations
+journey   [   5% ] 00/03 VUs  0m15.5s/5m0s  0.03 iters/s
+widget    [   5% ] 0/2 VUs    0m15.5s/5m00.0s
+
+running (0m16.4s), 00/05 VUs, 0 complete and 0 interrupted iterations
+journey   [   5% ] 00/03 VUs  0m16.5s/5m0s  0.03 iters/s
+widget    [   5% ] 0/2 VUs    0m16.5s/5m00.0s
+
+running (0m17.4s), 00/05 VUs, 0 complete and 0 interrupted iterations
+journey   [   6% ] 00/03 VUs  0m17.5s/5m0s  0.03 iters/s
+widget    [   6% ] 0/2 VUs    0m17.5s/5m00.0s
+
+running (0m18.4s), 00/05 VUs, 0 complete and 0 interrupted iterations
+journey   [   6% ] 00/03 VUs  0m18.5s/5m0s  0.03 iters/s
+widget    [   6% ] 0/2 VUs    0m18.5s/5m00.0s
+
+running (0m19.4s), 00/05 VUs, 0 complete and 0 interrupted iterations
+journey   [   6% ] 00/03 VUs  0m19.5s/5m0s  0.03 iters/s
+widget    [   6% ] 0/2 VUs    0m19.5s/5m00.0s
+
+running (0m20.4s), 00/05 VUs, 0 complete and 0 interrupted iterations
+journey   [   7% ] 00/03 VUs  0m20.5s/5m0s  0.03 iters/s
+widget    [   7% ] 0/2 VUs    0m20.5s/5m00.0s
+
+running (0m21.4s), 00/05 VUs, 0 complete and 0 interrupted iterations
+journey   [   7% ] 00/03 VUs  0m21.5s/5m0s  0.03 iters/s
+widget    [   7% ] 0/2 VUs    0m21.5s/5m00.0s
+
+running (0m22.4s), 00/05 VUs, 0 complete and 0 interrupted iterations
+journey   [   7% ] 00/03 VUs  0m22.5s/5m0s  0.03 iters/s
+widget    [   7% ] 0/2 VUs    0m22.5s/5m00.0s
+
+running (0m23.4s), 00/05 VUs, 0 complete and 0 interrupted iterations
+journey   [   8% ] 00/03 VUs  0m23.5s/5m0s  0.03 iters/s
+widget    [   8% ] 0/2 VUs    0m23.5s/5m00.0s
+
+running (0m24.4s), 00/05 VUs, 0 complete and 0 interrupted iterations
+journey   [   8% ] 00/03 VUs  0m24.5s/5m0s  0.03 iters/s
+widget    [   8% ] 0/2 VUs    0m24.5s/5m00.0s
+
+running (0m25.5s), 00/05 VUs, 0 complete and 0 interrupted iterations
+journey   [   8% ] 00/03 VUs  0m25.5s/5m0s  0.03 iters/s
+widget    [   8% ] 0/2 VUs    0m25.5s/5m00.0s
+
+running (0m26.8s), 00/05 VUs, 0 complete and 0 interrupted iterations
+journey   [   9% ] 00/03 VUs  0m26.9s/5m0s  0.03 iters/s
+widget    [   9% ] 0/2 VUs    0m26.9s/5m00.0s
+
+running (0m27.4s), 00/05 VUs, 0 complete and 0 interrupted iterations
+journey   [   9% ] 00/03 VUs  0m27.5s/5m0s  0.03 iters/s
+widget    [   9% ] 0/2 VUs    0m27.5s/5m00.0s
+
+running (0m28.4s), 00/05 VUs, 0 complete and 0 interrupted iterations
+journey   [   9% ] 00/03 VUs  0m28.5s/5m0s  0.03 iters/s
+widget    [   9% ] 0/2 VUs    0m28.5s/5m00.0s
+
+running (0m29.5s), 00/05 VUs, 0 complete and 0 interrupted iterations
+journey   [  10% ] 00/03 VUs  0m29.5s/5m0s  0.03 iters/s
+widget    [  10% ] 0/2 VUs    0m29.5s/5m00.0s
+
+running (0m30.4s), 01/05 VUs, 0 complete and 0 interrupted iterations
+journey   [  10% ] 01/03 VUs  0m30.5s/5m0s  0.03 iters/s
+widget    [  10% ] 0/2 VUs    0m30.5s/5m00.0s
+
+running (0m31.4s), 01/05 VUs, 0 complete and 0 interrupted iterations
+journey   [  10% ] 01/03 VUs  0m31.5s/5m0s  0.03 iters/s
+widget    [  10% ] 0/2 VUs    0m31.5s/5m00.0s
+
+running (0m32.5s), 01/05 VUs, 0 complete and 0 interrupted iterations
+journey   [  11% ] 01/03 VUs  0m32.5s/5m0s  0.03 iters/s
+widget    [  11% ] 0/2 VUs    0m32.5s/5m00.0s
+
+running (0m33.4s), 01/05 VUs, 0 complete and 0 interrupted iterations
+journey   [  11% ] 01/03 VUs  0m33.5s/5m0s  0.03 iters/s
+widget    [  11% ] 0/2 VUs    0m33.5s/5m00.0s
+
+running (0m34.4s), 01/05 VUs, 0 complete and 0 interrupted iterations
+journey   [  11% ] 01/03 VUs  0m34.5s/5m0s  0.03 iters/s
+widget    [  11% ] 0/2 VUs    0m34.5s/5m00.0s
+
+running (0m35.4s), 01/05 VUs, 0 complete and 0 interrupted iterations
+journey   [  12% ] 01/03 VUs  0m35.5s/5m0s  0.03 iters/s
+widget    [  12% ] 0/2 VUs    0m35.5s/5m00.0s
+
+running (0m36.5s), 01/05 VUs, 0 complete and 0 interrupted iterations
+journey   [  12% ] 01/03 VUs  0m36.5s/5m0s  0.03 iters/s
+widget    [  12% ] 0/2 VUs    0m36.5s/5m00.0s
+
+running (0m37.4s), 01/05 VUs, 0 complete and 0 interrupted iterations
+journey   [  12% ] 01/03 VUs  0m37.5s/5m0s  0.03 iters/s
+widget    [  12% ] 0/2 VUs    0m37.5s/5m00.0s
+
+running (0m38.4s), 01/05 VUs, 0 complete and 0 interrupted iterations
+journey   [  13% ] 01/03 VUs  0m38.5s/5m0s  0.03 iters/s
+widget    [  13% ] 0/2 VUs    0m38.5s/5m00.0s
+
+running (0m39.4s), 01/05 VUs, 0 complete and 0 interrupted iterations
+journey   [  13% ] 01/03 VUs  0m39.5s/5m0s  0.03 iters/s
+widget    [  13% ] 0/2 VUs    0m39.5s/5m00.0s
+
+running (0m40.4s), 01/05 VUs, 0 complete and 0 interrupted iterations
+journey   [  13% ] 01/03 VUs  0m40.5s/5m0s  0.03 iters/s
+widget    [  13% ] 0/2 VUs    0m40.5s/5m00.0s
+
+running (0m41.4s), 01/05 VUs, 0 complete and 0 interrupted iterations
+journey   [  14% ] 01/03 VUs  0m41.5s/5m0s  0.03 iters/s
+widget    [  14% ] 0/2 VUs    0m41.5s/5m00.0s
+
+running (0m42.5s), 01/05 VUs, 0 complete and 0 interrupted iterations
+journey   [  14% ] 01/03 VUs  0m42.5s/5m0s  0.03 iters/s
+widget    [  14% ] 0/2 VUs    0m42.5s/5m00.0s
+
+running (0m43.4s), 01/05 VUs, 0 complete and 0 interrupted iterations
+journey   [  14% ] 01/03 VUs  0m43.5s/5m0s  0.03 iters/s
+widget    [  14% ] 0/2 VUs    0m43.5s/5m00.0s
+
+running (0m44.5s), 01/05 VUs, 0 complete and 0 interrupted iterations
+journey   [  15% ] 01/03 VUs  0m44.5s/5m0s  0.03 iters/s
+widget    [  15% ] 0/2 VUs    0m44.5s/5m00.0s
+
+running (0m45.6s), 01/05 VUs, 0 complete and 0 interrupted iterations
+journey   [  15% ] 01/03 VUs  0m45.6s/5m0s  0.03 iters/s
+widget    [  15% ] 0/2 VUs    0m45.6s/5m00.0s
+
+running (0m46.5s), 01/05 VUs, 0 complete and 0 interrupted iterations
+journey   [  15% ] 01/03 VUs  0m46.5s/5m0s  0.03 iters/s
+widget    [  15% ] 0/2 VUs    0m46.5s/5m00.0s
+
+running (0m47.5s), 00/05 VUs, 1 complete and 0 interrupted iterations
+journey   [  16% ] 00/03 VUs  0m47.5s/5m0s  0.03 iters/s
+widget    [  16% ] 0/2 VUs    0m47.5s/5m00.0s
+
+running (0m48.5s), 00/05 VUs, 1 complete and 0 interrupted iterations
+journey   [  16% ] 00/03 VUs  0m48.5s/5m0s  0.03 iters/s
+widget    [  16% ] 0/2 VUs    0m48.5s/5m00.0s
+
+running (0m49.4s), 00/05 VUs, 1 complete and 0 interrupted iterations
+journey   [  16% ] 00/03 VUs  0m49.5s/5m0s  0.03 iters/s
+widget    [  16% ] 0/2 VUs    0m49.5s/5m00.0s
+
+running (0m50.5s), 00/05 VUs, 1 complete and 0 interrupted iterations
+journey   [  17% ] 00/03 VUs  0m50.5s/5m0s  0.03 iters/s
+widget    [  17% ] 0/2 VUs    0m50.5s/5m00.0s
+
+running (0m51.4s), 00/05 VUs, 1 complete and 0 interrupted iterations
+journey   [  17% ] 00/03 VUs  0m51.5s/5m0s  0.03 iters/s
+widget    [  17% ] 0/2 VUs    0m51.5s/5m00.0s
+
+running (0m52.4s), 00/05 VUs, 1 complete and 0 interrupted iterations
+journey   [  17% ] 00/03 VUs  0m52.5s/5m0s  0.03 iters/s
+widget    [  17% ] 0/2 VUs    0m52.5s/5m00.0s
+
+running (0m53.4s), 00/05 VUs, 1 complete and 0 interrupted iterations
+journey   [  18% ] 00/03 VUs  0m53.5s/5m0s  0.03 iters/s
+widget    [  18% ] 0/2 VUs    0m53.5s/5m00.0s
+
+running (0m54.4s), 00/05 VUs, 1 complete and 0 interrupted iterations
+journey   [  18% ] 00/03 VUs  0m54.5s/5m0s  0.03 iters/s
+widget    [  18% ] 0/2 VUs    0m54.5s/5m00.0s
+
+running (0m55.4s), 00/05 VUs, 1 complete and 0 interrupted iterations
+journey   [  18% ] 00/03 VUs  0m55.5s/5m0s  0.03 iters/s
+widget    [  18% ] 0/2 VUs    0m55.5s/5m00.0s
+
+running (0m56.4s), 00/05 VUs, 1 complete and 0 interrupted iterations
+journey   [  19% ] 00/03 VUs  0m56.5s/5m0s  0.03 iters/s
+widget    [  19% ] 0/2 VUs    0m56.5s/5m00.0s
+
+running (0m57.4s), 00/05 VUs, 1 complete and 0 interrupted iterations
+journey   [  19% ] 00/03 VUs  0m57.5s/5m0s  0.03 iters/s
+widget    [  19% ] 0/2 VUs    0m57.5s/5m00.0s
+
+running (0m58.4s), 00/05 VUs, 1 complete and 0 interrupted iterations
+journey   [  19% ] 00/03 VUs  0m58.5s/5m0s  0.03 iters/s
+widget    [  19% ] 0/2 VUs    0m58.5s/5m00.0s
+
+running (0m59.4s), 00/05 VUs, 1 complete and 0 interrupted iterations
+journey   [  20% ] 00/03 VUs  0m59.5s/5m0s  0.03 iters/s
+widget    [  20% ] 0/2 VUs    0m59.5s/5m00.0s
+
+running (1m00.4s), 01/05 VUs, 1 complete and 0 interrupted iterations
+journey   [  20% ] 01/03 VUs  1m00.5s/5m0s  0.03 iters/s
+widget    [  20% ] 0/2 VUs    1m00.5s/5m00.0s
+
+running (1m01.4s), 01/05 VUs, 1 complete and 0 interrupted iterations
+journey   [  20% ] 01/03 VUs  1m01.5s/5m0s  0.03 iters/s
+widget    [  20% ] 0/2 VUs    1m01.5s/5m00.0s
+
+running (1m02.4s), 01/05 VUs, 1 complete and 0 interrupted iterations
+journey   [  21% ] 01/03 VUs  1m02.5s/5m0s  0.03 iters/s
+widget    [  21% ] 0/2 VUs    1m02.5s/5m00.0s
+
+running (1m03.6s), 01/05 VUs, 1 complete and 0 interrupted iterations
+journey   [  21% ] 01/03 VUs  1m03.6s/5m0s  0.03 iters/s
+widget    [  21% ] 0/2 VUs    1m03.6s/5m00.0s
+
+running (1m04.4s), 01/05 VUs, 1 complete and 0 interrupted iterations
+journey   [  21% ] 01/03 VUs  1m04.5s/5m0s  0.03 iters/s
+widget    [  21% ] 0/2 VUs    1m04.5s/5m00.0s
+
+running (1m05.4s), 01/05 VUs, 1 complete and 0 interrupted iterations
+journey   [  22% ] 01/03 VUs  1m05.5s/5m0s  0.03 iters/s
+widget    [  22% ] 0/2 VUs    1m05.5s/5m00.0s
+
+running (1m06.4s), 01/05 VUs, 1 complete and 0 interrupted iterations
+journey   [  22% ] 01/03 VUs  1m06.5s/5m0s  0.03 iters/s
+widget    [  22% ] 0/2 VUs    1m06.5s/5m00.0s
+
+running (1m07.4s), 01/05 VUs, 1 complete and 0 interrupted iterations
+journey   [  22% ] 01/03 VUs  1m07.5s/5m0s  0.03 iters/s
+widget    [  22% ] 0/2 VUs    1m07.5s/5m00.0s
+
+running (1m08.4s), 01/05 VUs, 1 complete and 0 interrupted iterations
+journey   [  23% ] 01/03 VUs  1m08.5s/5m0s  0.03 iters/s
+widget    [  23% ] 0/2 VUs    1m08.5s/5m00.0s
+
+running (1m09.4s), 01/05 VUs, 1 complete and 0 interrupted iterations
+journey   [  23% ] 01/03 VUs  1m09.5s/5m0s  0.03 iters/s
+widget    [  23% ] 0/2 VUs    1m09.5s/5m00.0s
+
+running (1m10.4s), 01/05 VUs, 1 complete and 0 interrupted iterations
+journey   [  23% ] 01/03 VUs  1m10.5s/5m0s  0.03 iters/s
+widget    [  23% ] 0/2 VUs    1m10.5s/5m00.0s
+
+running (1m11.5s), 01/05 VUs, 1 complete and 0 interrupted iterations
+journey   [  24% ] 01/03 VUs  1m11.5s/5m0s  0.03 iters/s
+widget    [  24% ] 0/2 VUs    1m11.5s/5m00.0s
+
+running (1m12.4s), 01/05 VUs, 1 complete and 0 interrupted iterations
+journey   [  24% ] 01/03 VUs  1m12.5s/5m0s  0.03 iters/s
+widget    [  24% ] 0/2 VUs    1m12.5s/5m00.0s
+
+running (1m13.4s), 01/05 VUs, 1 complete and 0 interrupted iterations
+journey   [  24% ] 01/03 VUs  1m13.5s/5m0s  0.03 iters/s
+widget    [  24% ] 0/2 VUs    1m13.5s/5m00.0s
+
+running (1m14.4s), 01/05 VUs, 1 complete and 0 interrupted iterations
+journey   [  25% ] 01/03 VUs  1m14.5s/5m0s  0.03 iters/s
+widget    [  25% ] 0/2 VUs    1m14.5s/5m00.0s
+
+running (1m15.4s), 01/05 VUs, 1 complete and 0 interrupted iterations
+journey   [  25% ] 01/03 VUs  1m15.5s/5m0s  0.03 iters/s
+widget    [  25% ] 0/2 VUs    1m15.5s/5m00.0s
+
+running (1m16.4s), 00/05 VUs, 2 complete and 0 interrupted iterations
+journey   [  25% ] 00/03 VUs  1m16.5s/5m0s  0.03 iters/s
+widget    [  25% ] 0/2 VUs    1m16.5s/5m00.0s
+
+running (1m17.4s), 00/05 VUs, 2 complete and 0 interrupted iterations
+journey   [  26% ] 00/03 VUs  1m17.5s/5m0s  0.03 iters/s
+widget    [  26% ] 0/2 VUs    1m17.5s/5m00.0s
+
+running (1m18.4s), 00/05 VUs, 2 complete and 0 interrupted iterations
+journey   [  26% ] 00/03 VUs  1m18.5s/5m0s  0.03 iters/s
+widget    [  26% ] 0/2 VUs    1m18.5s/5m00.0s
+
+running (1m19.4s), 00/05 VUs, 2 complete and 0 interrupted iterations
+journey   [  26% ] 00/03 VUs  1m19.5s/5m0s  0.03 iters/s
+widget    [  26% ] 0/2 VUs    1m19.5s/5m00.0s
+
+running (1m20.5s), 00/05 VUs, 2 complete and 0 interrupted iterations
+journey   [  27% ] 00/03 VUs  1m20.5s/5m0s  0.03 iters/s
+widget    [  27% ] 0/2 VUs    1m20.5s/5m00.0s
+
+running (1m21.5s), 00/05 VUs, 2 complete and 0 interrupted iterations
+journey   [  27% ] 00/03 VUs  1m21.5s/5m0s  0.03 iters/s
+widget    [  27% ] 0/2 VUs    1m21.5s/5m00.0s
+
+running (1m22.4s), 00/05 VUs, 2 complete and 0 interrupted iterations
+journey   [  27% ] 00/03 VUs  1m22.5s/5m0s  0.03 iters/s
+widget    [  27% ] 0/2 VUs    1m22.5s/5m00.0s
+
+running (1m23.4s), 00/05 VUs, 2 complete and 0 interrupted iterations
+journey   [  28% ] 00/03 VUs  1m23.5s/5m0s  0.03 iters/s
+widget    [  28% ] 0/2 VUs    1m23.5s/5m00.0s
+
+running (1m24.4s), 00/05 VUs, 2 complete and 0 interrupted iterations
+journey   [  28% ] 00/03 VUs  1m24.5s/5m0s  0.03 iters/s
+widget    [  28% ] 0/2 VUs    1m24.5s/5m00.0s
+
+running (1m25.4s), 00/05 VUs, 2 complete and 0 interrupted iterations
+journey   [  28% ] 00/03 VUs  1m25.5s/5m0s  0.03 iters/s
+widget    [  28% ] 0/2 VUs    1m25.5s/5m00.0s
+
+running (1m26.4s), 00/05 VUs, 2 complete and 0 interrupted iterations
+journey   [  29% ] 00/03 VUs  1m26.5s/5m0s  0.03 iters/s
+widget    [  29% ] 0/2 VUs    1m26.5s/5m00.0s
+
+running (1m27.4s), 00/05 VUs, 2 complete and 0 interrupted iterations
+journey   [  29% ] 00/03 VUs  1m27.5s/5m0s  0.03 iters/s
+widget    [  29% ] 0/2 VUs    1m27.5s/5m00.0s
+
+running (1m28.4s), 00/05 VUs, 2 complete and 0 interrupted iterations
+journey   [  29% ] 00/03 VUs  1m28.5s/5m0s  0.03 iters/s
+widget    [  29% ] 0/2 VUs    1m28.5s/5m00.0s
+
+running (1m29.4s), 00/05 VUs, 2 complete and 0 interrupted iterations
+journey   [  30% ] 00/03 VUs  1m29.5s/5m0s  0.03 iters/s
+widget    [  30% ] 0/2 VUs    1m29.5s/5m00.0s
+
+running (1m30.4s), 01/05 VUs, 2 complete and 0 interrupted iterations
+journey   [  30% ] 01/03 VUs  1m30.5s/5m0s  0.03 iters/s
+widget    [  30% ] 0/2 VUs    1m30.5s/5m00.0s
+
+running (1m31.4s), 01/05 VUs, 2 complete and 0 interrupted iterations
+journey   [  30% ] 01/03 VUs  1m31.5s/5m0s  0.03 iters/s
+widget    [  30% ] 0/2 VUs    1m31.5s/5m00.0s
+
+running (1m32.4s), 01/05 VUs, 2 complete and 0 interrupted iterations
+journey   [  31% ] 01/03 VUs  1m32.5s/5m0s  0.03 iters/s
+widget    [  31% ] 0/2 VUs    1m32.5s/5m00.0s
+
+running (1m33.4s), 01/05 VUs, 2 complete and 0 interrupted iterations
+journey   [  31% ] 01/03 VUs  1m33.5s/5m0s  0.03 iters/s
+widget    [  31% ] 0/2 VUs    1m33.5s/5m00.0s
+
+running (1m34.4s), 01/05 VUs, 2 complete and 0 interrupted iterations
+journey   [  31% ] 01/03 VUs  1m34.5s/5m0s  0.03 iters/s
+widget    [  31% ] 0/2 VUs    1m34.5s/5m00.0s
+
+running (1m35.4s), 01/05 VUs, 2 complete and 0 interrupted iterations
+journey   [  32% ] 01/03 VUs  1m35.5s/5m0s  0.03 iters/s
+widget    [  32% ] 0/2 VUs    1m35.5s/5m00.0s
+
+running (1m36.4s), 01/05 VUs, 2 complete and 0 interrupted iterations
+journey   [  32% ] 01/03 VUs  1m36.5s/5m0s  0.03 iters/s
+widget    [  32% ] 0/2 VUs    1m36.5s/5m00.0s
+
+running (1m37.4s), 01/05 VUs, 2 complete and 0 interrupted iterations
+journey   [  32% ] 01/03 VUs  1m37.5s/5m0s  0.03 iters/s
+widget    [  32% ] 0/2 VUs    1m37.5s/5m00.0s
+
+running (1m38.4s), 01/05 VUs, 2 complete and 0 interrupted iterations
+journey   [  33% ] 01/03 VUs  1m38.5s/5m0s  0.03 iters/s
+widget    [  33% ] 0/2 VUs    1m38.5s/5m00.0s
+
+running (1m39.4s), 01/05 VUs, 2 complete and 0 interrupted iterations
+journey   [  33% ] 01/03 VUs  1m39.5s/5m0s  0.03 iters/s
+widget    [  33% ] 0/2 VUs    1m39.5s/5m00.0s
+
+running (1m40.4s), 01/05 VUs, 2 complete and 0 interrupted iterations
+journey   [  33% ] 01/03 VUs  1m40.5s/5m0s  0.03 iters/s
+widget    [  33% ] 0/2 VUs    1m40.5s/5m00.0s
+
+running (1m41.4s), 01/05 VUs, 2 complete and 0 interrupted iterations
+journey   [  34% ] 01/03 VUs  1m41.5s/5m0s  0.03 iters/s
+widget    [  34% ] 0/2 VUs    1m41.5s/5m00.0s
+
+running (1m42.4s), 01/05 VUs, 2 complete and 0 interrupted iterations
+journey   [  34% ] 01/03 VUs  1m42.5s/5m0s  0.03 iters/s
+widget    [  34% ] 0/2 VUs    1m42.5s/5m00.0s
+
+running (1m43.4s), 01/05 VUs, 2 complete and 0 interrupted iterations
+journey   [  34% ] 01/03 VUs  1m43.5s/5m0s  0.03 iters/s
+widget    [  34% ] 0/2 VUs    1m43.5s/5m00.0s
+
+running (1m44.5s), 01/05 VUs, 2 complete and 0 interrupted iterations
+journey   [  35% ] 01/03 VUs  1m44.5s/5m0s  0.03 iters/s
+widget    [  35% ] 0/2 VUs    1m44.5s/5m00.0s
+
+running (1m45.4s), 01/05 VUs, 2 complete and 0 interrupted iterations
+journey   [  35% ] 01/03 VUs  1m45.5s/5m0s  0.03 iters/s
+widget    [  35% ] 0/2 VUs    1m45.5s/5m00.0s
+
+running (1m46.5s), 01/05 VUs, 2 complete and 0 interrupted iterations
+journey   [  35% ] 01/03 VUs  1m46.5s/5m0s  0.03 iters/s
+widget    [  35% ] 0/2 VUs    1m46.5s/5m00.0s
+
+running (1m47.4s), 00/05 VUs, 3 complete and 0 interrupted iterations
+journey   [  36% ] 00/03 VUs  1m47.5s/5m0s  0.03 iters/s
+widget    [  36% ] 0/2 VUs    1m47.5s/5m00.0s
+
+running (1m48.4s), 00/05 VUs, 3 complete and 0 interrupted iterations
+journey   [  36% ] 00/03 VUs  1m48.5s/5m0s  0.03 iters/s
+widget    [  36% ] 0/2 VUs    1m48.5s/5m00.0s
+
+running (1m49.4s), 00/05 VUs, 3 complete and 0 interrupted iterations
+journey   [  36% ] 00/03 VUs  1m49.5s/5m0s  0.03 iters/s
+widget    [  36% ] 0/2 VUs    1m49.5s/5m00.0s
+
+running (1m50.5s), 00/05 VUs, 3 complete and 0 interrupted iterations
+journey   [  37% ] 00/03 VUs  1m50.5s/5m0s  0.03 iters/s
+widget    [  37% ] 0/2 VUs    1m50.5s/5m00.0s
+
+running (1m51.4s), 00/05 VUs, 3 complete and 0 interrupted iterations
+journey   [  37% ] 00/03 VUs  1m51.5s/5m0s  0.03 iters/s
+widget    [  37% ] 0/2 VUs    1m51.5s/5m00.0s
+
+running (1m52.4s), 00/05 VUs, 3 complete and 0 interrupted iterations
+journey   [  37% ] 00/03 VUs  1m52.5s/5m0s  0.03 iters/s
+widget    [  37% ] 0/2 VUs    1m52.5s/5m00.0s
+
+running (1m53.9s), 00/05 VUs, 3 complete and 0 interrupted iterations
+journey   [  38% ] 00/03 VUs  1m54.0s/5m0s  0.03 iters/s
+widget    [  38% ] 0/2 VUs    1m54.0s/5m00.0s
+
+running (1m54.4s), 00/05 VUs, 3 complete and 0 interrupted iterations
+journey   [  38% ] 00/03 VUs  1m54.5s/5m0s  0.03 iters/s
+widget    [  38% ] 0/2 VUs    1m54.5s/5m00.0s
+
+running (1m55.4s), 00/05 VUs, 3 complete and 0 interrupted iterations
+journey   [  38% ] 00/03 VUs  1m55.5s/5m0s  0.03 iters/s
+widget    [  38% ] 0/2 VUs    1m55.5s/5m00.0s
+
+running (1m56.4s), 00/05 VUs, 3 complete and 0 interrupted iterations
+journey   [  39% ] 00/03 VUs  1m56.5s/5m0s  0.03 iters/s
+widget    [  39% ] 0/2 VUs    1m56.5s/5m00.0s
+
+running (1m57.5s), 00/05 VUs, 3 complete and 0 interrupted iterations
+journey   [  39% ] 00/03 VUs  1m57.5s/5m0s  0.03 iters/s
+widget    [  39% ] 0/2 VUs    1m57.5s/5m00.0s
+
+running (1m58.4s), 00/05 VUs, 3 complete and 0 interrupted iterations
+journey   [  39% ] 00/03 VUs  1m58.5s/5m0s  0.03 iters/s
+widget    [  39% ] 0/2 VUs    1m58.5s/5m00.0s
+
+running (1m59.4s), 00/05 VUs, 3 complete and 0 interrupted iterations
+journey   [  40% ] 00/03 VUs  1m59.5s/5m0s  0.03 iters/s
+widget    [  40% ] 0/2 VUs    1m59.5s/5m00.0s
+
+running (2m00.4s), 01/05 VUs, 3 complete and 0 interrupted iterations
+journey   [  40% ] 01/03 VUs  2m00.5s/5m0s  0.03 iters/s
+widget    [  40% ] 0/2 VUs    2m00.5s/5m00.0s
+
+running (2m01.4s), 01/05 VUs, 3 complete and 0 interrupted iterations
+journey   [  40% ] 01/03 VUs  2m01.5s/5m0s  0.03 iters/s
+widget    [  40% ] 0/2 VUs    2m01.5s/5m00.0s
+
+running (2m02.4s), 01/05 VUs, 3 complete and 0 interrupted iterations
+journey   [  41% ] 01/03 VUs  2m02.5s/5m0s  0.03 iters/s
+widget    [  41% ] 0/2 VUs    2m02.5s/5m00.0s
+
+running (2m03.4s), 01/05 VUs, 3 complete and 0 interrupted iterations
+journey   [  41% ] 01/03 VUs  2m03.5s/5m0s  0.03 iters/s
+widget    [  41% ] 0/2 VUs    2m03.5s/5m00.0s
+
+running (2m04.7s), 01/05 VUs, 3 complete and 0 interrupted iterations
+journey   [  42% ] 01/03 VUs  2m04.7s/5m0s  0.03 iters/s
+widget    [  42% ] 0/2 VUs    2m04.7s/5m00.0s
+
+running (2m05.8s), 01/05 VUs, 3 complete and 0 interrupted iterations
+journey   [  42% ] 01/03 VUs  2m05.8s/5m0s  0.03 iters/s
+widget    [  42% ] 0/2 VUs    2m05.8s/5m00.0s
+
+running (2m06.4s), 01/05 VUs, 3 complete and 0 interrupted iterations
+journey   [  42% ] 01/03 VUs  2m06.5s/5m0s  0.03 iters/s
+widget    [  42% ] 0/2 VUs    2m06.5s/5m00.0s
+
+running (2m07.4s), 01/05 VUs, 3 complete and 0 interrupted iterations
+journey   [  42% ] 01/03 VUs  2m07.5s/5m0s  0.03 iters/s
+widget    [  42% ] 0/2 VUs    2m07.5s/5m00.0s
+
+running (2m08.4s), 01/05 VUs, 3 complete and 0 interrupted iterations
+journey   [  43% ] 01/03 VUs  2m08.5s/5m0s  0.03 iters/s
+widget    [  43% ] 0/2 VUs    2m08.5s/5m00.0s
+
+running (2m09.4s), 01/05 VUs, 3 complete and 0 interrupted iterations
+journey   [  43% ] 01/03 VUs  2m09.5s/5m0s  0.03 iters/s
+widget    [  43% ] 0/2 VUs    2m09.5s/5m00.0s
+
+running (2m10.4s), 01/05 VUs, 3 complete and 0 interrupted iterations
+journey   [  43% ] 01/03 VUs  2m10.5s/5m0s  0.03 iters/s
+widget    [  43% ] 0/2 VUs    2m10.5s/5m00.0s
+
+running (2m11.4s), 01/05 VUs, 3 complete and 0 interrupted iterations
+journey   [  44% ] 01/03 VUs  2m11.5s/5m0s  0.03 iters/s
+widget    [  44% ] 0/2 VUs    2m11.5s/5m00.0s
+
+running (2m12.4s), 01/05 VUs, 3 complete and 0 interrupted iterations
+journey   [  44% ] 01/03 VUs  2m12.5s/5m0s  0.03 iters/s
+widget    [  44% ] 0/2 VUs    2m12.5s/5m00.0s
+
+running (2m13.4s), 01/05 VUs, 3 complete and 0 interrupted iterations
+journey   [  44% ] 01/03 VUs  2m13.5s/5m0s  0.03 iters/s
+widget    [  44% ] 0/2 VUs    2m13.5s/5m00.0s
+
+running (2m14.4s), 01/05 VUs, 3 complete and 0 interrupted iterations
+journey   [  45% ] 01/03 VUs  2m14.5s/5m0s  0.03 iters/s
+widget    [  45% ] 0/2 VUs    2m14.5s/5m00.0s
+
+running (2m15.4s), 01/05 VUs, 3 complete and 0 interrupted iterations
+journey   [  45% ] 01/03 VUs  2m15.5s/5m0s  0.03 iters/s
+widget    [  45% ] 0/2 VUs    2m15.5s/5m00.0s
+
+running (2m16.4s), 00/05 VUs, 4 complete and 0 interrupted iterations
+journey   [  45% ] 00/03 VUs  2m16.5s/5m0s  0.03 iters/s
+widget    [  45% ] 0/2 VUs    2m16.5s/5m00.0s
+
+running (2m17.4s), 00/05 VUs, 4 complete and 0 interrupted iterations
+journey   [  46% ] 00/03 VUs  2m17.5s/5m0s  0.03 iters/s
+widget    [  46% ] 0/2 VUs    2m17.5s/5m00.0s
+
+running (2m18.4s), 00/05 VUs, 4 complete and 0 interrupted iterations
+journey   [  46% ] 00/03 VUs  2m18.5s/5m0s  0.03 iters/s
+widget    [  46% ] 0/2 VUs    2m18.5s/5m00.0s
+
+running (2m19.4s), 00/05 VUs, 4 complete and 0 interrupted iterations
+journey   [  46% ] 00/03 VUs  2m19.5s/5m0s  0.03 iters/s
+widget    [  46% ] 0/2 VUs    2m19.5s/5m00.0s
+
+running (2m20.4s), 00/05 VUs, 4 complete and 0 interrupted iterations
+journey   [  47% ] 00/03 VUs  2m20.5s/5m0s  0.03 iters/s
+widget    [  47% ] 0/2 VUs    2m20.5s/5m00.0s
+
+running (2m21.4s), 00/05 VUs, 4 complete and 0 interrupted iterations
+journey   [  47% ] 00/03 VUs  2m21.5s/5m0s  0.03 iters/s
+widget    [  47% ] 0/2 VUs    2m21.5s/5m00.0s
+
+running (2m22.4s), 00/05 VUs, 4 complete and 0 interrupted iterations
+journey   [  47% ] 00/03 VUs  2m22.5s/5m0s  0.03 iters/s
+widget    [  47% ] 0/2 VUs    2m22.5s/5m00.0s
+
+running (2m23.4s), 00/05 VUs, 4 complete and 0 interrupted iterations
+journey   [  48% ] 00/03 VUs  2m23.5s/5m0s  0.03 iters/s
+widget    [  48% ] 0/2 VUs    2m23.5s/5m00.0s
+
+running (2m24.4s), 00/05 VUs, 4 complete and 0 interrupted iterations
+journey   [  48% ] 00/03 VUs  2m24.5s/5m0s  0.03 iters/s
+widget    [  48% ] 0/2 VUs    2m24.5s/5m00.0s
+
+running (2m25.4s), 00/05 VUs, 4 complete and 0 interrupted iterations
+journey   [  48% ] 00/03 VUs  2m25.5s/5m0s  0.03 iters/s
+widget    [  48% ] 0/2 VUs    2m25.5s/5m00.0s
+
+running (2m26.4s), 00/05 VUs, 4 complete and 0 interrupted iterations
+journey   [  49% ] 00/03 VUs  2m26.5s/5m0s  0.03 iters/s
+widget    [  49% ] 0/2 VUs    2m26.5s/5m00.0s
+
+running (2m27.4s), 00/05 VUs, 4 complete and 0 interrupted iterations
+journey   [  49% ] 00/03 VUs  2m27.5s/5m0s  0.03 iters/s
+widget    [  49% ] 0/2 VUs    2m27.5s/5m00.0s
+
+running (2m28.4s), 00/05 VUs, 4 complete and 0 interrupted iterations
+journey   [  49% ] 00/03 VUs  2m28.5s/5m0s  0.03 iters/s
+widget    [  49% ] 0/2 VUs    2m28.5s/5m00.0s
+
+running (2m29.4s), 00/05 VUs, 4 complete and 0 interrupted iterations
+journey   [  50% ] 00/03 VUs  2m29.5s/5m0s  0.03 iters/s
+widget    [  50% ] 0/2 VUs    2m29.5s/5m00.0s
+
+running (2m30.4s), 02/05 VUs, 4 complete and 0 interrupted iterations
+journey   [  50% ] 01/03 VUs  2m30.5s/5m0s  0.03 iters/s
+widget    [  50% ] 1/2 VUs    2m30.5s/5m00.0s
+
+running (2m31.4s), 02/05 VUs, 5 complete and 0 interrupted iterations
+journey   [  50% ] 01/03 VUs  2m31.5s/5m0s  0.03 iters/s
+widget    [  50% ] 1/2 VUs    2m31.5s/5m00.0s
+
+running (2m32.4s), 02/05 VUs, 5 complete and 0 interrupted iterations
+journey   [  51% ] 01/03 VUs  2m32.5s/5m0s  0.03 iters/s
+widget    [  51% ] 1/2 VUs    2m32.5s/5m00.0s
+
+running (2m33.4s), 02/05 VUs, 6 complete and 0 interrupted iterations
+journey   [  51% ] 01/03 VUs  2m33.5s/5m0s  0.03 iters/s
+widget    [  51% ] 1/2 VUs    2m33.5s/5m00.0s
+
+running (2m34.4s), 02/05 VUs, 6 complete and 0 interrupted iterations
+journey   [  51% ] 01/03 VUs  2m34.5s/5m0s  0.03 iters/s
+widget    [  51% ] 1/2 VUs    2m34.5s/5m00.0s
+
+running (2m35.4s), 02/05 VUs, 6 complete and 0 interrupted iterations
+journey   [  52% ] 01/03 VUs  2m35.5s/5m0s  0.03 iters/s
+widget    [  52% ] 1/2 VUs    2m35.5s/5m00.0s
+
+running (2m36.4s), 02/05 VUs, 7 complete and 0 interrupted iterations
+journey   [  52% ] 01/03 VUs  2m36.5s/5m0s  0.03 iters/s
+widget    [  52% ] 1/2 VUs    2m36.5s/5m00.0s
+
+running (2m37.4s), 02/05 VUs, 7 complete and 0 interrupted iterations
+journey   [  52% ] 01/03 VUs  2m37.5s/5m0s  0.03 iters/s
+widget    [  52% ] 1/2 VUs    2m37.5s/5m00.0s
+
+running (2m38.4s), 02/05 VUs, 8 complete and 0 interrupted iterations
+journey   [  53% ] 01/03 VUs  2m38.5s/5m0s  0.03 iters/s
+widget    [  53% ] 1/2 VUs    2m38.5s/5m00.0s
+
+running (2m39.4s), 02/05 VUs, 8 complete and 0 interrupted iterations
+journey   [  53% ] 01/03 VUs  2m39.5s/5m0s  0.03 iters/s
+widget    [  53% ] 1/2 VUs    2m39.5s/5m00.0s
+
+running (2m40.4s), 02/05 VUs, 8 complete and 0 interrupted iterations
+journey   [  53% ] 01/03 VUs  2m40.5s/5m0s  0.03 iters/s
+widget    [  53% ] 1/2 VUs    2m40.5s/5m00.0s
+
+running (2m41.4s), 02/05 VUs, 9 complete and 0 interrupted iterations
+journey   [  54% ] 01/03 VUs  2m41.5s/5m0s  0.03 iters/s
+widget    [  54% ] 1/2 VUs    2m41.5s/5m00.0s
+
+running (2m42.4s), 02/05 VUs, 9 complete and 0 interrupted iterations
+journey   [  54% ] 01/03 VUs  2m42.5s/5m0s  0.03 iters/s
+widget    [  54% ] 1/2 VUs    2m42.5s/5m00.0s
+
+running (2m43.4s), 02/05 VUs, 10 complete and 0 interrupted iterations
+journey   [  54% ] 01/03 VUs  2m43.5s/5m0s  0.03 iters/s
+widget    [  54% ] 1/2 VUs    2m43.5s/5m00.0s
+
+running (2m44.4s), 02/05 VUs, 10 complete and 0 interrupted iterations
+journey   [  55% ] 01/03 VUs  2m44.5s/5m0s  0.03 iters/s
+widget    [  55% ] 1/2 VUs    2m44.5s/5m00.0s
+
+running (2m45.4s), 01/05 VUs, 12 complete and 0 interrupted iterations
+journey   [  55% ] 00/03 VUs  2m45.5s/5m0s  0.03 iters/s
+widget    [  55% ] 1/2 VUs    2m45.5s/5m00.0s
+
+running (2m46.4s), 01/05 VUs, 12 complete and 0 interrupted iterations
+journey   [  55% ] 00/03 VUs  2m46.5s/5m0s  0.03 iters/s
+widget    [  55% ] 1/2 VUs    2m46.5s/5m00.0s
+
+running (2m47.4s), 01/05 VUs, 12 complete and 0 interrupted iterations
+journey   [  56% ] 00/03 VUs  2m47.5s/5m0s  0.03 iters/s
+widget    [  56% ] 1/2 VUs    2m47.5s/5m00.0s
+
+running (2m48.4s), 01/05 VUs, 13 complete and 0 interrupted iterations
+journey   [  56% ] 00/03 VUs  2m48.5s/5m0s  0.03 iters/s
+widget    [  56% ] 1/2 VUs    2m48.5s/5m00.0s
+
+running (2m49.4s), 01/05 VUs, 13 complete and 0 interrupted iterations
+journey   [  56% ] 00/03 VUs  2m49.5s/5m0s  0.03 iters/s
+widget    [  56% ] 1/2 VUs    2m49.5s/5m00.0s
+
+running (2m50.4s), 01/05 VUs, 14 complete and 0 interrupted iterations
+journey   [  57% ] 00/03 VUs  2m50.5s/5m0s  0.03 iters/s
+widget    [  57% ] 1/2 VUs    2m50.5s/5m00.0s
+
+running (2m51.4s), 01/05 VUs, 14 complete and 0 interrupted iterations
+journey   [  57% ] 00/03 VUs  2m51.5s/5m0s  0.03 iters/s
+widget    [  57% ] 1/2 VUs    2m51.5s/5m00.0s
+
+running (2m52.4s), 01/05 VUs, 14 complete and 0 interrupted iterations
+journey   [  57% ] 00/03 VUs  2m52.5s/5m0s  0.03 iters/s
+widget    [  57% ] 1/2 VUs    2m52.5s/5m00.0s
+
+running (2m53.4s), 01/05 VUs, 15 complete and 0 interrupted iterations
+journey   [  58% ] 00/03 VUs  2m53.5s/5m0s  0.03 iters/s
+widget    [  58% ] 1/2 VUs    2m53.5s/5m00.0s
+
+running (2m54.4s), 01/05 VUs, 15 complete and 0 interrupted iterations
+journey   [  58% ] 00/03 VUs  2m54.5s/5m0s  0.03 iters/s
+widget    [  58% ] 1/2 VUs    2m54.5s/5m00.0s
+
+running (2m55.4s), 01/05 VUs, 16 complete and 0 interrupted iterations
+journey   [  58% ] 00/03 VUs  2m55.5s/5m0s  0.03 iters/s
+widget    [  58% ] 1/2 VUs    2m55.5s/5m00.0s
+
+running (2m56.4s), 01/05 VUs, 16 complete and 0 interrupted iterations
+journey   [  59% ] 00/03 VUs  2m56.5s/5m0s  0.03 iters/s
+widget    [  59% ] 1/2 VUs    2m56.5s/5m00.0s
+
+running (2m57.4s), 01/05 VUs, 17 complete and 0 interrupted iterations
+journey   [  59% ] 00/03 VUs  2m57.5s/5m0s  0.03 iters/s
+widget    [  59% ] 1/2 VUs    2m57.5s/5m00.0s
+
+running (2m58.4s), 01/05 VUs, 17 complete and 0 interrupted iterations
+journey   [  59% ] 00/03 VUs  2m58.5s/5m0s  0.03 iters/s
+widget    [  59% ] 1/2 VUs    2m58.5s/5m00.0s
+
+running (2m59.4s), 01/05 VUs, 18 complete and 0 interrupted iterations
+journey   [  60% ] 00/03 VUs  2m59.5s/5m0s  0.03 iters/s
+widget    [  60% ] 1/2 VUs    2m59.5s/5m00.0s
+
+running (3m00.4s), 02/05 VUs, 18 complete and 0 interrupted iterations
+journey   [  60% ] 01/03 VUs  3m00.5s/5m0s  0.03 iters/s
+widget    [  60% ] 1/2 VUs    3m00.5s/5m00.0s
+
+running (3m01.5s), 02/05 VUs, 19 complete and 0 interrupted iterations
+journey   [  61% ] 01/03 VUs  3m01.5s/5m0s  0.03 iters/s
+widget    [  61% ] 1/2 VUs    3m01.5s/5m00.0s
+
+running (3m02.4s), 02/05 VUs, 19 complete and 0 interrupted iterations
+journey   [  61% ] 01/03 VUs  3m02.5s/5m0s  0.03 iters/s
+widget    [  61% ] 1/2 VUs    3m02.5s/5m00.0s
+
+running (3m03.6s), 02/05 VUs, 19 complete and 0 interrupted iterations
+journey   [  61% ] 01/03 VUs  3m03.6s/5m0s  0.03 iters/s
+widget    [  61% ] 1/2 VUs    3m03.6s/5m00.0s
+
+running (3m04.4s), 02/05 VUs, 19 complete and 0 interrupted iterations
+journey   [  61% ] 01/03 VUs  3m04.5s/5m0s  0.03 iters/s
+widget    [  61% ] 1/2 VUs    3m04.5s/5m00.0s
+
+running (3m05.4s), 02/05 VUs, 20 complete and 0 interrupted iterations
+journey   [  62% ] 01/03 VUs  3m05.5s/5m0s  0.03 iters/s
+widget    [  62% ] 1/2 VUs    3m05.5s/5m00.0s
+
+running (3m06.4s), 02/05 VUs, 20 complete and 0 interrupted iterations
+journey   [  62% ] 01/03 VUs  3m06.5s/5m0s  0.03 iters/s
+widget    [  62% ] 1/2 VUs    3m06.5s/5m00.0s
+
+running (3m07.5s), 02/05 VUs, 21 complete and 0 interrupted iterations
+journey   [  62% ] 01/03 VUs  3m07.5s/5m0s  0.03 iters/s
+widget    [  62% ] 1/2 VUs    3m07.5s/5m00.0s
+
+running (3m08.4s), 02/05 VUs, 21 complete and 0 interrupted iterations
+journey   [  63% ] 01/03 VUs  3m08.5s/5m0s  0.03 iters/s
+widget    [  63% ] 1/2 VUs    3m08.5s/5m00.0s
+
+running (3m09.5s), 02/05 VUs, 21 complete and 0 interrupted iterations
+journey   [  63% ] 01/03 VUs  3m09.5s/5m0s  0.03 iters/s
+widget    [  63% ] 1/2 VUs    3m09.5s/5m00.0s
+
+running (3m10.6s), 02/05 VUs, 21 complete and 0 interrupted iterations
+journey   [  64% ] 01/03 VUs  3m10.6s/5m0s  0.03 iters/s
+widget    [  64% ] 1/2 VUs    3m10.6s/5m00.0s
+
+running (3m11.4s), 02/05 VUs, 22 complete and 0 interrupted iterations
+journey   [  64% ] 01/03 VUs  3m11.5s/5m0s  0.03 iters/s
+widget    [  64% ] 1/2 VUs    3m11.5s/5m00.0s
+
+running (3m12.4s), 02/05 VUs, 22 complete and 0 interrupted iterations
+journey   [  64% ] 01/03 VUs  3m12.5s/5m0s  0.03 iters/s
+widget    [  64% ] 1/2 VUs    3m12.5s/5m00.0s
+
+running (3m13.4s), 02/05 VUs, 22 complete and 0 interrupted iterations
+journey   [  64% ] 01/03 VUs  3m13.5s/5m0s  0.03 iters/s
+widget    [  64% ] 1/2 VUs    3m13.5s/5m00.0s
+
+running (3m14.4s), 02/05 VUs, 22 complete and 0 interrupted iterations
+journey   [  65% ] 01/03 VUs  3m14.5s/5m0s  0.03 iters/s
+widget    [  65% ] 1/2 VUs    3m14.5s/5m00.0s
+
+running (3m15.4s), 02/05 VUs, 23 complete and 0 interrupted iterations
+journey   [  65% ] 01/03 VUs  3m15.5s/5m0s  0.03 iters/s
+widget    [  65% ] 1/2 VUs    3m15.5s/5m00.0s
+
+running (3m16.4s), 02/05 VUs, 23 complete and 0 interrupted iterations
+journey   [  65% ] 01/03 VUs  3m16.5s/5m0s  0.03 iters/s
+widget    [  65% ] 1/2 VUs    3m16.5s/5m00.0s
+
+running (3m17.4s), 02/05 VUs, 23 complete and 0 interrupted iterations
+journey   [  66% ] 01/03 VUs  3m17.5s/5m0s  0.03 iters/s
+widget    [  66% ] 1/2 VUs    3m17.5s/5m00.0s
+
+running (3m18.4s), 01/05 VUs, 25 complete and 0 interrupted iterations
+journey   [  66% ] 00/03 VUs  3m18.5s/5m0s  0.03 iters/s
+widget    [  66% ] 1/2 VUs    3m18.5s/5m00.0s
+
+running (3m19.4s), 01/05 VUs, 25 complete and 0 interrupted iterations
+journey   [  66% ] 00/03 VUs  3m19.5s/5m0s  0.03 iters/s
+widget    [  66% ] 1/2 VUs    3m19.5s/5m00.0s
+
+running (3m20.4s), 01/05 VUs, 26 complete and 0 interrupted iterations
+journey   [  67% ] 00/03 VUs  3m20.5s/5m0s  0.03 iters/s
+widget    [  67% ] 1/2 VUs    3m20.5s/5m00.0s
+
+running (3m21.4s), 01/05 VUs, 26 complete and 0 interrupted iterations
+journey   [  67% ] 00/03 VUs  3m21.5s/5m0s  0.03 iters/s
+widget    [  67% ] 1/2 VUs    3m21.5s/5m00.0s
+
+running (3m22.5s), 01/05 VUs, 26 complete and 0 interrupted iterations
+journey   [  68% ] 00/03 VUs  3m22.5s/5m0s  0.03 iters/s
+widget    [  68% ] 1/2 VUs    3m22.5s/5m00.0s
+
+running (3m23.4s), 01/05 VUs, 27 complete and 0 interrupted iterations
+journey   [  68% ] 00/03 VUs  3m23.5s/5m0s  0.03 iters/s
+widget    [  68% ] 1/2 VUs    3m23.5s/5m00.0s
+
+running (3m24.4s), 01/05 VUs, 28 complete and 0 interrupted iterations
+journey   [  68% ] 00/03 VUs  3m24.5s/5m0s  0.03 iters/s
+widget    [  68% ] 1/2 VUs    3m24.5s/5m00.0s
+
+running (3m25.4s), 01/05 VUs, 28 complete and 0 interrupted iterations
+journey   [  68% ] 00/03 VUs  3m25.5s/5m0s  0.03 iters/s
+widget    [  68% ] 1/2 VUs    3m25.5s/5m00.0s
+
+running (3m26.4s), 01/05 VUs, 28 complete and 0 interrupted iterations
+journey   [  69% ] 00/03 VUs  3m26.5s/5m0s  0.03 iters/s
+widget    [  69% ] 1/2 VUs    3m26.5s/5m00.0s
+
+running (3m27.4s), 01/05 VUs, 29 complete and 0 interrupted iterations
+journey   [  69% ] 00/03 VUs  3m27.5s/5m0s  0.03 iters/s
+widget    [  69% ] 1/2 VUs    3m27.5s/5m00.0s
+
+running (3m28.4s), 01/05 VUs, 30 complete and 0 interrupted iterations
+journey   [  69% ] 00/03 VUs  3m28.5s/5m0s  0.03 iters/s
+widget    [  69% ] 1/2 VUs    3m28.5s/5m00.0s
+
+running (3m29.4s), 01/05 VUs, 30 complete and 0 interrupted iterations
+journey   [  70% ] 00/03 VUs  3m29.5s/5m0s  0.03 iters/s
+widget    [  70% ] 1/2 VUs    3m29.5s/5m00.0s
+
+running (3m30.4s), 02/05 VUs, 31 complete and 0 interrupted iterations
+journey   [  70% ] 01/03 VUs  3m30.5s/5m0s  0.03 iters/s
+widget    [  70% ] 1/2 VUs    3m30.5s/5m00.0s
+
+running (3m31.4s), 02/05 VUs, 31 complete and 0 interrupted iterations
+journey   [  70% ] 01/03 VUs  3m31.5s/5m0s  0.03 iters/s
+widget    [  70% ] 1/2 VUs    3m31.5s/5m00.0s
+
+running (3m32.4s), 02/05 VUs, 31 complete and 0 interrupted iterations
+journey   [  71% ] 01/03 VUs  3m32.5s/5m0s  0.03 iters/s
+widget    [  71% ] 1/2 VUs    3m32.5s/5m00.0s
+
+running (3m33.4s), 02/05 VUs, 32 complete and 0 interrupted iterations
+journey   [  71% ] 01/03 VUs  3m33.5s/5m0s  0.03 iters/s
+widget    [  71% ] 1/2 VUs    3m33.5s/5m00.0s
+
+running (3m34.4s), 02/05 VUs, 32 complete and 0 interrupted iterations
+journey   [  71% ] 01/03 VUs  3m34.5s/5m0s  0.03 iters/s
+widget    [  71% ] 1/2 VUs    3m34.5s/5m00.0s
+
+running (3m35.4s), 02/05 VUs, 32 complete and 0 interrupted iterations
+journey   [  72% ] 01/03 VUs  3m35.5s/5m0s  0.03 iters/s
+widget    [  72% ] 1/2 VUs    3m35.5s/5m00.0s
+
+running (3m36.4s), 02/05 VUs, 33 complete and 0 interrupted iterations
+journey   [  72% ] 01/03 VUs  3m36.5s/5m0s  0.03 iters/s
+widget    [  72% ] 1/2 VUs    3m36.5s/5m00.0s
+
+running (3m37.4s), 02/05 VUs, 34 complete and 0 interrupted iterations
+journey   [  72% ] 01/03 VUs  3m37.5s/5m0s  0.03 iters/s
+widget    [  72% ] 1/2 VUs    3m37.5s/5m00.0s
+
+running (3m38.4s), 02/05 VUs, 34 complete and 0 interrupted iterations
+journey   [  73% ] 01/03 VUs  3m38.5s/5m0s  0.03 iters/s
+widget    [  73% ] 1/2 VUs    3m38.5s/5m00.0s
+
+running (3m39.4s), 02/05 VUs, 35 complete and 0 interrupted iterations
+journey   [  73% ] 01/03 VUs  3m39.5s/5m0s  0.03 iters/s
+widget    [  73% ] 1/2 VUs    3m39.5s/5m00.0s
+
+running (3m40.4s), 02/05 VUs, 35 complete and 0 interrupted iterations
+journey   [  73% ] 01/03 VUs  3m40.5s/5m0s  0.03 iters/s
+widget    [  73% ] 1/2 VUs    3m40.5s/5m00.0s
+
+running (3m41.4s), 02/05 VUs, 36 complete and 0 interrupted iterations
+journey   [  74% ] 01/03 VUs  3m41.5s/5m0s  0.03 iters/s
+widget    [  74% ] 1/2 VUs    3m41.5s/5m00.0s
+
+running (3m42.4s), 02/05 VUs, 37 complete and 0 interrupted iterations
+journey   [  74% ] 01/03 VUs  3m42.5s/5m0s  0.03 iters/s
+widget    [  74% ] 1/2 VUs    3m42.5s/5m00.0s
+
+running (3m43.4s), 02/05 VUs, 37 complete and 0 interrupted iterations
+journey   [  74% ] 01/03 VUs  3m43.5s/5m0s  0.03 iters/s
+widget    [  74% ] 1/2 VUs    3m43.5s/5m00.0s
+
+running (3m44.4s), 02/05 VUs, 37 complete and 0 interrupted iterations
+journey   [  75% ] 01/03 VUs  3m44.5s/5m0s  0.03 iters/s
+widget    [  75% ] 1/2 VUs    3m44.5s/5m00.0s
+
+running (3m45.4s), 02/05 VUs, 38 complete and 0 interrupted iterations
+journey   [  75% ] 01/03 VUs  3m45.5s/5m0s  0.03 iters/s
+widget    [  75% ] 1/2 VUs    3m45.5s/5m00.0s
+
+running (3m46.4s), 01/05 VUs, 39 complete and 0 interrupted iterations
+journey   [  75% ] 00/03 VUs  3m46.5s/5m0s  0.03 iters/s
+widget    [  75% ] 1/2 VUs    3m46.5s/5m00.0s
+
+running (3m47.4s), 01/05 VUs, 40 complete and 0 interrupted iterations
+journey   [  76% ] 00/03 VUs  3m47.5s/5m0s  0.03 iters/s
+widget    [  76% ] 1/2 VUs    3m47.5s/5m00.0s
+
+running (3m48.4s), 01/05 VUs, 40 complete and 0 interrupted iterations
+journey   [  76% ] 00/03 VUs  3m48.5s/5m0s  0.03 iters/s
+widget    [  76% ] 1/2 VUs    3m48.5s/5m00.0s
+
+running (3m49.4s), 01/05 VUs, 41 complete and 0 interrupted iterations
+journey   [  76% ] 00/03 VUs  3m49.5s/5m0s  0.03 iters/s
+widget    [  76% ] 1/2 VUs    3m49.5s/5m00.0s
+
+running (3m50.4s), 01/05 VUs, 42 complete and 0 interrupted iterations
+journey   [  77% ] 00/03 VUs  3m50.5s/5m0s  0.03 iters/s
+widget    [  77% ] 1/2 VUs    3m50.5s/5m00.0s
+
+running (3m51.4s), 01/05 VUs, 42 complete and 0 interrupted iterations
+journey   [  77% ] 00/03 VUs  3m51.5s/5m0s  0.03 iters/s
+widget    [  77% ] 1/2 VUs    3m51.5s/5m00.0s
+
+running (3m52.4s), 01/05 VUs, 43 complete and 0 interrupted iterations
+journey   [  77% ] 00/03 VUs  3m52.5s/5m0s  0.03 iters/s
+widget    [  77% ] 1/2 VUs    3m52.5s/5m00.0s
+
+running (3m53.4s), 01/05 VUs, 44 complete and 0 interrupted iterations
+journey   [  78% ] 00/03 VUs  3m53.5s/5m0s  0.03 iters/s
+widget    [  78% ] 1/2 VUs    3m53.5s/5m00.0s
+
+running (3m54.4s), 01/05 VUs, 44 complete and 0 interrupted iterations
+journey   [  78% ] 00/03 VUs  3m54.5s/5m0s  0.03 iters/s
+widget    [  78% ] 1/2 VUs    3m54.5s/5m00.0s
+
+running (3m55.4s), 01/05 VUs, 45 complete and 0 interrupted iterations
+journey   [  78% ] 00/03 VUs  3m55.5s/5m0s  0.03 iters/s
+widget    [  78% ] 1/2 VUs    3m55.5s/5m00.0s
+
+running (3m56.4s), 01/05 VUs, 45 complete and 0 interrupted iterations
+journey   [  79% ] 00/03 VUs  3m56.5s/5m0s  0.03 iters/s
+widget    [  79% ] 1/2 VUs    3m56.5s/5m00.0s
+
+running (3m57.4s), 01/05 VUs, 45 complete and 0 interrupted iterations
+journey   [  79% ] 00/03 VUs  3m57.5s/5m0s  0.03 iters/s
+widget    [  79% ] 1/2 VUs    3m57.5s/5m00.0s
+
+running (3m58.4s), 01/05 VUs, 46 complete and 0 interrupted iterations
+journey   [  79% ] 00/03 VUs  3m58.5s/5m0s  0.03 iters/s
+widget    [  79% ] 1/2 VUs    3m58.5s/5m00.0s
+
+running (3m59.4s), 01/05 VUs, 46 complete and 0 interrupted iterations
+journey   [  80% ] 00/03 VUs  3m59.5s/5m0s  0.03 iters/s
+widget    [  80% ] 1/2 VUs    3m59.5s/5m00.0s
+
+running (4m00.4s), 02/05 VUs, 47 complete and 0 interrupted iterations
+journey   [  80% ] 01/03 VUs  4m00.5s/5m0s  0.03 iters/s
+widget    [  80% ] 1/2 VUs    4m00.5s/5m00.0s
+
+running (4m01.4s), 02/05 VUs, 47 complete and 0 interrupted iterations
+journey   [  80% ] 01/03 VUs  4m01.5s/5m0s  0.03 iters/s
+widget    [  80% ] 1/2 VUs    4m01.5s/5m00.0s
+
+running (4m02.4s), 02/05 VUs, 47 complete and 0 interrupted iterations
+journey   [  81% ] 01/03 VUs  4m02.5s/5m0s  0.03 iters/s
+widget    [  81% ] 1/2 VUs    4m02.5s/5m00.0s
+
+running (4m03.4s), 02/05 VUs, 48 complete and 0 interrupted iterations
+journey   [  81% ] 01/03 VUs  4m03.5s/5m0s  0.03 iters/s
+widget    [  81% ] 1/2 VUs    4m03.5s/5m00.0s
+
+running (4m04.4s), 02/05 VUs, 48 complete and 0 interrupted iterations
+journey   [  81% ] 01/03 VUs  4m04.5s/5m0s  0.03 iters/s
+widget    [  81% ] 1/2 VUs    4m04.5s/5m00.0s
+
+running (4m05.4s), 02/05 VUs, 49 complete and 0 interrupted iterations
+journey   [  82% ] 01/03 VUs  4m05.5s/5m0s  0.03 iters/s
+widget    [  82% ] 1/2 VUs    4m05.5s/5m00.0s
+
+running (4m06.4s), 02/05 VUs, 49 complete and 0 interrupted iterations
+journey   [  82% ] 01/03 VUs  4m06.5s/5m0s  0.03 iters/s
+widget    [  82% ] 1/2 VUs    4m06.5s/5m00.0s
+
+running (4m07.4s), 02/05 VUs, 49 complete and 0 interrupted iterations
+journey   [  82% ] 01/03 VUs  4m07.5s/5m0s  0.03 iters/s
+widget    [  82% ] 1/2 VUs    4m07.5s/5m00.0s
+
+running (4m08.4s), 02/05 VUs, 50 complete and 0 interrupted iterations
+journey   [  83% ] 01/03 VUs  4m08.5s/5m0s  0.03 iters/s
+widget    [  83% ] 1/2 VUs    4m08.5s/5m00.0s
+
+running (4m09.4s), 02/05 VUs, 51 complete and 0 interrupted iterations
+journey   [  83% ] 01/03 VUs  4m09.5s/5m0s  0.03 iters/s
+widget    [  83% ] 1/2 VUs    4m09.5s/5m00.0s
+
+running (4m10.4s), 02/05 VUs, 52 complete and 0 interrupted iterations
+journey   [  83% ] 01/03 VUs  4m10.5s/5m0s  0.03 iters/s
+widget    [  83% ] 1/2 VUs    4m10.5s/5m00.0s
+
+running (4m11.4s), 02/05 VUs, 52 complete and 0 interrupted iterations
+journey   [  84% ] 01/03 VUs  4m11.5s/5m0s  0.03 iters/s
+widget    [  84% ] 1/2 VUs    4m11.5s/5m00.0s
+
+running (4m12.4s), 02/05 VUs, 53 complete and 0 interrupted iterations
+journey   [  84% ] 01/03 VUs  4m12.5s/5m0s  0.03 iters/s
+widget    [  84% ] 1/2 VUs    4m12.5s/5m00.0s
+
+running (4m13.4s), 02/05 VUs, 53 complete and 0 interrupted iterations
+journey   [  84% ] 01/03 VUs  4m13.5s/5m0s  0.03 iters/s
+widget    [  84% ] 1/2 VUs    4m13.5s/5m00.0s
+
+running (4m14.4s), 02/05 VUs, 53 complete and 0 interrupted iterations
+journey   [  85% ] 01/03 VUs  4m14.5s/5m0s  0.03 iters/s
+widget    [  85% ] 1/2 VUs    4m14.5s/5m00.0s
+
+running (4m15.4s), 01/05 VUs, 55 complete and 0 interrupted iterations
+journey   [  85% ] 00/03 VUs  4m15.5s/5m0s  0.03 iters/s
+widget    [  85% ] 1/2 VUs    4m15.5s/5m00.0s
+
+running (4m16.4s), 01/05 VUs, 55 complete and 0 interrupted iterations
+journey   [  85% ] 00/03 VUs  4m16.5s/5m0s  0.03 iters/s
+widget    [  85% ] 1/2 VUs    4m16.5s/5m00.0s
+
+running (4m17.4s), 01/05 VUs, 56 complete and 0 interrupted iterations
+journey   [  86% ] 00/03 VUs  4m17.5s/5m0s  0.03 iters/s
+widget    [  86% ] 1/2 VUs    4m17.5s/5m00.0s
+
+running (4m18.4s), 01/05 VUs, 57 complete and 0 interrupted iterations
+journey   [  86% ] 00/03 VUs  4m18.5s/5m0s  0.03 iters/s
+widget    [  86% ] 1/2 VUs    4m18.5s/5m00.0s
+
+running (4m19.4s), 01/05 VUs, 57 complete and 0 interrupted iterations
+journey   [  86% ] 00/03 VUs  4m19.5s/5m0s  0.03 iters/s
+widget    [  86% ] 1/2 VUs    4m19.5s/5m00.0s
+
+running (4m20.4s), 01/05 VUs, 58 complete and 0 interrupted iterations
+journey   [  87% ] 00/03 VUs  4m20.5s/5m0s  0.03 iters/s
+widget    [  87% ] 1/2 VUs    4m20.5s/5m00.0s
+
+running (4m21.4s), 01/05 VUs, 59 complete and 0 interrupted iterations
+journey   [  87% ] 00/03 VUs  4m21.5s/5m0s  0.03 iters/s
+widget    [  87% ] 1/2 VUs    4m21.5s/5m00.0s
+
+running (4m22.4s), 01/05 VUs, 59 complete and 0 interrupted iterations
+journey   [  87% ] 00/03 VUs  4m22.5s/5m0s  0.03 iters/s
+widget    [  87% ] 1/2 VUs    4m22.5s/5m00.0s
+
+running (4m23.4s), 01/05 VUs, 60 complete and 0 interrupted iterations
+journey   [  88% ] 00/03 VUs  4m23.5s/5m0s  0.03 iters/s
+widget    [  88% ] 1/2 VUs    4m23.5s/5m00.0s
+
+running (4m24.4s), 01/05 VUs, 61 complete and 0 interrupted iterations
+journey   [  88% ] 00/03 VUs  4m24.5s/5m0s  0.03 iters/s
+widget    [  88% ] 1/2 VUs    4m24.5s/5m00.0s
+
+running (4m25.4s), 01/05 VUs, 61 complete and 0 interrupted iterations
+journey   [  88% ] 00/03 VUs  4m25.5s/5m0s  0.03 iters/s
+widget    [  88% ] 1/2 VUs    4m25.5s/5m00.0s
+
+running (4m26.4s), 01/05 VUs, 62 complete and 0 interrupted iterations
+journey   [  89% ] 00/03 VUs  4m26.5s/5m0s  0.03 iters/s
+widget    [  89% ] 1/2 VUs    4m26.5s/5m00.0s
+
+running (4m27.4s), 01/05 VUs, 62 complete and 0 interrupted iterations
+journey   [  89% ] 00/03 VUs  4m27.5s/5m0s  0.03 iters/s
+widget    [  89% ] 1/2 VUs    4m27.5s/5m00.0s
+
+running (4m28.4s), 01/05 VUs, 63 complete and 0 interrupted iterations
+journey   [  89% ] 00/03 VUs  4m28.5s/5m0s  0.03 iters/s
+widget    [  89% ] 1/2 VUs    4m28.5s/5m00.0s
+
+running (4m29.4s), 01/05 VUs, 63 complete and 0 interrupted iterations
+journey   [  90% ] 00/03 VUs  4m29.5s/5m0s  0.03 iters/s
+widget    [  90% ] 1/2 VUs    4m29.5s/5m00.0s
+
+running (4m30.4s), 02/05 VUs, 63 complete and 0 interrupted iterations
+journey   [  90% ] 01/03 VUs  4m30.5s/5m0s  0.03 iters/s
+widget    [  90% ] 1/2 VUs    4m30.5s/5m00.0s
+
+running (4m31.4s), 02/05 VUs, 64 complete and 0 interrupted iterations
+journey   [  90% ] 01/03 VUs  4m31.5s/5m0s  0.03 iters/s
+widget    [  90% ] 1/2 VUs    4m31.5s/5m00.0s
+
+running (4m32.4s), 02/05 VUs, 64 complete and 0 interrupted iterations
+journey   [  91% ] 01/03 VUs  4m32.5s/5m0s  0.03 iters/s
+widget    [  91% ] 1/2 VUs    4m32.5s/5m00.0s
+
+running (4m33.4s), 02/05 VUs, 65 complete and 0 interrupted iterations
+journey   [  91% ] 01/03 VUs  4m33.5s/5m0s  0.03 iters/s
+widget    [  91% ] 1/2 VUs    4m33.5s/5m00.0s
+
+running (4m34.4s), 02/05 VUs, 66 complete and 0 interrupted iterations
+journey   [  91% ] 01/03 VUs  4m34.5s/5m0s  0.03 iters/s
+widget    [  91% ] 1/2 VUs    4m34.5s/5m00.0s
+
+running (4m35.4s), 02/05 VUs, 66 complete and 0 interrupted iterations
+journey   [  92% ] 01/03 VUs  4m35.5s/5m0s  0.03 iters/s
+widget    [  92% ] 1/2 VUs    4m35.5s/5m00.0s
+
+running (4m36.4s), 02/05 VUs, 67 complete and 0 interrupted iterations
+journey   [  92% ] 01/03 VUs  4m36.5s/5m0s  0.03 iters/s
+widget    [  92% ] 1/2 VUs    4m36.5s/5m00.0s
+
+running (4m37.4s), 02/05 VUs, 68 complete and 0 interrupted iterations
+journey   [  92% ] 01/03 VUs  4m37.5s/5m0s  0.03 iters/s
+widget    [  92% ] 1/2 VUs    4m37.5s/5m00.0s
+
+running (4m38.4s), 02/05 VUs, 68 complete and 0 interrupted iterations
+journey   [  93% ] 01/03 VUs  4m38.5s/5m0s  0.03 iters/s
+widget    [  93% ] 1/2 VUs    4m38.5s/5m00.0s
+
+running (4m39.4s), 02/05 VUs, 68 complete and 0 interrupted iterations
+journey   [  93% ] 01/03 VUs  4m39.5s/5m0s  0.03 iters/s
+widget    [  93% ] 1/2 VUs    4m39.5s/5m00.0s
+
+running (4m40.4s), 02/05 VUs, 69 complete and 0 interrupted iterations
+journey   [  93% ] 01/03 VUs  4m40.5s/5m0s  0.03 iters/s
+widget    [  93% ] 1/2 VUs    4m40.5s/5m00.0s
+
+running (4m41.4s), 02/05 VUs, 69 complete and 0 interrupted iterations
+journey   [  94% ] 01/03 VUs  4m41.5s/5m0s  0.03 iters/s
+widget    [  94% ] 1/2 VUs    4m41.5s/5m00.0s
+
+running (4m42.4s), 02/05 VUs, 69 complete and 0 interrupted iterations
+journey   [  94% ] 01/03 VUs  4m42.5s/5m0s  0.03 iters/s
+widget    [  94% ] 1/2 VUs    4m42.5s/5m00.0s
+
+running (4m43.4s), 02/05 VUs, 70 complete and 0 interrupted iterations
+journey   [  94% ] 01/03 VUs  4m43.5s/5m0s  0.03 iters/s
+widget    [  94% ] 1/2 VUs    4m43.5s/5m00.0s
+
+running (4m44.4s), 02/05 VUs, 71 complete and 0 interrupted iterations
+journey   [  95% ] 01/03 VUs  4m44.5s/5m0s  0.03 iters/s
+widget    [  95% ] 1/2 VUs    4m44.5s/5m00.0s
+
+running (4m45.4s), 01/05 VUs, 72 complete and 0 interrupted iterations
+journey   [  95% ] 00/03 VUs  4m45.5s/5m0s  0.03 iters/s
+widget    [  95% ] 1/2 VUs    4m45.5s/5m00.0s
+
+running (4m46.4s), 01/05 VUs, 73 complete and 0 interrupted iterations
+journey   [  95% ] 00/03 VUs  4m46.5s/5m0s  0.03 iters/s
+widget    [  95% ] 1/2 VUs    4m46.5s/5m00.0s
+
+running (4m47.4s), 01/05 VUs, 73 complete and 0 interrupted iterations
+journey   [  96% ] 00/03 VUs  4m47.5s/5m0s  0.03 iters/s
+widget    [  96% ] 1/2 VUs    4m47.5s/5m00.0s
+
+running (4m48.4s), 01/05 VUs, 74 complete and 0 interrupted iterations
+journey   [  96% ] 00/03 VUs  4m48.5s/5m0s  0.03 iters/s
+widget    [  96% ] 1/2 VUs    4m48.5s/5m00.0s
+
+running (4m49.4s), 01/05 VUs, 74 complete and 0 interrupted iterations
+journey   [  96% ] 00/03 VUs  4m49.5s/5m0s  0.03 iters/s
+widget    [  96% ] 1/2 VUs    4m49.5s/5m00.0s
+
+running (4m50.4s), 01/05 VUs, 74 complete and 0 interrupted iterations
+journey   [  97% ] 00/03 VUs  4m50.5s/5m0s  0.03 iters/s
+widget    [  97% ] 1/2 VUs    4m50.5s/5m00.0s
+
+running (4m51.4s), 01/05 VUs, 75 complete and 0 interrupted iterations
+journey   [  97% ] 00/03 VUs  4m51.5s/5m0s  0.03 iters/s
+widget    [  97% ] 1/2 VUs    4m51.5s/5m00.0s
+
+running (4m52.4s), 01/05 VUs, 75 complete and 0 interrupted iterations
+journey   [  97% ] 00/03 VUs  4m52.5s/5m0s  0.03 iters/s
+widget    [  97% ] 1/2 VUs    4m52.5s/5m00.0s
+
+running (4m53.4s), 01/05 VUs, 76 complete and 0 interrupted iterations
+journey   [  98% ] 00/03 VUs  4m53.5s/5m0s  0.03 iters/s
+widget    [  98% ] 1/2 VUs    4m53.5s/5m00.0s
+
+running (4m54.4s), 01/05 VUs, 77 complete and 0 interrupted iterations
+journey   [  98% ] 00/03 VUs  4m54.5s/5m0s  0.03 iters/s
+widget    [  98% ] 1/2 VUs    4m54.5s/5m00.0s
+
+running (4m55.4s), 01/05 VUs, 78 complete and 0 interrupted iterations
+journey   [  98% ] 00/03 VUs  4m55.5s/5m0s  0.03 iters/s
+widget    [  98% ] 1/2 VUs    4m55.5s/5m00.0s
+
+running (4m56.4s), 01/05 VUs, 79 complete and 0 interrupted iterations
+journey   [  99% ] 00/03 VUs  4m56.5s/5m0s  0.03 iters/s
+widget    [  99% ] 1/2 VUs    4m56.5s/5m00.0s
+
+running (4m57.4s), 01/05 VUs, 79 complete and 0 interrupted iterations
+journey   [  99% ] 00/03 VUs  4m57.5s/5m0s  0.03 iters/s
+widget    [  99% ] 1/2 VUs    4m57.5s/5m00.0s
+
+running (4m58.4s), 01/05 VUs, 80 complete and 0 interrupted iterations
+journey   [  99% ] 00/03 VUs  4m58.5s/5m0s  0.03 iters/s
+widget    [  99% ] 1/2 VUs    4m58.5s/5m00.0s
+
+running (4m59.4s), 01/05 VUs, 80 complete and 0 interrupted iterations
+journey   [ 100% ] 00/03 VUs  4m59.5s/5m0s  0.03 iters/s
+widget    [ 100% ] 1/2 VUs    4m59.5s/5m00.0s
+
+running (5m00.4s), 01/05 VUs, 81 complete and 0 interrupted iterations
+journey ↓ [ 100% ] 01/03 VUs  5m0s  0.03 iters/s
+widget  ✓ [ 100% ] 0/2 VUs    5m0s 
+
+running (5m01.4s), 01/05 VUs, 81 complete and 0 interrupted iterations
+journey ↓ [ 100% ] 01/03 VUs  5m0s  0.03 iters/s
+widget  ✓ [ 100% ] 0/2 VUs    5m0s 
+
+running (5m02.4s), 01/05 VUs, 81 complete and 0 interrupted iterations
+journey ↓ [ 100% ] 01/03 VUs  5m0s  0.03 iters/s
+widget  ✓ [ 100% ] 0/2 VUs    5m0s 
+
+running (5m03.4s), 01/05 VUs, 81 complete and 0 interrupted iterations
+journey ↓ [ 100% ] 01/03 VUs  5m0s  0.03 iters/s
+widget  ✓ [ 100% ] 0/2 VUs    5m0s 
+
+running (5m04.4s), 01/05 VUs, 81 complete and 0 interrupted iterations
+journey ↓ [ 100% ] 01/03 VUs  5m0s  0.03 iters/s
+widget  ✓ [ 100% ] 0/2 VUs    5m0s 
+
+running (5m05.4s), 01/05 VUs, 81 complete and 0 interrupted iterations
+journey ↓ [ 100% ] 01/03 VUs  5m0s  0.03 iters/s
+widget  ✓ [ 100% ] 0/2 VUs    5m0s 
+
+running (5m06.4s), 01/05 VUs, 81 complete and 0 interrupted iterations
+journey ↓ [ 100% ] 01/03 VUs  5m0s  0.03 iters/s
+widget  ✓ [ 100% ] 0/2 VUs    5m0s 
+
+running (5m07.4s), 01/05 VUs, 81 complete and 0 interrupted iterations
+journey ↓ [ 100% ] 01/03 VUs  5m0s  0.03 iters/s
+widget  ✓ [ 100% ] 0/2 VUs    5m0s 
+
+running (5m08.4s), 01/05 VUs, 81 complete and 0 interrupted iterations
+journey ↓ [ 100% ] 01/03 VUs  5m0s  0.03 iters/s
+widget  ✓ [ 100% ] 0/2 VUs    5m0s 
+
+running (5m09.4s), 01/05 VUs, 81 complete and 0 interrupted iterations
+journey ↓ [ 100% ] 01/03 VUs  5m0s  0.03 iters/s
+widget  ✓ [ 100% ] 0/2 VUs    5m0s 
+
+running (5m10.4s), 01/05 VUs, 81 complete and 0 interrupted iterations
+journey ↓ [ 100% ] 01/03 VUs  5m0s  0.03 iters/s
+widget  ✓ [ 100% ] 0/2 VUs    5m0s 
+
+running (5m11.4s), 01/05 VUs, 81 complete and 0 interrupted iterations
+journey ↓ [ 100% ] 01/03 VUs  5m0s  0.03 iters/s
+widget  ✓ [ 100% ] 0/2 VUs    5m0s 
+
+running (5m12.4s), 01/05 VUs, 81 complete and 0 interrupted iterations
+journey ↓ [ 100% ] 01/03 VUs  5m0s  0.03 iters/s
+widget  ✓ [ 100% ] 0/2 VUs    5m0s 
+
+running (5m13.4s), 01/05 VUs, 81 complete and 0 interrupted iterations
+journey ↓ [ 100% ] 01/03 VUs  5m0s  0.03 iters/s
+widget  ✓ [ 100% ] 0/2 VUs    5m0s 
+
+running (5m14.4s), 01/05 VUs, 81 complete and 0 interrupted iterations
+journey ↓ [ 100% ] 01/03 VUs  5m0s  0.03 iters/s
+widget  ✓ [ 100% ] 0/2 VUs    5m0s 
+
+running (5m15.1s), 00/05 VUs, 82 complete and 0 interrupted iterations
+journey ✓ [ 100% ] 00/03 VUs  5m0s  0.03 iters/s
+widget  ✓ [ 100% ] 0/2 VUs    5m0s 
+PROFILE=recovery BASE=http://app:80
+iterations=82 http_reqs=223 rps=0.7 failed=0.00% vus_max=5
+http p95 ms: 314.5
+submit p95 ms: 2501.6
+status p95 ms: 479.7
+e2e p95 ms: 17610.2
+
+running (5m15.1s), 00/05 VUs, 82 complete and 0 interrupted iterations
+journey ✓ [ 100% ] 00/03 VUs  5m0s  0.03 iters/s
+widget  ✓ [ 100% ] 0/2 VUs    5m0s 
+
+--- stderr ---
+ Container brixperf-k6-run-ca03e57e9cbc Creating 
+ Container brixperf-k6-run-ca03e57e9cbc Created 

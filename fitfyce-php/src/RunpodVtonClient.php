@@ -21,6 +21,28 @@ final class RunpodVtonClient
     private const POLL_MAX_ATTEMPTS = 60;    // 60 x 3s = 180s max wait after runsync returns — temporarily raised while testing a fresh/unwarmed RunPod endpoint
     private const POLL_INTERVAL_US  = 3_000_000; // 3 seconds
 
+    // Shared try-on quality settings. The storefront widget and AI Studio both
+    // use these, so the same garment + person gives the same quality result
+    // everywhere (they used to drift apart: square vs portrait input, fixed vs
+    // random seed, segmentation off, fewer steps).
+    public const INPUT_MIN_WIDTH  = 768;
+    public const INPUT_MIN_HEIGHT = 1024;
+    public const TIMESTEPS        = 30;
+
+    /**
+     * Quality parameters for every garment try-on: segmentation ON (the
+     * person's own clothes are removed first, so their colour can't bleed
+     * into the new garment), 30 steps, and a fresh random seed per run.
+     */
+    public static function qualityParams(): array
+    {
+        return [
+            'segmentation_free' => false,
+            'num_timesteps'     => self::TIMESTEPS,
+            'seed'              => random_int(1, 2147483646),
+        ];
+    }
+
     public function __construct(string $apiKey, string $endpointId)
     {
         $this->apiKey     = $apiKey;
@@ -112,6 +134,76 @@ final class RunpodVtonClient
         }
 
         return ['status_code' => 200, 'prediction_id' => (string)$submit['decoded']['id'], 'error_details' => null];
+    }
+
+    /**
+     * Single-image edit on an image-edit worker (same worker image as the
+     * accessory endpoint, see runpod-accessory-worker/): one source photo plus
+     * an instruction prompt in, one edited image out. Submits with /run, then
+     * polls until done (like tryOn()), so it blocks — use it only where the caller already waits —
+     * flat-lay conversion.
+     *
+     * @param array{image:string, prompt:string, seed?:int} $params image is base64 or a data URI
+     * @return array{status_code:int, image_bytes:?string, error_details:?string}
+     */
+    public function editImage(array $params): array
+    {
+        $input = [
+            'image'  => $this->stripDataUri($params['image']),
+            'prompt' => (string)$params['prompt'],
+            'seed'   => (int)($params['seed'] ?? 42),
+        ];
+        return $this->editImageBlocking($input);
+    }
+
+    /**
+     * Async counterpart of editImage(): submits with /run and returns the job
+     * ID straight away so a polling caller (GarmentStudioController's
+     * pose/background step) never blocks a request on the edit.
+     *
+     * @param array{image:string, prompt:string, seed?:int} $params
+     * @return array{status_code:int, prediction_id:?string, error_details:?string}
+     */
+    public function submitEditRun(array $params): array
+    {
+        $input = [
+            'image'  => $this->stripDataUri($params['image']),
+            'prompt' => (string)$params['prompt'],
+            'seed'   => (int)($params['seed'] ?? 42),
+        ];
+
+        $submit = $this->post('/run', ['input' => $input], 30);
+
+        if ($submit['status_code'] !== 200 || empty($submit['decoded']['id'])) {
+            return [
+                'status_code'   => $submit['status_code'] ?: 500,
+                'prediction_id' => null,
+                'error_details' => $submit['error_details'] ?? 'RunPod submission failed',
+            ];
+        }
+
+        return ['status_code' => 200, 'prediction_id' => (string)$submit['decoded']['id'], 'error_details' => null];
+    }
+
+    /** @return array{status_code:int, image_bytes:?string, error_details:?string} */
+    private function editImageBlocking(array $input): array
+    {
+        $submit = $this->post('/run', ['input' => $input], 60);
+        if ($submit['status_code'] !== 200) {
+            return ['status_code' => $submit['status_code'], 'image_bytes' => null, 'error_details' => $submit['error_details']];
+        }
+
+        $result = $this->resolve($submit['decoded']);
+        if ($result['status_code'] !== 200 || empty($result['images'])) {
+            return ['status_code' => $result['status_code'] ?: 500, 'image_bytes' => null, 'error_details' => $result['error_details'] ?? 'RunPod returned no image'];
+        }
+
+        $bytes = base64_decode($result['images'][0], true);
+        if ($bytes === false || $bytes === '') {
+            return ['status_code' => 500, 'image_bytes' => null, 'error_details' => 'RunPod returned an undecodable image'];
+        }
+
+        return ['status_code' => 200, 'image_bytes' => $bytes, 'error_details' => null];
     }
 
     /**

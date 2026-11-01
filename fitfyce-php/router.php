@@ -2,33 +2,65 @@
 
 declare(strict_types=1);
 
+// Name any missing core file in the error instead of failing with a blank
+// 500 (e.g. after a partial upload that left out the db/ folder).
+$fitfyceMissing = [];
+foreach (['shared/helpers.php', 'config/AppConfig.php', 'db/Database.php', 'db/MerchantRepo.php', 'db/WalletRepo.php', 'db/WidgetSettingsRepo.php', 'db/GarmentStudioRepo.php', 'middleware/ApiKeyAuth.php', 'middleware/WalletCheck.php'] as $fitfyceFile) {
+    if (!is_readable(__DIR__ . '/' . $fitfyceFile)) {
+        $fitfyceMissing[] = $fitfyceFile;
+    }
+}
+if ($fitfyceMissing) {
+    // Say whether db/ is absent or present-but-unreadable (wrong permissions),
+    // and where PHP is looking, so the fix is obvious from the message alone.
+    $fitfyceDb = __DIR__ . '/db';
+    if (!file_exists($fitfyceDb)) {
+        $fitfyceWhy = 'The db folder does not exist in ' . __DIR__ . '.';
+    } elseif (!is_dir($fitfyceDb)) {
+        $fitfyceWhy = 'A file named "db" exists in ' . __DIR__ . ' where the db folder should be.';
+    } else {
+        $fitfyceWhy = 'The db folder exists (permissions ' . substr(sprintf('%o', fileperms($fitfyceDb)), -4) . ', '
+            . count(glob($fitfyceDb . '/*.php') ?: []) . ' PHP files) but these files are missing or unreadable. Set the folder to 755 and its files to 644.';
+    }
+    error_log('[FitSnap] Missing or unreadable core files: ' . implode(', ', $fitfyceMissing) . ' | ' . $fitfyceWhy);
+    http_response_code(500);
+    header('Content-Type: application/json');
+    echo json_encode(['error' => 'Server setup problem: missing or unreadable ' . implode(', ', $fitfyceMissing) . '. ' . $fitfyceWhy]);
+    exit;
+}
+
 require_once __DIR__ . '/shared/helpers.php';
 require_once __DIR__ . '/config/AppConfig.php';
 
-// Load .env if available (simple key=value parser, no extra library needed)
-$envFile = __DIR__ . '/.env';
-if (is_file($envFile)) {
+// Load .env + optional .env.local override (simple key=value parser, no
+// extra library needed). .env holds the production baseline; .env.local is
+// gitignored and takes precedence so a dev machine can point DB_* at a
+// local MySQL without touching the production file. The .env.local pass
+// uses force=true so its values win even if .env already set them.
+$loadEnv = static function (string $envFile, bool $force): void {
+    if (!is_file($envFile)) return;
     $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     foreach ($lines as $line) {
         $line = trim($line);
-        if ($line === '' || str_starts_with($line, '#')) {
-            continue;
-        }
-        if (strpos($line, '=') !== false) {
-            [$k, $v] = explode('=', $line, 2);
-            $k = trim($k);
-            $v = trim($v);
-            if (!isset($_ENV[$k]) && getenv($k) === false) {
-                putenv("{$k}={$v}");
-                $_ENV[$k] = $v;
-            }
+        if ($line === '' || str_starts_with($line, '#')) continue;
+        if (strpos($line, '=') === false) continue;
+        [$k, $v] = explode('=', $line, 2);
+        $k = trim($k);
+        $v = trim($v);
+        if ($force || (!isset($_ENV[$k]) && getenv($k) === false)) {
+            putenv("{$k}={$v}");
+            $_ENV[$k] = $v;
         }
     }
-}
+};
+$loadEnv(__DIR__ . '/.env',       false);
+$loadEnv(__DIR__ . '/.env.local', true);
 
 // Autoload db layer
 require_once __DIR__ . '/db/Database.php';
 require_once __DIR__ . '/db/MerchantRepo.php';
+require_once __DIR__ . '/db/WalletRepo.php';
+require_once __DIR__ . '/db/AdminSessionRepo.php';
 require_once __DIR__ . '/db/SessionRepo.php';
 require_once __DIR__ . '/db/LeadRepo.php';
 require_once __DIR__ . '/db/ProductRepo.php';
@@ -50,7 +82,15 @@ if (is_file(__DIR__ . '/db/ProductPairingRepo.php')) {
 // Autoload middleware
 require_once __DIR__ . '/middleware/CorsMiddleware.php';
 require_once __DIR__ . '/middleware/ApiKeyAuth.php';
-require_once __DIR__ . '/middleware/PlanLimitCheck.php';
+require_once __DIR__ . '/middleware/AdminSession.php';
+require_once __DIR__ . '/middleware/WalletCheck.php';
+
+// Admin UI (PHP-rendered pages; replaces the retired Remix admin app)
+require_once __DIR__ . '/admin/view.php';
+
+// i18n core — booted below after .env/middleware require is done, before controllers run
+require_once __DIR__ . '/src/LocaleDetector.php';
+require_once __DIR__ . '/src/I18n.php';
 
 // Autoload VTON classes
 require_once __DIR__ . '/src/Config.php';
@@ -69,7 +109,18 @@ require_once __DIR__ . '/controllers/SettingsController.php';
 require_once __DIR__ . '/controllers/ProductController.php';
 require_once __DIR__ . '/controllers/AnalyticsController.php';
 require_once __DIR__ . '/controllers/ConversionController.php';
-require_once __DIR__ . '/controllers/PlanController.php';
+require_once __DIR__ . '/src/RazorpayClient.php';
+require_once __DIR__ . '/controllers/WalletController.php';
+require_once __DIR__ . '/src/WalletSettings.php';
+require_once __DIR__ . '/src/PlatformSync.php';
+require_once __DIR__ . '/controllers/PlatformController.php';
+require_once __DIR__ . '/controllers/AdminAuthController.php';
+require_once __DIR__ . '/controllers/AdminWalletController.php';
+require_once __DIR__ . '/controllers/AdminDashboardController.php';
+require_once __DIR__ . '/controllers/AdminProductsController.php';
+require_once __DIR__ . '/controllers/AdminSettingsController.php';
+require_once __DIR__ . '/controllers/AdminAnalyticsController.php';
+require_once __DIR__ . '/controllers/AdminMiscController.php';
 require_once __DIR__ . '/controllers/UploadController.php';
 require_once __DIR__ . '/controllers/MerchantController.php';
 require_once __DIR__ . '/controllers/OnboardingController.php';
@@ -112,7 +163,14 @@ use TryFit\Controllers\AnalyticsController;
 use TryFit\Controllers\ConversionController;
 use TryFit\Controllers\LeadController;
 use TryFit\Controllers\MerchantController;
-use TryFit\Controllers\PlanController;
+use TryFit\Controllers\WalletController;
+use TryFit\Controllers\AdminAuthController;
+use TryFit\Controllers\AdminWalletController;
+use TryFit\Controllers\AdminDashboardController;
+use TryFit\Controllers\AdminProductsController;
+use TryFit\Controllers\AdminSettingsController;
+use TryFit\Controllers\AdminAnalyticsController;
+use TryFit\Controllers\AdminMiscController;
 use TryFit\Controllers\ProductController;
 use TryFit\Controllers\ProductDashboardController;
 use TryFit\Controllers\SessionController;
@@ -137,6 +195,15 @@ $route = rtrim($route, '/') ?: '/';
 
 $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
 
+// Boot i18n with whatever's available before auth runs. Controllers that
+// identify a merchant can refine the locale afterwards with I18n::setLocale().
+\TryFit\Src\I18n::boot(
+    null,
+    $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? null,
+    null,
+    $_SERVER['HTTP_CF_IPCOUNTRY'] ?? null
+);
+
 $routes = [
     'POST /session/create'       => [SessionController::class,  'create'],
     'POST /session/track'        => [SessionController::class,  'track'],
@@ -146,17 +213,57 @@ $routes = [
     'POST /api/lead/capture'     => [LeadController::class,     'capture'],
     'GET /lead/list'             => [LeadController::class,     'list'],
     'GET /leads'                 => [LeadController::class,     'listForMerchant'],
-    'GET /settings'          => [SettingsController::class, 'get'],
-    'POST /settings'         => [SettingsController::class, 'save'],
+    'GET /settings'              => [SettingsController::class, 'get'],
+    'POST /settings'             => [SettingsController::class, 'save'],
+    'POST /api/settings/locale'  => [SettingsController::class, 'saveLocale'],
+    'POST /settings/locale'      => [SettingsController::class, 'saveLocale'],
     'GET /products'          => [ProductController::class,  'list'],
     'POST /products/sync'    => [ProductController::class,  'sync'],
     'GET /variants/mapping'  => [ProductController::class,  'getMappings'],
     'POST /variants/mapping' => [ProductController::class,  'saveMapping'],
     'GET /analytics'         => [AnalyticsController::class,'get'],
     'POST /conversion'       => [ConversionController::class,'record'],
-    'GET /plans'                 => [PlanController::class,     'listPlans'],
-    'GET /plan/limit'            => [PlanController::class,     'checkLimit'],
-    'POST /plan/update'          => [PlanController::class,     'updatePlan'],
+    // Wallet credits (balance, top-up order creation, payment confirmation,
+    // Razorpay webhook). The old /plans and /plan/* routes went away with
+    // the hard cutover from fixed tiers to pay-per-use credits.
+    'GET /wallet'                      => [WalletController::class, 'balance'],
+    'GET /plan/limit'                  => [WalletController::class, 'balance'],  // legacy alias, same payload shape
+    'POST /wallet/topup'               => [WalletController::class, 'topup'],
+    'POST /wallet/verify'              => [WalletController::class, 'verify'],
+    'POST /wallet/webhook/razorpay'    => [WalletController::class, 'webhook'],
+    // VTO platform admin (server-to-server, HMAC-signed — see PlatformSync)
+    'GET /platform/stores'             => [\TryFit\Controllers\PlatformController::class, 'stores'],
+    'GET /platform/ledger'             => [\TryFit\Controllers\PlatformController::class, 'ledger'],
+    'GET /platform/wallet-settings'    => [\TryFit\Controllers\PlatformController::class, 'walletSettings'],
+    'POST /platform/wallet-settings'   => [\TryFit\Controllers\PlatformController::class, 'saveWalletSettings'],
+    'POST /platform/wallet/reserve'    => [\TryFit\Controllers\PlatformController::class, 'reserve'],
+    'POST /platform/wallet/release'    => [\TryFit\Controllers\PlatformController::class, 'release'],
+
+    // ── PHP admin UI (merchant-facing pages, replaces Remix /app/* routes) ──
+    'GET /auth/login'                  => [AdminAuthController::class, 'loginPage'],
+    'GET /auth/install'                => [AdminAuthController::class, 'install'],
+    'GET /auth/callback'               => [AdminAuthController::class, 'callback'],
+    'POST /auth/logout'                => [AdminAuthController::class, 'logout'],
+    'GET /auth/dev-login'              => [AdminAuthController::class, 'devLogin'],
+    'GET /admin'                       => [AdminDashboardController::class, 'show'],
+    'POST /admin/toggle-app'           => [AdminDashboardController::class, 'toggleApp'],
+    'GET /admin/wallet'                => [AdminWalletController::class, 'show'],
+    'POST /admin/wallet/create-order'  => [AdminWalletController::class, 'createOrder'],
+    'POST /admin/wallet/verify'        => [AdminWalletController::class, 'verifyPayment'],
+    'GET /admin/products'              => [AdminProductsController::class, 'show'],
+    'POST /admin/products/toggle'      => [AdminProductsController::class, 'toggle'],
+    'POST /admin/products/bulk-toggle' => [AdminProductsController::class, 'bulkToggle'],
+    'GET /admin/settings'              => [AdminSettingsController::class, 'show'],
+    'POST /admin/settings'             => [AdminSettingsController::class, 'save'],
+    'GET /admin/analytics'             => [AdminAnalyticsController::class, 'show'],
+    'GET /admin/analytics/leads.csv'   => [AdminAnalyticsController::class, 'exportCsv'],
+    'GET /admin/variants'              => [AdminMiscController::class, 'variants'],
+    'POST /admin/variants/save'        => [AdminMiscController::class, 'saveVariant'],
+    'GET /admin/size-chart'            => [AdminMiscController::class, 'sizeChart'],
+    'POST /admin/size-chart/save'      => [AdminMiscController::class, 'sizeChartSave'],
+    'GET /admin/complete-look'         => [AdminMiscController::class, 'completeLook'],
+    'POST /admin/complete-look/save'   => [AdminMiscController::class, 'completeLookSave'],
+    'POST /admin/onboarding/save'      => [AdminMiscController::class, 'onboardingSave'],
     'POST /upload-temp'          => [UploadController::class,   'uploadTemp'],
     'POST /tryon'                => [\TryFit\Controllers\TryOnController::class, 'handle'],
     'POST /api/tryon'            => [\TryFit\Controllers\TryOnController::class, 'handle'],
@@ -176,6 +283,7 @@ $routes = [
     'POST /api/widget-event'     => [WidgetController::class,          'publicTrackEvent'],
     'GET /widget/settings'       => [WidgetController::class,          'get'],
     'PATCH /widget/settings'     => [WidgetController::class,          'patch'],
+    'POST /widget/ai-copy'       => [WidgetController::class,          'aiCopy'],
 
     // Size Chart module
     'GET /size-chart'            => [\TryFit\Controllers\SizeChartController::class, 'list'],
@@ -203,6 +311,9 @@ $routes = [
     // Background worker for accessory try-ons (HMAC-signed loopback only — see AccessoryJobs)
     'POST /accessory-worker'      => [\TryFit\Controllers\AccessoryWorkerController::class, 'run'],
     'POST /studio/save-gallery'   => [\TryFit\Controllers\GarmentStudioController::class, 'saveGallery'],
+    'POST /studio/group/compose'  => [\TryFit\Controllers\GarmentStudioController::class, 'composeGroup'],
+    'POST /studio/group/split'    => [\TryFit\Controllers\GarmentStudioController::class, 'splitGroupPhoto'],
+    'POST /studio/group/stitch'   => [\TryFit\Controllers\GarmentStudioController::class, 'stitchGroupPhoto'],
     'POST /studio/set-model-image'=> [\TryFit\Controllers\GarmentStudioController::class, 'setModelImage'],
     'DELETE /studio/model-image'  => [\TryFit\Controllers\GarmentStudioController::class, 'deleteModelImage'],
     // Infographic (OpenAI GPT key-point extraction + PHP GD composition)
@@ -239,6 +350,34 @@ if (isset($routes[$key])) {
 if ($method === 'PUT' && preg_match('#^/variants/mapping/\d+$#', $route)) {
     CorsMiddleware::handle();
     (new ProductController())->updateMapping();
+    exit;
+}
+
+// Static assets for the PHP admin UI (/admin/assets/<file>). Scoped to a
+// single directory with an explicit basename check so a crafted path such
+// as /admin/assets/../config/AppConfig.php cannot escape it.
+if ($method === 'GET' && preg_match('#^/admin/assets/([A-Za-z0-9._-]+)$#', $route, $m)) {
+    $file = __DIR__ . '/admin/assets/' . $m[1];
+    if (is_file($file)) {
+        $ext  = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+        $mime = [
+            'css'  => 'text/css; charset=utf-8',
+            'js'   => 'application/javascript; charset=utf-8',
+            'svg'  => 'image/svg+xml',
+            'png'  => 'image/png',
+            'jpg'  => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'webp' => 'image/webp',
+            'ico'  => 'image/x-icon',
+            'woff' => 'font/woff',
+            'woff2'=> 'font/woff2',
+        ][$ext] ?? 'application/octet-stream';
+        header('Content-Type: ' . $mime);
+        header('Cache-Control: public, max-age=3600');
+        readfile($file);
+        exit;
+    }
+    http_response_code(404);
     exit;
 }
 

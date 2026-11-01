@@ -44,7 +44,7 @@ export function computeChecklist(s) {
       title: "Customize your try-on button",
       done: !!s.widgetCustomized,
       doneText: "Your button matches your brand",
-      todoText: "Match your brand colors — takes about 2 minutes",
+      todoText: "Match your brand colors: takes about 2 minutes",
       cta: "Customize",
       to: "/app/settings",
     },

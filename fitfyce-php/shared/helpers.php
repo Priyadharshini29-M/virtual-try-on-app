@@ -49,6 +49,15 @@ if (!function_exists('baseUrl')) {
 if (!function_exists('basePath')) {
     function basePath(): string
     {
+        // PHP's built-in dev server (`php -S`) rewrites SCRIPT_NAME to the
+        // full request URL when it can't find a .php file along the path,
+        // which would make basePath() look like `/admin/assets` for a URL
+        // like `/admin/assets/foo.css` and chop that prefix off the route.
+        // Under cli-server there is never a mounted sub-directory, so the
+        // right basePath is always empty.
+        if (PHP_SAPI === 'cli-server') {
+            return '';
+        }
         $basePath = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/')), '/');
         return $basePath === '/' ? '' : $basePath;
     }

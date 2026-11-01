@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Blue cotton kurta – Demo Store</title>
+<meta property="og:type" content="product">
+<meta property="og:image" content="http://127.0.0.1:8081/demo/img/kurta-main-blue.jpg">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Product","name":"Blue cotton kurta","image":["http://127.0.0.1:8081/demo/img/kurta-main-blue.jpg"],"offers":{"@type":"Offer","price":"1299","priceCurrency":"INR"}}</script>
+<style>
+body{font-family:system-ui,sans-serif;margin:0}header{background:#222;color:#fff;padding:14px 24px}
+.pdp{display:grid;grid-template-columns:1fr 1fr;gap:32px;padding:24px;max-width:1100px;margin:auto}
+.media img{width:100%;border-radius:8px;display:block}
+.price{font-size:22px;font-weight:700;margin:8px 0 18px}
+.cta-row{display:flex;flex-direction:column;gap:10px;max-width:360px}
+.x9-btn{padding:14px;border:0;border-radius:6px;background:#e11d48;color:#fff;font-size:16px;font-weight:600;cursor:pointer}
+.ghost{padding:10px;border:1px solid #ccc;background:#fff;border-radius:6px}
+</style></head>
+<body>
+<header>Demo Store</header>
+<!-- React-like: content renders 1.2s after load, so the loop has to retry -->
+<div id="root"></div>
+<script>
+setTimeout(function(){
+document.getElementById('root').innerHTML =
+ '<div class="pdp"><div class="media"><img src="http://127.0.0.1:8081/demo/img/kurta-main-blue.jpg" alt="Blue cotton kurta"></div>'+
+ '<div><h1>Blue cotton kurta</h1><div class="price">₹1,299</div><div class="cta-row">'+
+ '<button class="ghost">Size chart</button><button class="x9-btn">ADD TO BAG</button><button class="ghost">♡ Wishlist</button></div>'+
+ '<p>Pure cotton straight kurta with three-quarter sleeves.</p></div></div>';
+}, 1200);
+</script>
+<script async src="/widget/vto.js" data-vto-key="4849b03972e29146903ee6f7f8e261420d749cc7" data-api="/backend/api" data-debug="1"></script>
+</body></html>

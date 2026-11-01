@@ -2,8 +2,10 @@
 
 client_id = "876421af61b2135a56534b6b182909bd"
 name = "Brix-TryOn"
-application_url = "https://thefitsnap.fly.dev"
-embedded = true
+# Non-embedded PHP app: the admin UI is server-rendered from fitfyce-php
+# (controllers/AdminAuthController + AdminWalletController + admin/pages/*).
+application_url = "https://tryonapp.digifyce.com"
+embedded = false
 
 [build]
 automatically_update_urls_on_dev = true
@@ -13,7 +15,7 @@ api_version = "2026-04"
 
   [[webhooks.subscriptions]]
   topics = [ "orders/paid", "app/uninstalled" ]
-  uri = "/api/webhook"
+  uri = "/webhooks/shopify"
   compliance_topics = [ "customers/data_request", "customers/redact", "shop/redact" ]
 
 [access_scopes]
@@ -22,9 +24,7 @@ scopes = "read_orders,read_products,write_products"
 
 [auth]
 redirect_urls = [
-  "https://thefitsnap.fly.dev/auth/callback",
-  "https://thefitsnap.fly.dev/auth/shopify/callback",
-  "https://thefitsnap.fly.dev/api/auth/callback"
+  "https://tryonapp.digifyce.com/auth/callback"
 ]
 
 [app_proxy]

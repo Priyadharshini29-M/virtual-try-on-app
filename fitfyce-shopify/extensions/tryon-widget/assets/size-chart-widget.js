@@ -194,7 +194,7 @@
     card.className = "fitfyce-sc-result";
 
     if (idx === -1) {
-      card.innerHTML = "<p>We couldn't find an exact match for those numbers — take a look at the full chart below to compare manually.</p>";
+      card.innerHTML = "<p>We couldn't find an exact match for those numbers: take a look at the full chart below to compare manually.</p>";
     } else {
       var row = this.chart.rows[idx];
       var columns = this.chart.columns || [];

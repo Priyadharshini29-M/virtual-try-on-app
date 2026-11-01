@@ -1,0 +1,1626 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+     execution: local
+        script: /work/k6/main.js
+ web dashboard: http://127.0.0.1:5665
+        output: -
+
+     scenarios: (100.00%) 4 scenarios, 510 max VUs, 6m50s max duration (incl. graceful stop):
+              * admin: Up to 40 looping VUs for 3m30s over 4 stages (gracefulRampDown: 10s, exec: admin, gracefulStop: 30s)
+              * journey: Up to 0.40 iterations/s for 3m30s over 4 stages (maxVUs: 10-300, exec: journey, gracefulStop: 3m20s)
+              * upload: Up to 20 looping VUs for 3m30s over 4 stages (gracefulRampDown: 10s, exec: upload, gracefulStop: 30s)
+              * widget: Up to 150 looping VUs for 3m30s over 4 stages (gracefulRampDown: 10s, exec: widget, gracefulStop: 30s)
+
+
+Init      [   1% ] 002/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [   5% ] 012/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [   9% ] 020/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  11% ] 025/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  12% ] 026/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  17% ] 038/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  20% ] 045/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  24% ] 053/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  26% ] 057/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  27% ] 059/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  28% ] 062/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  30% ] 065/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  31% ] 068/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  33% ] 072/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  35% ] 077/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  39% ] 085/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  40% ] 089/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  41% ] 091/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  42% ] 092/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  43% ] 095/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  44% ] 097/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  44% ] 097/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  45% ] 098/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  45% ] 099/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  46% ] 101/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  48% ] 106/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  49% ] 108/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  51% ] 113/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  54% ] 118/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  55% ] 120/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  56% ] 124/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  57% ] 125/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  60% ] 131/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  64% ] 140/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  65% ] 143/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  65% ] 144/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  65% ] 144/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  69% ] 151/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  71% ] 156/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  74% ] 162/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  76% ] 167/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  77% ] 170/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  80% ] 175/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  84% ] 185/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  88% ] 193/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  88% ] 194/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  90% ] 197/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  90% ] 198/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  93% ] 204/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  93% ] 204/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  94% ] 206/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  95% ] 209/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+Init      [  97% ] 214/220 VUs initialized
+admin     [   0% ]
+journey   [   0% ]
+upload    [   0% ]
+widget    [   0% ]
+
+running (0m00.4s), 000/220 VUs, 0 complete and 0 interrupted iterations
+admin     [   0% ] 00/40 VUs    0m00.3s/3m30.0s
+journey   [   0% ] 000/010 VUs  0m00.3s/3m30s  0.07 iters/s
+upload    [   0% ] 00/20 VUs    0m00.3s/3m30.0s
+widget    [   0% ] 000/150 VUs  0m00.3s/3m30.0s
+
+running (0m01.4s), 001/220 VUs, 0 complete and 0 interrupted iterations
+admin     [   1% ] 00/40 VUs    0m01.3s/3m30.0s
+journey   [   1% ] 000/010 VUs  0m01.3s/3m30s  0.07 iters/s
+upload    [   1% ] 00/20 VUs    0m01.3s/3m30.0s
+widget    [   1% ] 001/150 VUs  0m01.3s/3m30.0s
+
+running (0m02.3s), 001/220 VUs, 0 complete and 0 interrupted iterations
+admin     [   1% ] 00/40 VUs    0m02.3s/3m30.0s
+journey   [   1% ] 000/010 VUs  0m02.3s/3m30s  0.07 iters/s
+upload    [   1% ] 00/20 VUs    0m02.3s/3m30.0s
+widget    [   1% ] 001/150 VUs  0m02.3s/3m30.0s
+
+running (0m03.4s), 002/220 VUs, 0 complete and 0 interrupted iterations
+admin     [   2% ] 00/40 VUs    0m03.3s/3m30.0s
+journey   [   2% ] 000/010 VUs  0m03.3s/3m30s  0.07 iters/s
+upload    [   2% ] 00/20 VUs    0m03.3s/3m30.0s
+widget    [   2% ] 002/150 VUs  0m03.3s/3m30.0s
+
+running (0m04.4s), 003/220 VUs, 0 complete and 0 interrupted iterations
+admin     [   2% ] 00/40 VUs    0m04.4s/3m30.0s
+journey   [   2% ] 000/010 VUs  0m04.3s/3m30s  0.07 iters/s
+upload    [   2% ] 00/20 VUs    0m04.4s/3m30.0s
+widget    [   2% ] 003/150 VUs  0m04.4s/3m30.0s
+
+running (0m05.4s), 004/220 VUs, 3 complete and 0 interrupted iterations
+admin     [   3% ] 00/40 VUs    0m05.3s/3m30.0s
+journey   [   3% ] 000/010 VUs  0m05.3s/3m30s  0.07 iters/s
+upload    [   3% ] 00/20 VUs    0m05.3s/3m30.0s
+widget    [   3% ] 004/150 VUs  0m05.3s/3m30.0s
+
+running (0m06.4s), 006/220 VUs, 4 complete and 0 interrupted iterations
+admin     [   3% ] 01/40 VUs    0m06.3s/3m30.0s
+journey   [   3% ] 000/010 VUs  0m06.3s/3m30s  0.07 iters/s
+upload    [   3% ] 00/20 VUs    0m06.3s/3m30.0s
+widget    [   3% ] 005/150 VUs  0m06.3s/3m30.0s
+
+running (0m07.4s), 007/220 VUs, 8 complete and 0 interrupted iterations
+admin     [   3% ] 01/40 VUs    0m07.3s/3m30.0s
+journey   [   3% ] 000/010 VUs  0m07.3s/3m30s  0.07 iters/s
+upload    [   3% ] 00/20 VUs    0m07.3s/3m30.0s
+widget    [   3% ] 006/150 VUs  0m07.3s/3m30.0s
+
+running (0m08.4s), 007/220 VUs, 9 complete and 0 interrupted iterations
+admin     [   4% ] 01/40 VUs    0m08.3s/3m30.0s
+journey   [   4% ] 000/010 VUs  0m08.3s/3m30s  0.07 iters/s
+upload    [   4% ] 00/20 VUs    0m08.3s/3m30.0s
+widget    [   4% ] 006/150 VUs  0m08.3s/3m30.0s
+
+running (0m09.5s), 008/220 VUs, 15 complete and 0 interrupted iterations
+admin     [   5% ] 01/40 VUs    0m09.5s/3m30.0s
+journey   [   5% ] 000/010 VUs  0m09.5s/3m30s  0.07 iters/s
+upload    [   5% ] 00/20 VUs    0m09.5s/3m30.0s
+widget    [   5% ] 007/150 VUs  0m09.5s/3m30.0s
+
+running (0m10.3s), 009/220 VUs, 15 complete and 0 interrupted iterations
+admin     [   5% ] 01/40 VUs    0m10.3s/3m30.0s
+journey   [   5% ] 000/010 VUs  0m10.3s/3m30s  0.07 iters/s
+upload    [   5% ] 00/20 VUs    0m10.3s/3m30.0s
+widget    [   5% ] 008/150 VUs  0m10.3s/3m30.0s
+
+running (0m11.3s), 010/220 VUs, 17 complete and 0 interrupted iterations
+admin     [   5% ] 01/40 VUs    0m11.3s/3m30.0s
+journey   [   5% ] 000/010 VUs  0m11.3s/3m30s  0.07 iters/s
+upload    [   5% ] 00/20 VUs    0m11.3s/3m30.0s
+widget    [   5% ] 009/150 VUs  0m11.3s/3m30.0s
+
+running (0m12.4s), 012/220 VUs, 24 complete and 0 interrupted iterations
+admin     [   6% ] 02/40 VUs    0m12.4s/3m30.0s
+journey   [   6% ] 000/010 VUs  0m12.3s/3m30s  0.07 iters/s
+upload    [   6% ] 00/20 VUs    0m12.4s/3m30.0s
+widget    [   6% ] 010/150 VUs  0m12.4s/3m30.0s
+
+running (0m13.3s), 013/220 VUs, 28 complete and 0 interrupted iterations
+admin     [   6% ] 02/40 VUs    0m13.3s/3m30.0s
+journey   [   6% ] 000/010 VUs  0m13.3s/3m30s  0.07 iters/s
+upload    [   6% ] 00/20 VUs    0m13.3s/3m30.0s
+widget    [   6% ] 011/150 VUs  0m13.3s/3m30.0s
+
+running (0m14.3s), 013/220 VUs, 34 complete and 0 interrupted iterations
+admin     [   7% ] 02/40 VUs    0m14.3s/3m30.0s
+journey   [   7% ] 000/010 VUs  0m14.3s/3m30s  0.07 iters/s
+upload    [   7% ] 00/20 VUs    0m14.3s/3m30.0s
+widget    [   7% ] 011/150 VUs  0m14.3s/3m30.0s
+
+running (0m15.4s), 016/220 VUs, 39 complete and 0 interrupted iterations
+admin     [   7% ] 02/40 VUs    0m15.3s/3m30.0s
+journey   [   7% ] 001/010 VUs  0m15.3s/3m30s  0.07 iters/s
+upload    [   7% ] 01/20 VUs    0m15.3s/3m30.0s
+widget    [   7% ] 012/150 VUs  0m15.3s/3m30.0s
+
+running (0m16.3s), 017/220 VUs, 46 complete and 0 interrupted iterations
+admin     [   8% ] 02/40 VUs    0m16.3s/3m30.0s
+journey   [   8% ] 001/010 VUs  0m16.3s/3m30s  0.07 iters/s
+upload    [   8% ] 01/20 VUs    0m16.3s/3m30.0s
+widget    [   8% ] 013/150 VUs  0m16.3s/3m30.0s
+
+running (0m17.3s), 018/220 VUs, 54 complete and 0 interrupted iterations
+admin     [   8% ] 02/40 VUs    0m17.3s/3m30.0s
+journey   [   8% ] 001/010 VUs  0m17.3s/3m30s  0.07 iters/s
+upload    [   8% ] 01/20 VUs    0m17.3s/3m30.0s
+widget    [   8% ] 014/150 VUs  0m17.3s/3m30.0s
+
+running (0m18.3s), 020/220 VUs, 61 complete and 0 interrupted iterations
+admin     [   9% ] 03/40 VUs    0m18.3s/3m30.0s
+journey   [   9% ] 001/010 VUs  0m18.3s/3m30s  0.07 iters/s
+upload    [   9% ] 01/20 VUs    0m18.3s/3m30.0s
+widget    [   9% ] 015/150 VUs  0m18.3s/3m30.0s
+
+running (0m19.3s), 021/220 VUs, 71 complete and 0 interrupted iterations
+admin     [   9% ] 03/40 VUs    0m19.3s/3m30.0s
+journey   [   9% ] 001/010 VUs  0m19.3s/3m30s  0.07 iters/s
+upload    [   9% ] 01/20 VUs    0m19.3s/3m30.0s
+widget    [   9% ] 016/150 VUs  0m19.3s/3m30.0s
+
+running (0m20.3s), 021/220 VUs, 75 complete and 0 interrupted iterations
+admin     [  10% ] 03/40 VUs    0m20.3s/3m30.0s
+journey   [  10% ] 001/010 VUs  0m20.3s/3m30s  0.07 iters/s
+upload    [  10% ] 01/20 VUs    0m20.3s/3m30.0s
+widget    [  10% ] 016/150 VUs  0m20.3s/3m30.0s
+
+running (0m21.3s), 022/220 VUs, 89 complete and 0 interrupted iterations
+admin     [  10% ] 03/40 VUs    0m21.3s/3m30.0s
+journey   [  10% ] 001/010 VUs  0m21.3s/3m30s  0.07 iters/s
+upload    [  10% ] 01/20 VUs    0m21.3s/3m30.0s
+widget    [  10% ] 017/150 VUs  0m21.3s/3m30.0s
+
+running (0m22.3s), 023/220 VUs, 98 complete and 0 interrupted iterations
+admin     [  11% ] 03/40 VUs    0m22.3s/3m30.0s
+journey   [  11% ] 001/010 VUs  0m22.3s/3m30s  0.07 iters/s
+upload    [  11% ] 01/20 VUs    0m22.3s/3m30.0s
+widget    [  11% ] 018/150 VUs  0m22.3s/3m30.0s
+
+running (0m23.3s), 024/220 VUs, 113 complete and 0 interrupted iterations
+admin     [  11% ] 03/40 VUs    0m23.3s/3m30.0s
+journey   [  11% ] 001/010 VUs  0m23.3s/3m30s  0.07 iters/s
+upload    [  11% ] 01/20 VUs    0m23.3s/3m30.0s
+widget    [  11% ] 019/150 VUs  0m23.3s/3m30.0s
+
+running (0m24.3s), 026/220 VUs, 123 complete and 0 interrupted iterations
+admin     [  12% ] 04/40 VUs    0m24.3s/3m30.0s
+journey   [  12% ] 001/010 VUs  0m24.3s/3m30s  0.07 iters/s
+upload    [  12% ] 01/20 VUs    0m24.3s/3m30.0s
+widget    [  12% ] 020/150 VUs  0m24.3s/3m30.0s
+
+running (0m25.3s), 027/220 VUs, 129 complete and 0 interrupted iterations
+admin     [  12% ] 04/40 VUs    0m25.4s/3m30.0s
+journey   [  12% ] 001/010 VUs  0m25.3s/3m30s  0.07 iters/s
+upload    [  12% ] 01/20 VUs    0m25.4s/3m30.0s
+widget    [  12% ] 021/150 VUs  0m25.4s/3m30.0s
+
+running (0m26.3s), 027/220 VUs, 147 complete and 0 interrupted iterations
+admin     [  13% ] 04/40 VUs    0m26.3s/3m30.0s
+journey   [  13% ] 001/010 VUs  0m26.3s/3m30s  0.07 iters/s
+upload    [  13% ] 01/20 VUs    0m26.3s/3m30.0s
+widget    [  13% ] 021/150 VUs  0m26.3s/3m30.0s
+
+running (0m27.3s), 028/220 VUs, 161 complete and 0 interrupted iterations
+admin     [  13% ] 04/40 VUs    0m27.3s/3m30.0s
+journey   [  13% ] 001/010 VUs  0m27.3s/3m30s  0.07 iters/s
+upload    [  13% ] 01/20 VUs    0m27.3s/3m30.0s
+widget    [  13% ] 022/150 VUs  0m27.3s/3m30.0s
+
+running (0m28.3s), 029/220 VUs, 171 complete and 0 interrupted iterations
+admin     [  13% ] 04/40 VUs    0m28.3s/3m30.0s
+journey   [  13% ] 001/010 VUs  0m28.3s/3m30s  0.07 iters/s
+upload    [  13% ] 01/20 VUs    0m28.3s/3m30.0s
+widget    [  13% ] 023/150 VUs  0m28.3s/3m30.0s
+
+running (0m29.3s), 030/220 VUs, 186 complete and 0 interrupted iterations
+admin     [  14% ] 04/40 VUs    0m29.3s/3m30.0s
+journey   [  14% ] 001/010 VUs  0m29.3s/3m30s  0.07 iters/s
+upload    [  14% ] 01/20 VUs    0m29.3s/3m30.0s
+widget    [  14% ] 024/150 VUs  0m29.3s/3m30.0s
+
+running (0m30.3s), 034/220 VUs, 201 complete and 0 interrupted iterations
+admin     [  14% ] 05/40 VUs    0m30.3s/3m30.0s
+journey   [  14% ] 002/010 VUs  0m30.3s/3m30s  0.07 iters/s
+upload    [  14% ] 02/20 VUs    0m30.3s/3m30.0s
+widget    [  14% ] 025/150 VUs  0m30.3s/3m30.0s
+
+running (0m31.3s), 033/220 VUs, 216 complete and 0 interrupted iterations
+admin     [  15% ] 05/40 VUs    0m31.3s/3m30.0s
+journey   [  15% ] 001/010 VUs  0m31.3s/3m30s  0.07 iters/s
+upload    [  15% ] 02/20 VUs    0m31.3s/3m30.0s
+widget    [  15% ] 025/150 VUs  0m31.3s/3m30.0s
+
+running (0m32.3s), 033/220 VUs, 234 complete and 0 interrupted iterations
+admin     [  15% ] 05/40 VUs    0m32.3s/3m30.0s
+journey   [  15% ] 001/010 VUs  0m32.3s/3m30s  0.07 iters/s
+upload    [  15% ] 02/20 VUs    0m32.3s/3m30.0s
+widget    [  15% ] 025/150 VUs  0m32.3s/3m30.0s
+
+running (0m33.3s), 034/220 VUs, 249 complete and 0 interrupted iterations
+admin     [  16% ] 05/40 VUs    0m33.3s/3m30.0s
+journey   [  16% ] 001/010 VUs  0m33.3s/3m30s  0.07 iters/s
+upload    [  16% ] 02/20 VUs    0m33.3s/3m30.0s
+widget    [  16% ] 026/150 VUs  0m33.4s/3m30.0s
+
+running (0m35.5s), 034/220 VUs, 268 complete and 0 interrupted iterations
+admin     [  17% ] 05/40 VUs    0m35.5s/3m30.0s
+journey   [  17% ] 001/010 VUs  0m35.5s/3m30s  0.07 iters/s
+upload    [  17% ] 02/20 VUs    0m35.5s/3m30.0s
+widget    [  17% ] 026/150 VUs  0m35.5s/3m30.0s
+
+running (0m36.3s), 035/220 VUs, 285 complete and 0 interrupted iterations
+admin     [  17% ] 05/40 VUs    0m36.4s/3m30.0s
+journey   [  17% ] 001/010 VUs  0m36.3s/3m30s  0.07 iters/s
+upload    [  17% ] 02/20 VUs    0m36.4s/3m30.0s
+widget    [  17% ] 027/150 VUs  0m36.4s/3m30.0s
+
+running (0m37.3s), 036/220 VUs, 285 complete and 0 interrupted iterations
+admin     [  18% ] 05/40 VUs    0m37.3s/3m30.0s
+journey   [  18% ] 001/010 VUs  0m37.3s/3m30s  0.07 iters/s
+upload    [  18% ] 02/20 VUs    0m37.3s/3m30.0s
+widget    [  18% ] 028/150 VUs  0m37.3s/3m30.0s
+
+running (0m38.3s), 036/220 VUs, 293 complete and 0 interrupted iterations
+admin     [  18% ] 05/40 VUs    0m38.3s/3m30.0s
+journey   [  18% ] 001/010 VUs  0m38.3s/3m30s  0.07 iters/s
+upload    [  18% ] 02/20 VUs    0m38.3s/3m30.0s
+widget    [  18% ] 028/150 VUs  0m38.3s/3m30.0s
+
+running (0m39.3s), 036/220 VUs, 307 complete and 0 interrupted iterations
+admin     [  19% ] 05/40 VUs    0m39.3s/3m30.0s
+journey   [  19% ] 001/010 VUs  0m39.3s/3m30s  0.07 iters/s
+upload    [  19% ] 02/20 VUs    0m39.3s/3m30.0s
+widget    [  19% ] 028/150 VUs  0m39.3s/3m30.0s
+
+running (0m40.3s), 037/220 VUs, 328 complete and 0 interrupted iterations
+admin     [  19% ] 05/40 VUs    0m40.3s/3m30.0s
+journey   [  19% ] 001/010 VUs  0m40.3s/3m30s  0.07 iters/s
+upload    [  19% ] 02/20 VUs    0m40.3s/3m30.0s
+widget    [  19% ] 029/150 VUs  0m40.3s/3m30.0s
+
+running (0m41.3s), 037/220 VUs, 350 complete and 0 interrupted iterations
+admin     [  20% ] 05/40 VUs    0m41.3s/3m30.0s
+journey   [  20% ] 001/010 VUs  0m41.3s/3m30s  0.07 iters/s
+upload    [  20% ] 02/20 VUs    0m41.3s/3m30.0s
+widget    [  20% ] 029/150 VUs  0m41.3s/3m30.0s
+
+running (0m42.3s), 039/220 VUs, 362 complete and 0 interrupted iterations
+admin     [  20% ] 06/40 VUs    0m42.3s/3m30.0s
+journey   [  20% ] 001/010 VUs  0m42.3s/3m30s  0.07 iters/s
+upload    [  20% ] 02/20 VUs    0m42.3s/3m30.0s
+widget    [  20% ] 030/150 VUs  0m42.3s/3m30.0s
+
+running (0m43.4s), 039/220 VUs, 383 complete and 0 interrupted iterations
+admin     [  21% ] 06/40 VUs    0m43.4s/3m30.0s
+journey   [  21% ] 001/010 VUs  0m43.4s/3m30s  0.07 iters/s
+upload    [  21% ] 02/20 VUs    0m43.4s/3m30.0s
+widget    [  21% ] 030/150 VUs  0m43.4s/3m30.0s
+
+running (0m44.3s), 040/220 VUs, 395 complete and 0 interrupted iterations
+admin     [  21% ] 06/40 VUs    0m44.3s/3m30.0s
+journey   [  21% ] 002/010 VUs  0m44.3s/3m30s  0.09 iters/s
+upload    [  21% ] 02/20 VUs    0m44.3s/3m30.0s
+widget    [  21% ] 030/150 VUs  0m44.4s/3m30.0s
+
+running (0m45.3s), 041/220 VUs, 414 complete and 0 interrupted iterations
+admin     [  22% ] 06/40 VUs    0m45.3s/3m30.0s
+journey   [  22% ] 002/010 VUs  0m45.3s/3m30s  0.09 iters/s
+upload    [  22% ] 02/20 VUs    0m45.3s/3m30.0s
+widget    [  22% ] 031/150 VUs  0m45.3s/3m30.0s
+
+running (0m46.3s), 041/220 VUs, 434 complete and 0 interrupted iterations
+admin     [  22% ] 06/40 VUs    0m46.3s/3m30.0s
+journey   [  22% ] 002/010 VUs  0m46.3s/3m30s  0.09 iters/s
+upload    [  22% ] 02/20 VUs    0m46.3s/3m30.0s
+widget    [  22% ] 031/150 VUs  0m46.4s/3m30.0s
+
+running (0m47.3s), 041/220 VUs, 455 complete and 0 interrupted iterations
+admin     [  23% ] 06/40 VUs    0m47.3s/3m30.0s
+journey   [  23% ] 001/010 VUs  0m47.3s/3m30s  0.09 iters/s
+upload    [  23% ] 02/20 VUs    0m47.3s/3m30.0s
+widget    [  23% ] 032/150 VUs  0m47.3s/3m30.0s
+
+running (0m48.3s), 041/220 VUs, 476 complete and 0 interrupted iterations
+admin     [  23% ] 06/40 VUs    0m48.3s/3m30.0s
+journey   [  23% ] 001/010 VUs  0m48.3s/3m30s  0.09 iters/s
+upload    [  23% ] 02/20 VUs    0m48.3s/3m30.0s
+widget    [  23% ] 032/150 VUs  0m48.3s/3m30.0s
+
+running (0m49.3s), 042/220 VUs, 492 complete and 0 interrupted iterations
+admin     [  23% ] 06/40 VUs    0m49.3s/3m30.0s
+journey   [  23% ] 001/010 VUs  0m49.3s/3m30s  0.09 iters/s
+upload    [  23% ] 02/20 VUs    0m49.3s/3m30.0s
+widget    [  23% ] 033/150 VUs  0m49.3s/3m30.0s
+
+running (0m50.3s), 043/220 VUs, 516 complete and 0 interrupted iterations
+admin     [  24% ] 06/40 VUs    0m50.3s/3m30.0s
+journey   [  24% ] 001/010 VUs  0m50.3s/3m30s  0.09 iters/s
+upload    [  24% ] 03/20 VUs    0m50.3s/3m30.0s
+widget    [  24% ] 033/150 VUs  0m50.4s/3m30.0s
+
+running (0m51.5s), 043/220 VUs, 536 complete and 0 interrupted iterations
+admin     [  25% ] 06/40 VUs    0m51.5s/3m30.0s
+journey   [  25% ] 001/010 VUs  0m51.5s/3m30s  0.09 iters/s
+upload    [  25% ] 03/20 VUs    0m51.5s/3m30.0s
+widget    [  25% ] 033/150 VUs  0m51.5s/3m30.0s
+
+running (0m52.3s), 044/220 VUs, 554 complete and 0 interrupted iterations
+admin     [  25% ] 06/40 VUs    0m52.3s/3m30.0s
+journey   [  25% ] 001/010 VUs  0m52.3s/3m30s  0.09 iters/s
+upload    [  25% ] 03/20 VUs    0m52.3s/3m30.0s
+widget    [  25% ] 034/150 VUs  0m52.3s/3m30.0s
+
+running (0m53.3s), 044/220 VUs, 562 complete and 0 interrupted iterations
+admin     [  25% ] 06/40 VUs    0m53.3s/3m30.0s
+journey   [  25% ] 001/010 VUs  0m53.3s/3m30s  0.09 iters/s
+upload    [  25% ] 03/20 VUs    0m53.3s/3m30.0s
+widget    [  25% ] 034/150 VUs  0m53.3s/3m30.0s
+
+running (0m54.3s), 046/220 VUs, 573 complete and 0 interrupted iterations
+admin     [  26% ] 07/40 VUs    0m54.3s/3m30.0s
+journey   [  26% ] 001/010 VUs  0m54.3s/3m30s  0.09 iters/s
+upload    [  26% ] 03/20 VUs    0m54.3s/3m30.0s
+widget    [  26% ] 035/150 VUs  0m54.3s/3m30.0s
+
+running (0m55.4s), 047/220 VUs, 593 complete and 0 interrupted iterations
+admin     [  26% ] 07/40 VUs    0m55.4s/3m30.0s
+journey   [  26% ] 002/010 VUs  0m55.4s/3m30s  0.10 iters/s
+upload    [  26% ] 03/20 VUs    0m55.4s/3m30.0s
+widget    [  26% ] 035/150 VUs  0m55.4s/3m30.0s
+
+running (0m56.3s), 047/220 VUs, 617 complete and 0 interrupted iterations
+admin     [  27% ] 07/40 VUs    0m56.3s/3m30.0s
+journey   [  27% ] 002/010 VUs  0m56.3s/3m30s  0.10 iters/s
+upload    [  27% ] 03/20 VUs    0m56.3s/3m30.0s
+widget    [  27% ] 035/150 VUs  0m56.3s/3m30.0s
+
+running (0m57.3s), 048/220 VUs, 633 complete and 0 interrupted iterations
+admin     [  27% ] 07/40 VUs    0m57.4s/3m30.0s
+journey   [  27% ] 002/010 VUs  0m57.3s/3m30s  0.10 iters/s
+upload    [  27% ] 03/20 VUs    0m57.4s/3m30.0s
+widget    [  27% ] 036/150 VUs  0m57.4s/3m30.0s
+
+running (0m58.3s), 047/220 VUs, 656 complete and 0 interrupted iterations
+admin     [  28% ] 07/40 VUs    0m58.4s/3m30.0s
+journey   [  28% ] 001/010 VUs  0m58.3s/3m30s  0.10 iters/s
+upload    [  28% ] 03/20 VUs    0m58.4s/3m30.0s
+widget    [  28% ] 036/150 VUs  0m58.4s/3m30.0s
+
+running (0m59.3s), 048/220 VUs, 681 complete and 0 interrupted iterations
+admin     [  28% ] 07/40 VUs    0m59.3s/3m30.0s
+journey   [  28% ] 001/010 VUs  0m59.3s/3m30s  0.10 iters/s
+upload    [  28% ] 03/20 VUs    0m59.3s/3m30.0s
+widget    [  28% ] 037/150 VUs  0m59.3s/3m30.0s
+
+running (1m00.3s), 048/220 VUs, 703 complete and 0 interrupted iterations
+admin     [  29% ] 07/40 VUs    1m00.3s/3m30.0s
+journey   [  29% ] 001/010 VUs  1m00.3s/3m30s  0.10 iters/s
+upload    [  29% ] 03/20 VUs    1m00.3s/3m30.0s
+widget    [  29% ] 037/150 VUs  1m00.3s/3m30.0s
+
+running (1m01.3s), 049/220 VUs, 725 complete and 0 interrupted iterations
+admin     [  29% ] 07/40 VUs    1m01.4s/3m30.0s
+journey   [  29% ] 001/010 VUs  1m01.3s/3m30s  0.10 iters/s
+upload    [  29% ] 03/20 VUs    1m01.4s/3m30.0s
+widget    [  29% ] 038/150 VUs  1m01.4s/3m30.0s
+
+running (1m02.3s), 049/220 VUs, 744 complete and 0 interrupted iterations
+admin     [  30% ] 07/40 VUs    1m02.3s/3m30.0s
+journey   [  30% ] 001/010 VUs  1m02.3s/3m30s  0.10 iters/s
+upload    [  30% ] 03/20 VUs    1m02.4s/3m30.0s
+widget    [  30% ] 038/150 VUs  1m02.4s/3m30.0s
+
+running (1m03.3s), 049/220 VUs, 769 complete and 0 interrupted iterations
+admin     [  30% ] 07/40 VUs    1m03.4s/3m30.0s
+journey   [  30% ] 001/010 VUs  1m03.4s/3m30s  0.10 iters/s
+upload    [  30% ] 03/20 VUs    1m03.4s/3m30.0s
+widget    [  30% ] 038/150 VUs  1m03.4s/3m30.0s
+
+running (1m04.3s), 050/220 VUs, 785 complete and 0 interrupted iterations
+admin     [  31% ] 07/40 VUs    1m04.3s/3m30.0s
+journey   [  31% ] 001/010 VUs  1m04.3s/3m30s  0.10 iters/s
+upload    [  31% ] 03/20 VUs    1m04.3s/3m30.0s
+widget    [  31% ] 039/150 VUs  1m04.3s/3m30.0s
+
+running (1m05.3s), 051/220 VUs, 807 complete and 0 interrupted iterations
+admin     [  31% ] 07/40 VUs    1m05.3s/3m30.0s
+journey   [  31% ] 002/010 VUs  1m05.3s/3m30s  0.11 iters/s
+upload    [  31% ] 03/20 VUs    1m05.3s/3m30.0s
+widget    [  31% ] 039/150 VUs  1m05.3s/3m30.0s
+
+running (1m07.0s), 051/220 VUs, 828 complete and 0 interrupted iterations
+admin     [  32% ] 07/40 VUs    1m07.0s/3m30.0s
+journey   [  32% ] 002/010 VUs  1m07.0s/3m30s  0.11 iters/s
+upload    [  32% ] 03/20 VUs    1m07.0s/3m30.0s
+widget    [  32% ] 039/150 VUs  1m07.0s/3m30.0s
+
+running (1m07.3s), 052/220 VUs, 841 complete and 0 interrupted iterations
+admin     [  32% ] 07/40 VUs    1m07.4s/3m30.0s
+journey   [  32% ] 002/010 VUs  1m07.3s/3m30s  0.11 iters/s
+upload    [  32% ] 03/20 VUs    1m07.4s/3m30.0s
+widget    [  32% ] 040/150 VUs  1m07.4s/3m30.0s
+
+running (1m08.4s), 053/220 VUs, 862 complete and 0 interrupted iterations
+admin     [  33% ] 08/40 VUs    1m08.4s/3m30.0s
+journey   [  33% ] 002/010 VUs  1m08.4s/3m30s  0.11 iters/s
+upload    [  33% ] 03/20 VUs    1m08.4s/3m30.0s
+widget    [  33% ] 040/150 VUs  1m08.4s/3m30.0s
+
+running (1m09.3s), 054/220 VUs, 867 complete and 0 interrupted iterations
+admin     [  33% ] 08/40 VUs    1m09.3s/3m30.0s
+journey   [  33% ] 002/010 VUs  1m09.3s/3m30s  0.11 iters/s
+upload    [  33% ] 03/20 VUs    1m09.3s/3m30.0s
+widget    [  33% ] 041/150 VUs  1m09.3s/3m30.0s
+
+running (1m10.9s), 055/220 VUs, 899 complete and 0 interrupted iterations
+admin     [  34% ] 08/40 VUs    1m10.9s/3m30.0s
+journey   [  34% ] 002/010 VUs  1m10.9s/3m30s  0.11 iters/s
+upload    [  34% ] 04/20 VUs    1m10.9s/3m30.0s
+widget    [  34% ] 041/150 VUs  1m10.9s/3m30.0s
+
+running (1m13.1s), 056/220 VUs, 930 complete and 0 interrupted iterations
+admin     [  35% ] 08/40 VUs    1m13.1s/3m30.0s
+journey   [  35% ] 002/010 VUs  1m13.1s/3m30s  0.11 iters/s
+upload    [  35% ] 04/20 VUs    1m13.1s/3m30.0s
+widget    [  35% ] 042/150 VUs  1m13.1s/3m30.0s
+
+running (1m15.0s), 056/220 VUs, 944 complete and 0 interrupted iterations
+admin     [  36% ] 08/40 VUs    1m15.0s/3m30.0s
+journey   [  36% ] 002/010 VUs  1m15.0s/3m30s  0.11 iters/s
+upload    [  36% ] 04/20 VUs    1m15.0s/3m30.0s
+widget    [  36% ] 042/150 VUs  1m15.0s/3m30.0s
+
+running (1m15.8s), 057/220 VUs, 965 complete and 0 interrupted iterations
+admin     [  36% ] 08/40 VUs    1m15.8s/3m30.0s
+journey   [  36% ] 001/010 VUs  1m15.8s/3m30s  0.11 iters/s
+upload    [  36% ] 04/20 VUs    1m15.8s/3m30.0s
+widget    [  36% ] 044/150 VUs  1m15.8s/3m30.0s
+
+running (1m16.4s), 058/220 VUs, 971 complete and 0 interrupted iterations
+admin     [  36% ] 08/40 VUs    1m16.5s/3m30.0s
+journey   [  36% ] 002/010 VUs  1m16.4s/3m30s  0.12 iters/s
+upload    [  36% ] 04/20 VUs    1m16.5s/3m30.0s
+widget    [  36% ] 044/150 VUs  1m16.5s/3m30.0s
+
+running (1m17.3s), 058/220 VUs, 981 complete and 0 interrupted iterations
+admin     [  37% ] 08/40 VUs    1m17.3s/3m30.0s
+journey   [  37% ] 002/010 VUs  1m17.3s/3m30s  0.12 iters/s
+upload    [  37% ] 04/20 VUs    1m17.3s/3m30.0s
+widget    [  37% ] 044/150 VUs  1m17.3s/3m30.0s
+
+running (1m18.3s), 060/220 VUs, 1012 complete and 0 interrupted iterations
+admin     [  37% ] 09/40 VUs    1m18.3s/3m30.0s
+journey   [  37% ] 002/010 VUs  1m18.3s/3m30s  0.12 iters/s
+upload    [  37% ] 04/20 VUs    1m18.3s/3m30.0s
+widget    [  37% ] 045/150 VUs  1m18.3s/3m30.0s
+
+running (1m19.3s), 060/220 VUs, 1042 complete and 0 interrupted iterations
+admin     [  38% ] 09/40 VUs    1m19.3s/3m30.0s
+journey   [  38% ] 002/010 VUs  1m19.3s/3m30s  0.12 iters/s
+upload    [  38% ] 04/20 VUs    1m19.3s/3m30.0s
+widget    [  38% ] 045/150 VUs  1m19.3s/3m30.0s
+
+running (1m20.3s), 060/220 VUs, 1069 complete and 0 interrupted iterations
+admin     [  38% ] 09/40 VUs    1m20.3s/3m30.0s
+journey   [  38% ] 002/010 VUs  1m20.3s/3m30s  0.12 iters/s
+upload    [  38% ] 04/20 VUs    1m20.3s/3m30.0s
+widget    [  38% ] 045/150 VUs  1m20.3s/3m30.0s
+
+running (1m21.3s), 060/220 VUs, 1101 complete and 0 interrupted iterations
+admin     [  39% ] 09/40 VUs    1m21.3s/3m30.0s
+journey   [  39% ] 001/010 VUs  1m21.3s/3m30s  0.12 iters/s
+upload    [  39% ] 04/20 VUs    1m21.3s/3m30.0s
+widget    [  39% ] 046/150 VUs  1m21.3s/3m30.0s
+
+running (1m22.3s), 061/220 VUs, 1129 complete and 0 interrupted iterations
+admin     [  39% ] 09/40 VUs    1m22.3s/3m30.0s
+journey   [  39% ] 002/010 VUs  1m22.3s/3m30s  0.13 iters/s
+upload    [  39% ] 04/20 VUs    1m22.3s/3m30.0s
+widget    [  39% ] 046/150 VUs  1m22.3s/3m30.0s
+
+running (1m23.3s), 062/220 VUs, 1160 complete and 0 interrupted iterations
+admin     [  40% ] 09/40 VUs    1m23.4s/3m30.0s
+journey   [  40% ] 002/010 VUs  1m23.4s/3m30s  0.13 iters/s
+upload    [  40% ] 04/20 VUs    1m23.4s/3m30.0s
+widget    [  40% ] 047/150 VUs  1m23.4s/3m30.0s
+
+running (1m24.3s), 062/220 VUs, 1183 complete and 0 interrupted iterations
+admin     [  40% ] 09/40 VUs    1m24.3s/3m30.0s
+journey   [  40% ] 002/010 VUs  1m24.3s/3m30s  0.13 iters/s
+upload    [  40% ] 04/20 VUs    1m24.3s/3m30.0s
+widget    [  40% ] 047/150 VUs  1m24.3s/3m30.0s
+
+running (1m25.3s), 063/220 VUs, 1201 complete and 0 interrupted iterations
+admin     [  41% ] 09/40 VUs    1m25.3s/3m30.0s
+journey   [  41% ] 002/010 VUs  1m25.3s/3m30s  0.13 iters/s
+upload    [  41% ] 04/20 VUs    1m25.3s/3m30.0s
+widget    [  41% ] 048/150 VUs  1m25.3s/3m30.0s
+
+running (1m26.3s), 063/220 VUs, 1231 complete and 0 interrupted iterations
+admin     [  41% ] 09/40 VUs    1m26.3s/3m30.0s
+journey   [  41% ] 002/010 VUs  1m26.3s/3m30s  0.13 iters/s
+upload    [  41% ] 04/20 VUs    1m26.3s/3m30.0s
+widget    [  41% ] 048/150 VUs  1m26.3s/3m30.0s
+
+running (1m27.3s), 063/220 VUs, 1261 complete and 0 interrupted iterations
+admin     [  42% ] 09/40 VUs    1m27.3s/3m30.0s
+journey   [  42% ] 002/010 VUs  1m27.3s/3m30s  0.13 iters/s
+upload    [  42% ] 04/20 VUs    1m27.3s/3m30.0s
+widget    [  42% ] 048/150 VUs  1m27.3s/3m30.0s
+
+running (1m28.3s), 064/220 VUs, 1287 complete and 0 interrupted iterations
+admin     [  42% ] 09/40 VUs    1m28.3s/3m30.0s
+journey   [  42% ] 002/010 VUs  1m28.3s/3m30s  0.13 iters/s
+upload    [  42% ] 04/20 VUs    1m28.3s/3m30.0s
+widget    [  42% ] 049/150 VUs  1m28.3s/3m30.0s
+
+running (1m29.3s), 064/220 VUs, 1324 complete and 0 interrupted iterations
+admin     [  43% ] 09/40 VUs    1m29.3s/3m30.0s
+journey   [  43% ] 002/010 VUs  1m29.3s/3m30s  0.13 iters/s
+upload    [  43% ] 04/20 VUs    1m29.3s/3m30.0s
+widget    [  43% ] 049/150 VUs  1m29.3s/3m30.0s
+
+running (1m30.3s), 068/220 VUs, 1352 complete and 0 interrupted iterations
+admin     [  43% ] 10/40 VUs    1m30.3s/3m30.0s
+journey   [  43% ] 003/010 VUs  1m30.3s/3m30s  0.14 iters/s
+upload    [  43% ] 05/20 VUs    1m30.3s/3m30.0s
+widget    [  43% ] 050/150 VUs  1m30.3s/3m30.0s
+
+running (1m31.3s), 069/220 VUs, 1379 complete and 0 interrupted iterations
+admin     [  43% ] 10/40 VUs    1m31.3s/3m30.0s
+journey   [  43% ] 003/010 VUs  1m31.3s/3m30s  0.14 iters/s
+upload    [  43% ] 05/20 VUs    1m31.3s/3m30.0s
+widget    [  43% ] 051/150 VUs  1m31.3s/3m30.0s
+
+running (1m32.3s), 068/220 VUs, 1416 complete and 0 interrupted iterations
+admin     [  44% ] 10/40 VUs    1m32.4s/3m30.0s
+journey   [  44% ] 002/010 VUs  1m32.3s/3m30s  0.14 iters/s
+upload    [  44% ] 05/20 VUs    1m32.4s/3m30.0s
+widget    [  44% ] 051/150 VUs  1m32.4s/3m30.0s
+
+running (1m33.3s), 069/220 VUs, 1451 complete and 0 interrupted iterations
+admin     [  44% ] 10/40 VUs    1m33.4s/3m30.0s
+journey   [  44% ] 002/010 VUs  1m33.3s/3m30s  0.14 iters/s
+upload    [  44% ] 05/20 VUs    1m33.4s/3m30.0s
+widget    [  44% ] 052/150 VUs  1m33.4s/3m30.0s
+
+running (1m34.3s), 070/220 VUs, 1474 complete and 0 interrupted iterations
+admin     [  45% ] 10/40 VUs    1m34.4s/3m30.0s
+journey   [  45% ] 002/010 VUs  1m34.4s/3m30s  0.14 iters/s
+upload    [  45% ] 05/20 VUs    1m34.4s/3m30.0s
+widget    [  45% ] 053/150 VUs  1m34.4s/3m30.0s
+
+running (1m35.6s), 071/220 VUs, 1514 complete and 0 interrupted iterations
+admin     [  46% ] 10/40 VUs    1m35.6s/3m30.0s
+journey   [  46% ] 002/010 VUs  1m35.6s/3m30s  0.14 iters/s
+upload    [  46% ] 05/20 VUs    1m35.6s/3m30.0s
+widget    [  46% ] 054/150 VUs  1m35.6s/3m30.0s
+
+running (1m36.5s), 073/220 VUs, 1525 complete and 0 interrupted iterations
+admin     [  46% ] 11/40 VUs    1m36.5s/3m30.0s
+journey   [  46% ] 002/010 VUs  1m36.5s/3m30s  0.14 iters/s
+upload    [  46% ] 05/20 VUs    1m36.5s/3m30.0s
+widget    [  46% ] 055/150 VUs  1m36.5s/3m30.0s
+
+running (1m37.3s), 075/220 VUs, 1557 complete and 0 interrupted iterations
+admin     [  46% ] 11/40 VUs    1m37.4s/3m30.0s
+journey   [  46% ] 003/010 VUs  1m37.4s/3m30s  0.16 iters/s
+upload    [  46% ] 05/20 VUs    1m37.4s/3m30.0s
+widget    [  46% ] 056/150 VUs  1m37.4s/3m30.0s
+
+running (1m38.3s), 075/220 VUs, 1589 complete and 0 interrupted iterations
+admin     [  47% ] 11/40 VUs    1m38.3s/3m30.0s
+journey   [  47% ] 003/010 VUs  1m38.3s/3m30s  0.16 iters/s
+upload    [  47% ] 05/20 VUs    1m38.3s/3m30.0s
+widget    [  47% ] 056/150 VUs  1m38.3s/3m30.0s
+
+running (1m39.3s), 076/220 VUs, 1607 complete and 0 interrupted iterations
+admin     [  47% ] 11/40 VUs    1m39.3s/3m30.0s
+journey   [  47% ] 003/010 VUs  1m39.3s/3m30s  0.16 iters/s
+upload    [  47% ] 05/20 VUs    1m39.3s/3m30.0s
+widget    [  47% ] 057/150 VUs  1m39.3s/3m30.0s
+
+running (1m40.3s), 076/220 VUs, 1640 complete and 0 interrupted iterations
+admin     [  48% ] 11/40 VUs    1m40.4s/3m30.0s
+journey   [  48% ] 002/010 VUs  1m40.4s/3m30s  0.16 iters/s
+upload    [  48% ] 05/20 VUs    1m40.4s/3m30.0s
+widget    [  48% ] 058/150 VUs  1m40.4s/3m30.0s
+
+running (1m41.4s), 077/220 VUs, 1657 complete and 0 interrupted iterations
+admin     [  48% ] 11/40 VUs    1m41.5s/3m30.0s
+journey   [  48% ] 002/010 VUs  1m41.4s/3m30s  0.16 iters/s
+upload    [  48% ] 05/20 VUs    1m41.5s/3m30.0s
+widget    [  48% ] 059/150 VUs  1m41.5s/3m30.0s
+
+running (1m42.3s), 080/220 VUs, 1697 complete and 0 interrupted iterations
+admin     [  49% ] 12/40 VUs    1m42.4s/3m30.0s
+journey   [  49% ] 002/010 VUs  1m42.3s/3m30s  0.16 iters/s
+upload    [  49% ] 06/20 VUs    1m42.4s/3m30.0s
+widget    [  49% ] 060/150 VUs  1m42.4s/3m30.0s
+
+running (1m43.3s), 081/220 VUs, 1715 complete and 0 interrupted iterations
+admin     [  49% ] 12/40 VUs    1m43.4s/3m30.0s
+journey   [  49% ] 002/010 VUs  1m43.4s/3m30s  0.16 iters/s
+upload    [  49% ] 06/20 VUs    1m43.4s/3m30.0s
+widget    [  49% ] 061/150 VUs  1m43.4s/3m30.0s
+
+running (1m44.3s), 082/220 VUs, 1729 complete and 0 interrupted iterations
+admin     [  50% ] 12/40 VUs    1m44.4s/3m30.0s
+journey   [  50% ] 003/010 VUs  1m44.4s/3m30s  0.17 iters/s
+upload    [  50% ] 06/20 VUs    1m44.4s/3m30.0s
+widget    [  50% ] 061/150 VUs  1m44.4s/3m30.0s
+
+running (1m45.3s), 083/220 VUs, 1746 complete and 0 interrupted iterations
+admin     [  50% ] 12/40 VUs    1m45.4s/3m30.0s
+journey   [  50% ] 003/010 VUs  1m45.4s/3m30s  0.17 iters/s
+upload    [  50% ] 06/20 VUs    1m45.4s/3m30.0s
+widget    [  50% ] 062/150 VUs  1m45.4s/3m30.0s
+
+running (1m46.3s), 084/220 VUs, 1766 complete and 0 interrupted iterations
+admin     [  51% ] 12/40 VUs    1m46.3s/3m30.0s
+journey   [  51% ] 003/010 VUs  1m46.3s/3m30s  0.17 iters/s
+upload    [  51% ] 06/20 VUs    1m46.3s/3m30.0s
+widget    [  51% ] 063/150 VUs  1m46.3s/3m30.0s
+
+running (1m47.3s), 085/220 VUs, 1812 complete and 0 interrupted iterations
+admin     [  51% ] 12/40 VUs    1m47.4s/3m30.0s
+journey   [  51% ] 003/010 VUs  1m47.3s/3m30s  0.17 iters/s
+upload    [  51% ] 06/20 VUs    1m47.4s/3m30.0s
+widget    [  51% ] 064/150 VUs  1m47.4s/3m30.0s
+
+running (1m48.9s), 085/220 VUs, 1845 complete and 0 interrupted iterations
+admin     [  52% ] 12/40 VUs    1m48.9s/3m30.0s
+journey   [  52% ] 002/010 VUs  1m48.9s/3m30s  0.17 iters/s
+upload    [  52% ] 06/20 VUs    1m48.9s/3m30.0s
+widget    [  52% ] 065/150 VUs  1m48.9s/3m30.0s
+
+running (1m49.4s), 088/220 VUs, 1858 complete and 0 interrupted iterations
+admin     [  52% ] 13/40 VUs    1m49.4s/3m30.0s
+journey   [  52% ] 003/010 VUs  1m49.4s/3m30s  0.18 iters/s
+upload    [  52% ] 06/20 VUs    1m49.4s/3m30.0s
+widget    [  52% ] 066/150 VUs  1m49.4s/3m30.0s
+
+running (1m50.3s), 088/220 VUs, 1880 complete and 0 interrupted iterations
+admin     [  53% ] 13/40 VUs    1m50.4s/3m30.0s
+journey   [  53% ] 003/010 VUs  1m50.4s/3m30s  0.18 iters/s
+upload    [  53% ] 06/20 VUs    1m50.4s/3m30.0s
+widget    [  53% ] 066/150 VUs  1m50.4s/3m30.0s
+
+running (1m51.3s), 089/220 VUs, 1915 complete and 0 interrupted iterations
+admin     [  53% ] 13/40 VUs    1m51.3s/3m30.0s
+journey   [  53% ] 003/010 VUs  1m51.3s/3m30s  0.18 iters/s
+upload    [  53% ] 06/20 VUs    1m51.3s/3m30.0s
+widget    [  53% ] 067/150 VUs  1m51.3s/3m30.0s
+
+running (1m53.4s), 090/220 VUs, 1988 complete and 0 interrupted iterations
+admin     [  54% ] 13/40 VUs    1m53.4s/3m30.0s
+journey   [  54% ] 003/010 VUs  1m53.4s/3m30s  0.18 iters/s
+upload    [  54% ] 06/20 VUs    1m53.4s/3m30.0s
+widget    [  54% ] 068/150 VUs  1m53.4s/3m30.0s
+
+running (1m54.3s), 094/220 VUs, 2027 complete and 0 interrupted iterations
+admin     [  54% ] 14/40 VUs    1m54.4s/3m30.0s
+journey   [  54% ] 003/010 VUs  1m54.4s/3m30s  0.18 iters/s
+upload    [  54% ] 07/20 VUs    1m54.4s/3m30.0s
+widget    [  54% ] 070/150 VUs  1m54.4s/3m30.0s
+
+running (1m55.3s), 096/220 VUs, 2035 complete and 0 interrupted iterations
+admin     [  55% ] 14/40 VUs    1m55.4s/3m30.0s
+journey   [  55% ] 004/010 VUs  1m55.4s/3m30s  0.19 iters/s
+upload    [  55% ] 07/20 VUs    1m55.4s/3m30.0s
+widget    [  55% ] 071/150 VUs  1m55.4s/3m30.0s
+
+running (1m56.3s), 095/220 VUs, 2044 complete and 0 interrupted iterations
+admin     [  55% ] 14/40 VUs    1m56.4s/3m30.0s
+journey   [  55% ] 003/010 VUs  1m56.3s/3m30s  0.19 iters/s
+upload    [  55% ] 07/20 VUs    1m56.4s/3m30.0s
+widget    [  55% ] 071/150 VUs  1m56.4s/3m30.0s
+
+running (1m57.3s), 096/220 VUs, 2057 complete and 0 interrupted iterations
+admin     [  56% ] 14/40 VUs    1m57.3s/3m30.0s
+journey   [  56% ] 003/010 VUs  1m57.3s/3m30s  0.19 iters/s
+upload    [  56% ] 07/20 VUs    1m57.3s/3m30.0s
+widget    [  56% ] 072/150 VUs  1m57.3s/3m30.0s
+
+running (1m58.3s), 097/220 VUs, 2081 complete and 0 interrupted iterations
+admin     [  56% ] 14/40 VUs    1m58.3s/3m30.0s
+journey   [  56% ] 003/010 VUs  1m58.3s/3m30s  0.19 iters/s
+upload    [  56% ] 07/20 VUs    1m58.3s/3m30.0s
+widget    [  56% ] 073/150 VUs  1m58.3s/3m30.0s
+
+running (1m59.7s), 098/220 VUs, 2115 complete and 0 interrupted iterations
+admin     [  57% ] 14/40 VUs    1m59.8s/3m30.0s
+journey   [  57% ] 003/010 VUs  1m59.8s/3m30s  0.19 iters/s
+upload    [  57% ] 07/20 VUs    1m59.8s/3m30.0s
+widget    [  57% ] 074/150 VUs  1m59.8s/3m30.0s
+
+running (2m00.8s), 100/220 VUs, 2152 complete and 0 interrupted iterations
+admin     [  58% ] 15/40 VUs    2m00.9s/3m30.0s
+journey   [  58% ] 003/010 VUs  2m00.9s/3m30s  0.21 iters/s
+upload    [  58% ] 07/20 VUs    2m00.9s/3m30.0s
+widget    [  58% ] 075/150 VUs  2m00.9s/3m30.0s
+
+running (2m01.4s), 101/220 VUs, 2170 complete and 0 interrupted iterations
+admin     [  58% ] 15/40 VUs    2m01.5s/3m30.0s
+journey   [  58% ] 004/010 VUs  2m01.5s/3m30s  0.21 iters/s
+upload    [  58% ] 07/20 VUs    2m01.5s/3m30.0s
+widget    [  58% ] 075/150 VUs  2m01.5s/3m30.0s
+
+running (2m02.4s), 102/220 VUs, 2187 complete and 0 interrupted iterations
+admin     [  58% ] 15/40 VUs    2m02.4s/3m30.0s
+journey   [  58% ] 004/010 VUs  2m02.4s/3m30s  0.21 iters/s
+upload    [  58% ] 07/20 VUs    2m02.4s/3m30.0s
+widget    [  58% ] 076/150 VUs  2m02.4s/3m30.0s
+
+running (2m03.3s), 103/220 VUs, 2207 complete and 0 interrupted iterations
+admin     [  59% ] 15/40 VUs    2m03.3s/3m30.0s
+journey   [  59% ] 004/010 VUs  2m03.3s/3m30s  0.21 iters/s
+upload    [  59% ] 07/20 VUs    2m03.3s/3m30.0s
+widget    [  59% ] 077/150 VUs  2m03.3s/3m30.0s
+
+running (2m04.3s), 103/220 VUs, 2248 complete and 0 interrupted iterations
+admin     [  59% ] 15/40 VUs    2m04.4s/3m30.0s
+journey   [  59% ] 003/010 VUs  2m04.4s/3m30s  0.21 iters/s
+upload    [  59% ] 07/20 VUs    2m04.4s/3m30.0s
+widget    [  59% ] 078/150 VUs  2m04.4s/3m30.0s
+
+running (2m05.7s), 105/220 VUs, 2289 complete and 0 interrupted iterations
+admin     [  60% ] 15/40 VUs    2m05.7s/3m30.0s
+journey   [  60% ] 004/010 VUs  2m05.7s/3m30s  0.22 iters/s
+upload    [  60% ] 07/20 VUs    2m05.7s/3m30.0s
+widget    [  60% ] 079/150 VUs  2m05.7s/3m30.0s
+
+running (2m06.7s), 108/220 VUs, 2324 complete and 0 interrupted iterations
+admin     [  60% ] 16/40 VUs    2m06.7s/3m30.0s
+journey   [  60% ] 004/010 VUs  2m06.7s/3m30s  0.22 iters/s
+upload    [  60% ] 08/20 VUs    2m06.7s/3m30.0s
+widget    [  60% ] 080/150 VUs  2m06.7s/3m30.0s
+
+running (2m07.3s), 109/220 VUs, 2358 complete and 0 interrupted iterations
+admin     [  61% ] 16/40 VUs    2m07.3s/3m30.0s
+journey   [  61% ] 004/010 VUs  2m07.3s/3m30s  0.22 iters/s
+upload    [  61% ] 08/20 VUs    2m07.3s/3m30.0s
+widget    [  61% ] 081/150 VUs  2m07.3s/3m30.0s
+
+running (2m08.3s), 108/220 VUs, 2369 complete and 0 interrupted iterations
+admin     [  61% ] 16/40 VUs    2m08.4s/3m30.0s
+journey   [  61% ] 003/010 VUs  2m08.3s/3m30s  0.22 iters/s
+upload    [  61% ] 08/20 VUs    2m08.4s/3m30.0s
+widget    [  61% ] 081/150 VUs  2m08.4s/3m30.0s
+
+running (2m09.3s), 109/220 VUs, 2395 complete and 0 interrupted iterations
+admin     [  62% ] 16/40 VUs    2m09.3s/3m30.0s
+journey   [  62% ] 003/010 VUs  2m09.3s/3m30s  0.22 iters/s
+upload    [  62% ] 08/20 VUs    2m09.3s/3m30.0s
+widget    [  62% ] 082/150 VUs  2m09.3s/3m30.0s
+
+running (2m10.3s), 111/220 VUs, 2436 complete and 0 interrupted iterations
+admin     [  62% ] 16/40 VUs    2m10.3s/3m30.0s
+journey   [  62% ] 004/010 VUs  2m10.3s/3m30s  0.23 iters/s
+upload    [  62% ] 08/20 VUs    2m10.3s/3m30.0s
+widget    [  62% ] 083/150 VUs  2m10.3s/3m30.0s
+
+running (2m11.4s), 112/220 VUs, 2479 complete and 0 interrupted iterations
+admin     [  63% ] 16/40 VUs    2m11.4s/3m30.0s
+journey   [  63% ] 004/010 VUs  2m11.4s/3m30s  0.23 iters/s
+upload    [  63% ] 08/20 VUs    2m11.4s/3m30.0s
+widget    [  63% ] 084/150 VUs  2m11.4s/3m30.0s
+
+running (2m12.5s), 112/220 VUs, 2507 complete and 0 interrupted iterations
+admin     [  63% ] 16/40 VUs    2m12.5s/3m30.0s
+journey   [  63% ] 004/010 VUs  2m12.5s/3m30s  0.23 iters/s
+upload    [  63% ] 08/20 VUs    2m12.5s/3m30.0s
+widget    [  63% ] 084/150 VUs  2m12.5s/3m30.0s
+
+running (2m13.3s), 115/220 VUs, 2568 complete and 0 interrupted iterations
+admin     [  63% ] 17/40 VUs    2m13.3s/3m30.0s
+journey   [  63% ] 004/010 VUs  2m13.3s/3m30s  0.23 iters/s
+upload    [  63% ] 08/20 VUs    2m13.3s/3m30.0s
+widget    [  63% ] 086/150 VUs  2m13.3s/3m30.0s
+
+running (2m14.4s), 116/220 VUs, 2589 complete and 0 interrupted iterations
+admin     [  64% ] 17/40 VUs    2m14.4s/3m30.0s
+journey   [  64% ] 005/010 VUs  2m14.4s/3m30s  0.24 iters/s
+upload    [  64% ] 08/20 VUs    2m14.4s/3m30.0s
+widget    [  64% ] 086/150 VUs  2m14.4s/3m30.0s
+
+running (2m15.3s), 117/220 VUs, 2594 complete and 0 interrupted iterations
+admin     [  64% ] 17/40 VUs    2m15.4s/3m30.0s
+journey   [  64% ] 005/010 VUs  2m15.4s/3m30s  0.24 iters/s
+upload    [  64% ] 08/20 VUs    2m15.4s/3m30.0s
+widget    [  64% ] 087/150 VUs  2m15.4s/3m30.0s
+
+running (2m16.4s), 117/220 VUs, 2604 complete and 0 interrupted iterations
+admin     [  65% ] 17/40 VUs    2m16.4s/3m30.0s
+journey   [  65% ] 004/010 VUs  2m16.4s/3m30s  0.24 iters/s
+upload    [  65% ] 08/20 VUs    2m16.4s/3m30.0s
+widget    [  65% ] 088/150 VUs  2m16.4s/3m30.0s
+
+running (2m17.3s), 118/220 VUs, 2636 complete and 0 interrupted iterations
+admin     [  65% ] 17/40 VUs    2m17.4s/3m30.0s
+journey   [  65% ] 004/010 VUs  2m17.4s/3m30s  0.24 iters/s
+upload    [  65% ] 08/20 VUs    2m17.4s/3m30.0s
+widget    [  65% ] 089/150 VUs  2m17.4s/3m30.0s
+
+running (2m18.7s), 122/220 VUs, 2676 complete and 0 interrupted iterations
+admin     [  66% ] 18/40 VUs    2m18.7s/3m30.0s
+journey   [  66% ] 005/010 VUs  2m18.7s/3m30s  0.24 iters/s
+upload    [  66% ] 09/20 VUs    2m18.7s/3m30.0s
+widget    [  66% ] 090/150 VUs  2m18.7s/3m30.0s
+
+running (2m19.1s), 123/220 VUs, 2681 complete and 0 interrupted iterations
+admin     [  66% ] 18/40 VUs    2m19.4s/3m30.0s
+journey   [  66% ] 005/010 VUs  2m19.3s/3m30s  0.24 iters/s
+upload    [  66% ] 09/20 VUs    2m19.4s/3m30.0s
+widget    [  66% ] 091/150 VUs  2m19.4s/3m30.0s
+
+running (2m20.9s), 124/220 VUs, 2687 complete and 0 interrupted iterations
+admin     [  67% ] 18/40 VUs    2m21.2s/3m30.0s
+journey   [  67% ] 005/010 VUs  2m21.1s/3m30s  0.24 iters/s
+upload    [  67% ] 09/20 VUs    2m21.2s/3m30.0s
+widget    [  67% ] 092/150 VUs  2m21.2s/3m30.0s
+
+running (2m21.6s), 124/220 VUs, 2691 complete and 0 interrupted iterations
+admin     [  68% ] 18/40 VUs    2m21.8s/3m30.0s
+journey   [  68% ] 005/010 VUs  2m21.8s/3m30s  0.24 iters/s
+upload    [  68% ] 09/20 VUs    2m21.8s/3m30.0s
+widget    [  68% ] 092/150 VUs  2m21.8s/3m30.0s
+
+running (2m22.3s), 124/220 VUs, 2695 complete and 0 interrupted iterations
+admin     [  68% ] 18/40 VUs    2m22.5s/3m30.0s
+journey   [  68% ] 004/010 VUs  2m22.5s/3m30s  0.24 iters/s
+upload    [  68% ] 09/20 VUs    2m22.5s/3m30.0s
+widget    [  68% ] 093/150 VUs  2m22.5s/3m30.0s
+
+running (2m23.7s), 125/220 VUs, 2726 complete and 0 interrupted iterations
+admin     [  69% ] 18/40 VUs    2m23.9s/3m30.0s
+journey   [  69% ] 004/010 VUs  2m23.9s/3m30s  0.25 iters/s
+upload    [  69% ] 09/20 VUs    2m23.9s/3m30.0s
+widget    [  69% ] 094/150 VUs  2m23.9s/3m30.0s
+
+running (2m24.2s), 127/220 VUs, 2733 complete and 0 interrupted iterations
+admin     [  69% ] 19/40 VUs    2m24.5s/3m30.0s
+journey   [  69% ] 004/010 VUs  2m24.4s/3m30s  0.25 iters/s
+upload    [  69% ] 09/20 VUs    2m24.5s/3m30.0s
+widget    [  69% ] 095/150 VUs  2m24.5s/3m30.0s
+
+running (2m25.3s), 127/220 VUs, 2753 complete and 0 interrupted iterations
+admin     [  69% ] 19/40 VUs    2m25.5s/3m30.0s
+journey   [  69% ] 004/010 VUs  2m25.5s/3m30s  0.25 iters/s
+upload    [  69% ] 09/20 VUs    2m25.5s/3m30.0s
+widget    [  69% ] 095/150 VUs  2m25.5s/3m30.0s
+
+running (2m26.2s), 128/220 VUs, 2773 complete and 0 interrupted iterations
+admin     [  70% ] 19/40 VUs    2m26.4s/3m30.0s
+journey   [  70% ] 005/010 VUs  2m26.4s/3m30s  0.26 iters/s
+upload    [  70% ] 09/20 VUs    2m26.4s/3m30.0s
+widget    [  70% ] 095/150 VUs  2m26.4s/3m30.0s
+
+running (2m27.2s), 130/220 VUs, 2800 complete and 0 interrupted iterations
+admin     [  70% ] 19/40 VUs    2m27.4s/3m30.0s
+journey   [  70% ] 005/010 VUs  2m27.4s/3m30s  0.26 iters/s
+upload    [  70% ] 09/20 VUs    2m27.4s/3m30.0s
+widget    [  70% ] 097/150 VUs  2m27.4s/3m30.0s
+
+running (2m28.1s), 131/220 VUs, 2806 complete and 0 interrupted iterations
+admin     [  71% ] 19/40 VUs    2m28.3s/3m30.0s
+journey   [  71% ] 005/010 VUs  2m28.3s/3m30s  0.26 iters/s
+upload    [  71% ] 09/20 VUs    2m28.3s/3m30.0s
+widget    [  71% ] 098/150 VUs  2m28.3s/3m30.0s
+
+running (2m29.2s), 132/220 VUs, 2818 complete and 0 interrupted iterations
+admin     [  71% ] 19/40 VUs    2m29.4s/3m30.0s
+journey   [  71% ] 005/010 VUs  2m29.4s/3m30s  0.26 iters/s
+upload    [  71% ] 09/20 VUs    2m29.4s/3m30.0s
+widget    [  71% ] 099/150 VUs  2m29.4s/3m30.0s
+
+running (2m30.2s), 135/220 VUs, 2831 complete and 0 interrupted iterations
+admin     [  72% ] 20/40 VUs    2m30.4s/3m30.0s
+journey   [  72% ] 005/010 VUs  2m30.4s/3m30s  0.27 iters/s
+upload    [  72% ] 10/20 VUs    2m30.4s/3m30.0s
+widget    [  72% ] 100/150 VUs  2m30.4s/3m30.0s
+
+running (2m31.1s), 136/220 VUs, 2857 complete and 0 interrupted iterations
+admin     [  72% ] 20/40 VUs    2m31.3s/3m30.0s
+journey   [  72% ] 005/010 VUs  2m31.3s/3m30s  0.27 iters/s
+upload    [  72% ] 10/20 VUs    2m31.3s/3m30.0s
+widget    [  72% ] 101/150 VUs  2m31.3s/3m30.0s
+
+running (2m32.1s), 136/220 VUs, 2887 complete and 0 interrupted iterations
+admin     [  73% ] 20/40 VUs    2m32.4s/3m30.0s
+journey   [  73% ] 005/010 VUs  2m32.3s/3m30s  0.27 iters/s
+upload    [  73% ] 10/20 VUs    2m32.4s/3m30.0s
+widget    [  73% ] 101/150 VUs  2m32.4s/3m30.0s
+
+running (2m33.1s), 137/220 VUs, 2949 complete and 0 interrupted iterations
+admin     [  73% ] 21/40 VUs    2m33.3s/3m30.0s
+journey   [  73% ] 004/010 VUs  2m33.3s/3m30s  0.27 iters/s
+upload    [  73% ] 10/20 VUs    2m33.3s/3m30.0s
+widget    [  73% ] 102/150 VUs  2m33.3s/3m30.0s
+
+running (2m34.1s), 139/220 VUs, 2980 complete and 0 interrupted iterations
+admin     [  73% ] 21/40 VUs    2m34.3s/3m30.0s
+journey   [  73% ] 005/010 VUs  2m34.3s/3m30s  0.28 iters/s
+upload    [  73% ] 10/20 VUs    2m34.3s/3m30.0s
+widget    [  73% ] 103/150 VUs  2m34.3s/3m30.0s
+
+running (2m35.1s), 140/220 VUs, 3004 complete and 0 interrupted iterations
+admin     [  74% ] 21/40 VUs    2m35.3s/3m30.0s
+journey   [  74% ] 005/010 VUs  2m35.3s/3m30s  0.28 iters/s
+upload    [  74% ] 10/20 VUs    2m35.3s/3m30.0s
+widget    [  74% ] 104/150 VUs  2m35.3s/3m30.0s
+
+running (2m36.5s), 143/220 VUs, 3079 complete and 0 interrupted iterations
+admin     [  75% ] 22/40 VUs    2m36.7s/3m30.0s
+journey   [  75% ] 005/010 VUs  2m36.7s/3m30s  0.28 iters/s
+upload    [  75% ] 11/20 VUs    2m36.7s/3m30.0s
+widget    [  75% ] 105/150 VUs  2m36.7s/3m30.0s
+
+running (2m37.2s), 145/220 VUs, 3123 complete and 0 interrupted iterations
+admin     [  75% ] 22/40 VUs    2m37.4s/3m30.0s
+journey   [  75% ] 006/010 VUs  2m37.4s/3m30s  0.29 iters/s
+upload    [  75% ] 11/20 VUs    2m37.4s/3m30.0s
+widget    [  75% ] 106/150 VUs  2m37.4s/3m30.0s
+
+running (2m38.6s), 146/220 VUs, 3149 complete and 0 interrupted iterations
+admin     [  76% ] 22/40 VUs    2m38.8s/3m30.0s
+journey   [  76% ] 006/010 VUs  2m38.8s/3m30s  0.29 iters/s
+upload    [  76% ] 11/20 VUs    2m38.8s/3m30.0s
+widget    [  76% ] 107/150 VUs  2m38.8s/3m30.0s
+
+running (2m39.1s), 146/220 VUs, 3177 complete and 0 interrupted iterations
+admin     [  76% ] 23/40 VUs    2m39.3s/3m30.0s
+journey   [  76% ] 005/010 VUs  2m39.3s/3m30s  0.29 iters/s
+upload    [  76% ] 11/20 VUs    2m39.3s/3m30.0s
+widget    [  76% ] 107/150 VUs  2m39.3s/3m30.0s
+
+running (2m40.1s), 147/220 VUs, 3225 complete and 0 interrupted iterations
+admin     [  76% ] 23/40 VUs    2m40.3s/3m30.0s
+journey   [  76% ] 005/010 VUs  2m40.3s/3m30s  0.29 iters/s
+upload    [  76% ] 11/20 VUs    2m40.3s/3m30.0s
+widget    [  76% ] 108/150 VUs  2m40.3s/3m30.0s
+
+running (2m42.3s), 151/220 VUs, 3309 complete and 0 interrupted iterations
+admin     [  77% ] 24/40 VUs    2m42.5s/3m30.0s
+journey   [  77% ] 006/010 VUs  2m42.5s/3m30s  0.29 iters/s
+upload    [  77% ] 12/20 VUs    2m42.5s/3m30.0s
+widget    [  77% ] 109/150 VUs  2m42.5s/3m30.0s
+
+running (2m43.1s), 153/220 VUs, 3387 complete and 0 interrupted iterations
+admin     [  78% ] 24/40 VUs    2m43.3s/3m30.0s
+journey   [  78% ] 006/010 VUs  2m43.3s/3m30s  0.29 iters/s
+upload    [  78% ] 12/20 VUs    2m43.3s/3m30.0s
+widget    [  78% ] 111/150 VUs  2m43.3s/3m30.0s
+
+running (2m45.4s), 157/220 VUs, 3410 complete and 0 interrupted iterations
+admin     [  79% ] 25/40 VUs    2m45.7s/3m30.0s
+journey   [  79% ] 007/010 VUs  2m45.7s/3m30s  0.30 iters/s
+upload    [  79% ] 12/20 VUs    2m45.7s/3m30.0s
+widget    [  79% ] 113/150 VUs  2m45.7s/3m30.0s
+
+running (2m45.4s), 157/220 VUs, 3410 complete and 0 interrupted iterations
+admin     [  79% ] 25/40 VUs    2m45.7s/3m30.0s
+journey   [  79% ] 007/010 VUs  2m45.7s/3m30s  0.30 iters/s
+upload    [  79% ] 12/20 VUs    2m45.7s/3m30.0s
+widget    [  79% ] 113/150 VUs  2m45.7s/3m30.0s
+
+running (2m46.2s), 156/220 VUs, 3423 complete and 0 interrupted iterations
+admin     [  79% ] 25/40 VUs    2m46.4s/3m30.0s
+journey   [  79% ] 006/010 VUs  2m46.4s/3m30s  0.30 iters/s
+upload    [  79% ] 12/20 VUs    2m46.4s/3m30.0s
+widget    [  79% ] 113/150 VUs  2m46.4s/3m30.0s
+
+running (2m47.1s), 155/220 VUs, 3466 complete and 0 interrupted iterations
+admin     [  80% ] 25/40 VUs    2m47.3s/3m30.0s
+journey   [  80% ] 004/010 VUs  2m47.3s/3m30s  0.30 iters/s
+upload    [  80% ] 12/20 VUs    2m47.3s/3m30.0s
+widget    [  80% ] 114/150 VUs  2m47.3s/3m30.0s
+
+running (2m48.2s), 159/220 VUs, 3512 complete and 0 interrupted iterations
+admin     [  80% ] 26/40 VUs    2m48.4s/3m30.0s
+journey   [  80% ] 005/010 VUs  2m48.4s/3m30s  0.31 iters/s
+upload    [  80% ] 13/20 VUs    2m48.4s/3m30.0s
+widget    [  80% ] 115/150 VUs  2m48.4s/3m30.0s
+
+running (2m49.3s), 159/220 VUs, 3567 complete and 0 interrupted iterations
+admin     [  81% ] 26/40 VUs    2m49.4s/3m30.0s
+journey   [  81% ] 005/010 VUs  2m49.4s/3m30s  0.31 iters/s
+upload    [  81% ] 13/20 VUs    2m49.4s/3m30.0s
+widget    [  81% ] 115/150 VUs  2m49.4s/3m30.0s
+
+running (2m50.5s), 160/220 VUs, 3610 complete and 0 interrupted iterations
+admin     [  81% ] 26/40 VUs    2m50.5s/3m30.0s
+journey   [  81% ] 005/010 VUs  2m50.5s/3m30s  0.31 iters/s
+upload    [  81% ] 13/20 VUs    2m50.5s/3m30.0s
+widget    [  81% ] 116/150 VUs  2m50.5s/3m30.0s
+
+running (2m51.3s), 162/220 VUs, 3634 complete and 0 interrupted iterations
+admin     [  82% ] 27/40 VUs    2m51.3s/3m30.0s
+journey   [  82% ] 005/010 VUs  2m51.3s/3m30s  0.32 iters/s
+upload    [  82% ] 13/20 VUs    2m51.3s/3m30.0s
+widget    [  82% ] 117/150 VUs  2m51.3s/3m30.0s
+
+running (2m52.3s), 162/220 VUs, 3646 complete and 0 interrupted iterations
+admin     [  82% ] 27/40 VUs    2m52.4s/3m30.0s
+journey   [  82% ] 004/010 VUs  2m52.3s/3m30s  0.32 iters/s
+upload    [  82% ] 13/20 VUs    2m52.4s/3m30.0s
+widget    [  82% ] 118/150 VUs  2m52.4s/3m30.0s
+
+running (2m53.6s), 163/220 VUs, 3703 complete and 0 interrupted iterations
+admin     [  83% ] 27/40 VUs    2m53.7s/3m30.0s
+journey   [  83% ] 004/010 VUs  2m53.7s/3m30s  0.32 iters/s
+upload    [  83% ] 13/20 VUs    2m53.7s/3m30.0s
+widget    [  83% ] 119/150 VUs  2m53.7s/3m30.0s
+
+running (2m55.1s), 167/220 VUs, 3798 complete and 0 interrupted iterations
+admin     [  83% ] 28/40 VUs    2m55.2s/3m30.0s
+journey   [  83% ] 005/010 VUs  2m55.2s/3m30s  0.32 iters/s
+upload    [  83% ] 14/20 VUs    2m55.2s/3m30.0s
+widget    [  83% ] 120/150 VUs  2m55.2s/3m30.0s
+
+running (2m55.5s), 167/220 VUs, 3805 complete and 0 interrupted iterations
+admin     [  84% ] 28/40 VUs    2m55.6s/3m30.0s
+journey   [  84% ] 005/010 VUs  2m55.5s/3m30s  0.32 iters/s
+upload    [  84% ] 14/20 VUs    2m55.6s/3m30.0s
+widget    [  84% ] 120/150 VUs  2m55.6s/3m30.0s
+
+running (2m57.0s), 170/220 VUs, 3813 complete and 0 interrupted iterations
+admin     [  84% ] 29/40 VUs    2m57.1s/3m30.0s
+journey   [  84% ] 005/010 VUs  2m57.1s/3m30s  0.32 iters/s
+upload    [  84% ] 14/20 VUs    2m57.1s/3m30.0s
+widget    [  84% ] 122/150 VUs  2m57.1s/3m30.0s
+
+running (2m57.3s), 171/220 VUs, 3813 complete and 0 interrupted iterations
+admin     [  84% ] 29/40 VUs    2m57.3s/3m30.0s
+journey   [  84% ] 006/010 VUs  2m57.3s/3m30s  0.33 iters/s
+upload    [  84% ] 14/20 VUs    2m57.3s/3m30.0s
+widget    [  84% ] 122/150 VUs  2m57.3s/3m30.0s
+
+running (2m58.3s), 172/220 VUs, 3819 complete and 0 interrupted iterations
+admin     [  85% ] 29/40 VUs    2m58.4s/3m30.0s
+journey   [  85% ] 006/010 VUs  2m58.3s/3m30s  0.33 iters/s
+upload    [  85% ] 14/20 VUs    2m58.4s/3m30.0s
+widget    [  85% ] 123/150 VUs  2m58.4s/3m30.0s
+
+running (2m59.5s), 173/220 VUs, 3836 complete and 0 interrupted iterations
+admin     [  85% ] 29/40 VUs    2m59.5s/3m30.0s
+journey   [  85% ] 006/010 VUs  2m59.5s/3m30s  0.33 iters/s
+upload    [  85% ] 14/20 VUs    2m59.5s/3m30.0s
+widget    [  85% ] 124/150 VUs  2m59.5s/3m30.0s
+
+running (3m00.3s), 177/220 VUs, 3883 complete and 0 interrupted iterations
+admin     [  86% ] 30/40 VUs    3m00.4s/3m30.0s
+journey   [  86% ] 007/010 VUs  3m00.3s/3m30s  0.34 iters/s
+upload    [  86% ] 15/20 VUs    3m00.4s/3m30.0s
+widget    [  86% ] 125/150 VUs  3m00.4s/3m30.0s
+
+running (3m01.6s), 177/220 VUs, 3927 complete and 0 interrupted iterations
+admin     [  86% ] 30/40 VUs    3m01.6s/3m30.0s
+journey   [  86% ] 006/010 VUs  3m01.6s/3m30s  0.34 iters/s
+upload    [  86% ] 15/20 VUs    3m01.6s/3m30.0s
+widget    [  86% ] 126/150 VUs  3m01.6s/3m30.0s
+
+running (3m10.7s), 181/220 VUs, 4029 complete and 0 interrupted iterations
+admin     [  91% ] 30/40 VUs    3m10.8s/3m30.0s
+journey   [  91% ] 009/010 VUs  3m10.8s/3m30s  0.36 iters/s
+upload    [  91% ] 16/20 VUs    3m10.8s/3m30.0s
+widget    [  91% ] 126/150 VUs  3m10.8s/3m30.0s
+
+running (3m10.7s), 181/220 VUs, 4029 complete and 0 interrupted iterations
+admin     [  91% ] 30/40 VUs    3m10.8s/3m30.0s
+journey   [  91% ] 009/010 VUs  3m10.8s/3m30s  0.36 iters/s
+upload    [  91% ] 16/20 VUs    3m10.8s/3m30.0s
+widget    [  91% ] 126/150 VUs  3m10.8s/3m30.0s
+
+running (3m11.6s), 182/220 VUs, 4042 complete and 0 interrupted iterations
+admin     [  91% ] 30/40 VUs    3m11.6s/3m30.0s
+journey   [  91% ] 009/010 VUs  3m11.6s/3m30s  0.36 iters/s
+upload    [  91% ] 16/20 VUs    3m11.6s/3m30.0s
+widget    [  91% ] 127/150 VUs  3m11.6s/3m30.0s
+
+running (3m18.1s), 189/220 VUs, 4066 complete and 0 interrupted iterations
+admin     [  94% ] 35/40 VUs    3m18.1s/3m30.0s
+journey   [  94% ] 010/010 VUs  3m18.1s/3m30s  0.37 iters/s
+upload    [  94% ] 17/20 VUs    3m18.1s/3m30.0s
+widget    [  94% ] 127/150 VUs  3m18.1s/3m30.0s
+
+running (3m18.8s), 203/220 VUs, 4066 complete and 0 interrupted iterations
+admin     [  95% ] 35/40 VUs    3m18.8s/3m30.0s
+journey   [  95% ] 010/010 VUs  3m18.8s/3m30s  0.37 iters/s
+upload    [  95% ] 18/20 VUs    3m18.8s/3m30.0s
+widget    [  95% ] 140/150 VUs  3m18.8s/3m30.0s
+
+running (3m18.8s), 203/220 VUs, 4066 complete and 0 interrupted iterations
+admin     [  95% ] 35/40 VUs    3m18.8s/3m30.0s
+journey   [  95% ] 010/010 VUs  3m18.8s/3m30s  0.37 iters/s
+upload    [  95% ] 18/20 VUs    3m18.8s/3m30.0s
+widget    [  95% ] 140/150 VUs  3m18.8s/3m30.0s
+
+running (3m19.4s), 204/220 VUs, 4068 complete and 0 interrupted iterations
+admin     [  95% ] 36/40 VUs    3m19.4s/3m30.0s
+journey   [  95% ] 010/010 VUs  3m19.4s/3m30s  0.37 iters/s
+upload    [  95% ] 18/20 VUs    3m19.4s/3m30.0s
+widget    [  95% ] 140/150 VUs  3m19.4s/3m30.0s
+
+running (3m21.2s), 204/220 VUs, 4088 complete and 0 interrupted iterations
+admin     [  96% ] 37/40 VUs    3m21.3s/3m30.0s
+journey   [  96% ] 008/010 VUs  3m21.3s/3m30s  0.38 iters/s
+upload    [  96% ] 18/20 VUs    3m21.3s/3m30.0s
+widget    [  96% ] 141/150 VUs  3m21.3s/3m30.0s
+
+running (3m21.3s), 205/220 VUs, 4090 complete and 0 interrupted iterations
+admin     [  96% ] 37/40 VUs    3m21.3s/3m30.0s
+journey   [  96% ] 008/010 VUs  3m21.3s/3m30s  0.38 iters/s
+upload    [  96% ] 18/20 VUs    3m21.3s/3m30.0s
+widget    [  96% ] 142/150 VUs  3m21.3s/3m30.0s
+
+running (3m22.3s), 204/220 VUs, 4107 complete and 0 interrupted iterations
+admin     [  96% ] 37/40 VUs    3m22.3s/3m30.0s
+journey   [  96% ] 006/010 VUs  3m22.3s/3m30s  0.38 iters/s
+upload    [  96% ] 18/20 VUs    3m22.3s/3m30.0s
+widget    [  96% ] 143/150 VUs  3m22.3s/3m30.0s
+
+running (3m23.3s), 204/220 VUs, 4131 complete and 0 interrupted iterations
+admin     [  97% ] 37/40 VUs    3m23.4s/3m30.0s
+journey   [  97% ] 006/010 VUs  3m23.4s/3m30s  0.39 iters/s
+upload    [  97% ] 18/20 VUs    3m23.4s/3m30.0s
+widget    [  97% ] 143/150 VUs  3m23.4s/3m30.0s
+
+running (3m25.8s), 209/220 VUs, 4207 complete and 0 interrupted iterations
+admin     [  98% ] 38/40 VUs    3m25.9s/3m30.0s
+journey   [  98% ] 006/010 VUs  3m25.9s/3m30s  0.39 iters/s
+upload    [  98% ] 19/20 VUs    3m25.9s/3m30.0s
+widget    [  98% ] 146/150 VUs  3m25.9s/3m30.0s
+
+running (3m26.6s), 210/220 VUs, 4219 complete and 0 interrupted iterations
+admin     [  98% ] 38/40 VUs    3m26.7s/3m30.0s
+journey   [  98% ] 006/010 VUs  3m26.7s/3m30s  0.39 iters/s
+upload    [  98% ] 19/20 VUs    3m26.7s/3m30.0s
+widget    [  98% ] 147/150 VUs  3m26.7s/3m30.0s
+
+running (3m27.3s), 210/220 VUs, 4224 complete and 0 interrupted iterations
+admin     [  99% ] 38/40 VUs    3m27.4s/3m30.0s
+journey   [  99% ] 006/010 VUs  3m27.4s/3m30s  0.39 iters/s
+upload    [  99% ] 19/20 VUs    3m27.4s/3m30.0s
+widget    [  99% ] 147/150 VUs  3m27.4s/3m30.0s
+
+running (3m28.4s), 213/220 VUs, 4234 complete and 0 interrupted iterations
+admin     [  99% ] 39/40 VUs    3m28.5s/3m30.0s
+journey   [  99% ] 007/010 VUs  3m28.5s/3m30s  0.40 iters/s
+upload    [  99% ] 19/20 VUs    3m28.5s/3m30.0s
+widget    [  99% ] 148/150 VUs  3m28.5s/3m30.0s
+
+running (3m29.3s), 214/220 VUs, 4241 complete and 0 interrupted iterations
+admin     [ 100% ] 39/40 VUs    3m29.4s/3m30.0s
+journey   [ 100% ] 007/010 VUs  3m29.4s/3m30s  0.40 iters/s
+upload    [ 100% ] 19/20 VUs    3m29.4s/3m30.0s
+widget    [ 100% ] 149/150 VUs  3m29.4s/3m30.0s
+
+running (3m32.6s), 101/221 VUs, 4376 complete and 0 interrupted iterations
+admin   ↓ [ 100% ] 39/40 VUs    3m30s 
+journey ↓ [ 100% ] 008/010 VUs  3m30s  0.40 iters/s
+upload  ↓ [ 100% ] 19/20 VUs    3m30s 
+widget  ↓ [ 100% ] 142/150 VUs  3m30s 
+
+running (3m33.3s), 042/221 VUs, 4435 complete and 0 interrupted iterations
+admin   ↓ [ 100% ] 39/40 VUs    3m30s 
+journey ↓ [ 100% ] 008/010 VUs  3m30s  0.40 iters/s
+upload  ↓ [ 100% ] 19/20 VUs    3m30s 
+widget  ↓ [ 100% ] 142/150 VUs  3m30s 
+
+running (3m34.3s), 015/221 VUs, 4462 complete and 0 interrupted iterations
+admin   ↓ [ 100% ] 39/40 VUs    3m30s 
+journey ↓ [ 100% ] 008/010 VUs  3m30s  0.40 iters/s
+upload  ✓ [ 100% ] 00/20 VUs    3m30s 
+widget  ↓ [ 100% ] 142/150 VUs  3m30s 
+
+running (3m35.3s), 006/221 VUs, 4471 complete and 0 interrupted iterations
+admin   ✓ [ 100% ] 00/40 VUs    3m30s 
+journey ↓ [ 100% ] 008/010 VUs  3m30s  0.40 iters/s
+upload  ✓ [ 100% ] 00/20 VUs    3m30s 
+widget  ✓ [ 100% ] 000/150 VUs  3m30s 
+
+running (3m36.3s), 005/221 VUs, 4472 complete and 0 interrupted iterations
+admin   ✓ [ 100% ] 00/40 VUs    3m30s 
+journey ↓ [ 100% ] 008/010 VUs  3m30s  0.40 iters/s
+upload  ✓ [ 100% ] 00/20 VUs    3m30s 
+widget  ✓ [ 100% ] 000/150 VUs  3m30s 
+
+running (3m37.3s), 004/221 VUs, 4473 complete and 0 interrupted iterations
+admin   ✓ [ 100% ] 00/40 VUs    3m30s 
+journey ↓ [ 100% ] 008/010 VUs  3m30s  0.40 iters/s
+upload  ✓ [ 100% ] 00/20 VUs    3m30s 
+widget  ✓ [ 100% ] 000/150 VUs  3m30s 
+
+running (3m38.3s), 004/221 VUs, 4473 complete and 0 interrupted iterations
+admin   ✓ [ 100% ] 00/40 VUs    3m30s 
+journey ↓ [ 100% ] 008/010 VUs  3m30s  0.40 iters/s
+upload  ✓ [ 100% ] 00/20 VUs    3m30s 
+widget  ✓ [ 100% ] 000/150 VUs  3m30s 
+
+running (3m39.3s), 004/221 VUs, 4473 complete and 0 interrupted iterations
+admin   ✓ [ 100% ] 00/40 VUs    3m30s 
+journey ↓ [ 100% ] 008/010 VUs  3m30s  0.40 iters/s
+upload  ✓ [ 100% ] 00/20 VUs    3m30s 
+widget  ✓ [ 100% ] 000/150 VUs  3m30s 
+
+running (3m40.3s), 004/221 VUs, 4473 complete and 0 interrupted iterations
+admin   ✓ [ 100% ] 00/40 VUs    3m30s 
+journey ↓ [ 100% ] 008/010 VUs  3m30s  0.40 iters/s
+upload  ✓ [ 100% ] 00/20 VUs    3m30s 
+widget  ✓ [ 100% ] 000/150 VUs  3m30s 
+
+running (3m41.3s), 003/221 VUs, 4474 complete and 0 interrupted iterations
+admin   ✓ [ 100% ] 00/40 VUs    3m30s 
+journey ↓ [ 100% ] 008/010 VUs  3m30s  0.40 iters/s
+upload  ✓ [ 100% ] 00/20 VUs    3m30s 
+widget  ✓ [ 100% ] 000/150 VUs  3m30s 
+
+running (3m42.3s), 003/221 VUs, 4474 complete and 0 interrupted iterations
+admin   ✓ [ 100% ] 00/40 VUs    3m30s 
+journey ↓ [ 100% ] 008/010 VUs  3m30s  0.40 iters/s
+upload  ✓ [ 100% ] 00/20 VUs    3m30s 
+widget  ✓ [ 100% ] 000/150 VUs  3m30s 
+
+running (3m43.3s), 003/221 VUs, 4474 complete and 0 interrupted iterations
+admin   ✓ [ 100% ] 00/40 VUs    3m30s 
+journey ↓ [ 100% ] 008/010 VUs  3m30s  0.40 iters/s
+upload  ✓ [ 100% ] 00/20 VUs    3m30s 
+widget  ✓ [ 100% ] 000/150 VUs  3m30s 
+
+running (3m44.3s), 003/221 VUs, 4474 complete and 0 interrupted iterations
+admin   ✓ [ 100% ] 00/40 VUs    3m30s 
+journey ↓ [ 100% ] 008/010 VUs  3m30s  0.40 iters/s
+upload  ✓ [ 100% ] 00/20 VUs    3m30s 
+widget  ✓ [ 100% ] 000/150 VUs  3m30s 
+
+running (3m45.3s), 001/221 VUs, 4476 complete and 0 interrupted iterations
+admin   ✓ [ 100% ] 00/40 VUs    3m30s 
+journey ↓ [ 100% ] 008/010 VUs  3m30s  0.40 iters/s
+upload  ✓ [ 100% ] 00/20 VUs    3m30s 
+widget  ✓ [ 100% ] 000/150 VUs  3m30s 
+
+running (3m46.3s), 001/221 VUs, 4476 complete and 0 interrupted iterations
+admin   ✓ [ 100% ] 00/40 VUs    3m30s 
+journey ↓ [ 100% ] 008/010 VUs  3m30s  0.40 iters/s
+upload  ✓ [ 100% ] 00/20 VUs    3m30s 
+widget  ✓ [ 100% ] 000/150 VUs  3m30s 
+
+running (3m47.3s), 001/221 VUs, 4476 complete and 0 interrupted iterations
+admin   ✓ [ 100% ] 00/40 VUs    3m30s 
+journey ↓ [ 100% ] 008/010 VUs  3m30s  0.40 iters/s
+upload  ✓ [ 100% ] 00/20 VUs    3m30s 
+widget  ✓ [ 100% ] 000/150 VUs  3m30s 
+
+running (3m48.1s), 000/221 VUs, 4477 complete and 0 interrupted iterations
+admin   ✓ [ 100% ] 00/40 VUs    3m30s 
+journey ✓ [ 100% ] 000/011 VUs  3m30s  0.40 iters/s
+upload  ✓ [ 100% ] 00/20 VUs    3m30s 
+widget  ✓ [ 100% ] 000/150 VUs  3m30s 
+
+running (3m48.1s), 000/221 VUs, 4477 complete and 0 interrupted iterations
+admin   ✓ [ 100% ] 00/40 VUs    3m30s 
+journey ✓ [ 100% ] 000/011 VUs  3m30s  0.40 iters/s
+upload  ✓ [ 100% ] 00/20 VUs    3m30s 
+widget  ✓ [ 100% ] 000/150 VUs  3m30s 
+
+running (3m48.1s), 000/221 VUs, 4477 complete and 0 interrupted iterations
+admin   ✓ [ 100% ] 00/40 VUs    3m30s 
+journey ✓ [ 100% ] 000/011 VUs  3m30s  0.40 iters/s
+upload  ✓ [ 100% ] 00/20 VUs    3m30s 
+widget  ✓ [ 100% ] 000/150 VUs  3m30s 
+PROFILE=stress_heavy BASE=http://app:80
+iterations=4477 http_reqs=11041 rps=48.4 failed=0.00% vus_max=221
+http p95 ms: 2588.1
+submit p95 ms: 10098.4
+status p95 ms: 4402.0
+e2e p95 ms: 27598.6
+
+running (3m48.1s), 000/221 VUs, 4477 complete and 0 interrupted iterations
+admin   ✓ [ 100% ] 00/40 VUs    3m30s 
+journey ✓ [ 100% ] 000/011 VUs  3m30s  0.40 iters/s
+upload  ✓ [ 100% ] 00/20 VUs    3m30s 
+widget  ✓ [ 100% ] 000/150 VUs  3m30s 
+
+--- stderr ---
+ Container brixperf-k6-run-f3f46c85bafa Creating 
+ Container brixperf-k6-run-f3f46c85bafa Created 
+time="2026-10-21T13:48:40Z" level=error msg="thresholds on metrics 'http_req_duration{name:admin_settings}, http_req_duration{name:widget_settings}, tryon_status_ms, tryon_submit_ms' have been crossed"
+

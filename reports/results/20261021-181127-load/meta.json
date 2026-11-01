@@ -1,0 +1,69 @@
+{
+ "run": "20261021-181127-load",
+ "profile": "load",
+ "integration": "MOCKED (AI provider) / local Docker replica of PHP+MariaDB",
+ "args": {
+  "profile": "load",
+  "mock_workers": 10,
+  "mock_gen_ms": 14000,
+  "mock_fail_rate": 0.0,
+  "mock_max_queue": 0,
+  "app_workers": 20,
+  "max_vus": 120,
+  "dur_scale": 0.2,
+  "rate_scale": 1.0,
+  "soak_min": 30,
+  "only": "widget,journey",
+  "extra_polls": 0,
+  "yes_i_am_authorised": false
+ },
+ "started": 1792586498.900892,
+ "ended": 1792586627.327924,
+ "duration_s": 128.4,
+ "k6_exit_code": 99,
+ "pre": {
+  "count_m1": 0,
+  "count_m2": 95
+ },
+ "post": {
+  "count_m1": 7,
+  "count_m2": 95,
+  "analytics_completed": "7",
+  "result_files": "7",
+  "db_slow_queries": "10",
+  "db_max_used_connections": "4",
+  "app_error_log_tail": "1.0\" 200 126 \"-\" \"Apache/2.4.68 (Debian) PHP/8.3.35 (internal dummy connection)\"\n172.19.0.5 - - [21/Oct/2026:12:43:46 +0000] \"GET /api/tryon-status?job_id=6b3d7557-149e-4c12-b29f-481d977c53aa-mock&shop=perf-test.myshopify.com&seed=42 HTTP/1.1\" 200 419 \"-\" \"k6/0.54.0 (https://k6.io/)\"\n172.19.0.5 - - [21/Oct/2026:12:43:46 +0000] \"GET /results/tryon_result_20261021_124346_827074.jpg HTTP/1.1\" 200 19291 \"-\" \"k6/0.54.0 (https://k6.io/)\"\n172.19.0.1 - - [21/Oct/2026:12:43:46 +0000] \"GET /server-status?auto HTTP/1.1\" 200 899 \"-\" \"Python-urllib/3.13\"\n127.0.0.1 - - [21/Oct/2026:12:43:46 +0000] \"OPTIONS * HTTP/1.0\" 200 126 \"-\" \"Apache/2.4.68 (Debian) PHP/8.3.35 (internal dummy connection)\"\n127.0.0.1 - - [21/Oct/2026:12:43:47 +0000] \"OPTIONS * HTTP/1.0\" 200 126 \"-\" \"Apache/2.4.68 (Debian) PHP/8.3.35 (internal dummy connection)\"\n127.0.0.1 - - [21/Oct/2026:12:43:48 +0000] \"OPTIONS * HTTP/1.0\" 200 126 \"-\" \"Apache/2.4.68 (Debian) PHP/8.3.35 (internal dummy connection)\"\n127.0.0.1 - - [21/Oct/2026:12:43:49 +0000] \"OPTIONS * HTTP/1.0\" 200 126 \"-\" \"Apache/2.4.68 (Debian) PHP/8.3.35 (internal dummy connection)\"\n127.0.0.1 - - [21/Oct/2026:12:43:50 +0000] \"OPTIONS * HTTP/1.0\" 200 126 \"-\" \"Apache/2.4.68 (Debian) PHP/8.3.35 (internal dummy connection)\"\n127.0.0.1 - - [21/Oct/2026:12:43:51 +0000] \"OPTIONS * HTTP/1.0\" 200 126 \"-\" \"Apache/2.4.68 (Debian) PHP/8.3.35 (internal dummy connection)\"\n172.19.0.1 - - [21/Oct/2026:12:43:54 +0000] \"GET /server-status?auto HTTP/1.1\" 200 898 \"-\" \"Python-urllib/3.13\"\n"
+ },
+ "mock_stats": {
+  "cfg": {
+   "port": 4010,
+   "workers": 10,
+   "genMs": 14000,
+   "jitterMs": 1000,
+   "failRate": 0,
+   "maxQueue": 0
+  },
+  "submitted": 9,
+  "rejected429": 0,
+  "statusCalls": 42,
+  "maxQueueDepth": 0,
+  "jobs": 9,
+  "completed": 9,
+  "failed": 0,
+  "running": 0,
+  "queueDepthNow": 0,
+  "queueWaitMs": {
+   "p50": 0,
+   "p95": 0,
+   "max": 0,
+   "avg": 0
+  }
+ },
+ "k6_tryon_completed": 7,
+ "consistency": {
+  "merchant1_count_delta": 7,
+  "k6_completed_jobs": 7,
+  "double_counted": 0,
+  "analytics_completed": "7"
+ }
+}

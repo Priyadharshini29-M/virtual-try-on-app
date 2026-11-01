@@ -1,0 +1,238 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+     execution: local
+        script: /work/k6/main.js
+ web dashboard: http://127.0.0.1:5665
+        output: -
+
+     scenarios: (100.00%) 4 scenarios, 4 max VUs, 5m30s max duration (incl. graceful stop):
+              * admin: Up to 1 looping VUs for 20s over 2 stages (gracefulRampDown: 10s, exec: admin, gracefulStop: 30s)
+              * journey: 1 iterations for each of 1 VUs (maxDuration: 4m0s, exec: journey, gracefulStop: 30s)
+              * upload: 1 iterations for each of 1 VUs (maxDuration: 5m0s, exec: upload, gracefulStop: 30s)
+              * widget: Up to 1 looping VUs for 30s over 2 stages (gracefulRampDown: 10s, exec: widget, gracefulStop: 30s)
+
+
+running (0m00.2s), 2/4 VUs, 0 complete and 0 interrupted iterations
+admin     [   1% ] 0/1 VUs  00.2s/20.0s  
+journey   [   0% ] 1 VUs    0m00.2s/4m0s  0/1 iters, 1 per VU
+upload    [   0% ] 1 VUs    0m00.2s/5m0s  0/1 iters, 1 per VU
+widget    [   1% ] 0/1 VUs  00.2s/30.0s  
+
+running (0m01.2s), 2/4 VUs, 0 complete and 0 interrupted iterations
+admin     [   6% ] 0/1 VUs  01.2s/20.0s  
+journey   [   0% ] 1 VUs    0m01.2s/4m0s  0/1 iters, 1 per VU
+upload    [   0% ] 1 VUs    0m01.2s/5m0s  0/1 iters, 1 per VU
+widget    [   4% ] 0/1 VUs  01.2s/30.0s  
+
+running (0m02.2s), 2/4 VUs, 0 complete and 0 interrupted iterations
+admin     [  11% ] 0/1 VUs  02.2s/20.0s  
+journey   [   0% ] 1 VUs    0m02.2s/4m0s  0/1 iters, 1 per VU
+upload    [   0% ] 1 VUs    0m02.2s/5m0s  0/1 iters, 1 per VU
+widget    [   7% ] 0/1 VUs  02.2s/30.0s  
+
+running (0m03.2s), 1/4 VUs, 1 complete and 0 interrupted iterations
+admin     [  16% ] 0/1 VUs  03.2s/20.0s  
+journey   [   0% ] 1 VUs    0m03.2s/4m0s  0/1 iters, 1 per VU
+upload  ✓ [ 100% ] 1 VUs    0m03.0s/5m0s  1/1 iters, 1 per VU
+widget    [  11% ] 0/1 VUs  03.2s/30.0s  
+
+running (0m04.2s), 1/4 VUs, 1 complete and 0 interrupted iterations
+admin     [  21% ] 0/1 VUs  04.2s/20.0s  
+journey   [   0% ] 1 VUs    0m04.2s/4m0s  0/1 iters, 1 per VU
+upload  ✓ [ 100% ] 1 VUs    0m03.0s/5m0s  1/1 iters, 1 per VU
+widget    [  14% ] 0/1 VUs  04.2s/30.0s  
+
+running (0m05.2s), 2/4 VUs, 1 complete and 0 interrupted iterations
+admin     [  26% ] 1/1 VUs  05.2s/20.0s  
+journey   [   0% ] 1 VUs    0m05.2s/4m0s  0/1 iters, 1 per VU
+upload  ✓ [ 100% ] 1 VUs    0m03.0s/5m0s  1/1 iters, 1 per VU
+widget    [  17% ] 0/1 VUs  05.2s/30.0s  
+
+running (0m06.2s), 2/4 VUs, 1 complete and 0 interrupted iterations
+admin     [  31% ] 1/1 VUs  06.2s/20.0s  
+journey   [   0% ] 1 VUs    0m06.2s/4m0s  0/1 iters, 1 per VU
+upload  ✓ [ 100% ] 1 VUs    0m03.0s/5m0s  1/1 iters, 1 per VU
+widget    [  21% ] 0/1 VUs  06.2s/30.0s  
+
+running (0m07.2s), 2/4 VUs, 2 complete and 0 interrupted iterations
+admin     [  36% ] 1/1 VUs  07.2s/20.0s  
+journey   [   0% ] 1 VUs    0m07.2s/4m0s  0/1 iters, 1 per VU
+upload  ✓ [ 100% ] 1 VUs    0m03.0s/5m0s  1/1 iters, 1 per VU
+widget    [  24% ] 0/1 VUs  07.2s/30.0s  
+
+running (0m08.2s), 2/4 VUs, 2 complete and 0 interrupted iterations
+admin     [  41% ] 1/1 VUs  08.2s/20.0s  
+journey   [   0% ] 1 VUs    0m08.2s/4m0s  0/1 iters, 1 per VU
+upload  ✓ [ 100% ] 1 VUs    0m03.0s/5m0s  1/1 iters, 1 per VU
+widget    [  27% ] 0/1 VUs  08.2s/30.0s  
+
+running (0m09.3s), 2/4 VUs, 3 complete and 0 interrupted iterations
+admin     [  47% ] 1/1 VUs  09.3s/20.0s  
+journey   [   0% ] 1 VUs    0m09.3s/4m0s  0/1 iters, 1 per VU
+upload  ✓ [ 100% ] 1 VUs    0m03.0s/5m0s  1/1 iters, 1 per VU
+widget    [  31% ] 0/1 VUs  09.3s/30.0s  
+
+running (0m10.2s), 3/4 VUs, 3 complete and 0 interrupted iterations
+admin     [  51% ] 1/1 VUs  10.2s/20.0s  
+journey   [   0% ] 1 VUs    0m10.2s/4m0s  0/1 iters, 1 per VU
+upload  ✓ [ 100% ] 1 VUs    0m03.0s/5m0s  1/1 iters, 1 per VU
+widget    [  34% ] 1/1 VUs  10.2s/30.0s  
+
+running (0m11.2s), 3/4 VUs, 3 complete and 0 interrupted iterations
+admin     [  56% ] 1/1 VUs  11.2s/20.0s  
+journey   [   0% ] 1 VUs    0m11.2s/4m0s  0/1 iters, 1 per VU
+upload  ✓ [ 100% ] 1 VUs    0m03.0s/5m0s  1/1 iters, 1 per VU
+widget    [  37% ] 1/1 VUs  11.2s/30.0s  
+
+running (0m12.2s), 3/4 VUs, 4 complete and 0 interrupted iterations
+admin     [  61% ] 1/1 VUs  12.2s/20.0s  
+journey   [   0% ] 1 VUs    0m12.2s/4m0s  0/1 iters, 1 per VU
+upload  ✓ [ 100% ] 1 VUs    0m03.0s/5m0s  1/1 iters, 1 per VU
+widget    [  41% ] 1/1 VUs  12.2s/30.0s  
+
+running (0m13.2s), 3/4 VUs, 5 complete and 0 interrupted iterations
+admin     [  66% ] 1/1 VUs  13.2s/20.0s  
+journey   [   0% ] 1 VUs    0m13.2s/4m0s  0/1 iters, 1 per VU
+upload  ✓ [ 100% ] 1 VUs    0m03.0s/5m0s  1/1 iters, 1 per VU
+widget    [  44% ] 1/1 VUs  13.2s/30.0s  
+
+running (0m14.2s), 3/4 VUs, 5 complete and 0 interrupted iterations
+admin     [  71% ] 1/1 VUs  14.2s/20.0s  
+journey   [   0% ] 1 VUs    0m14.2s/4m0s  0/1 iters, 1 per VU
+upload  ✓ [ 100% ] 1 VUs    0m03.0s/5m0s  1/1 iters, 1 per VU
+widget    [  47% ] 1/1 VUs  14.2s/30.0s  
+
+running (0m15.2s), 3/4 VUs, 6 complete and 0 interrupted iterations
+admin     [  76% ] 1/1 VUs  15.2s/20.0s  
+journey   [   0% ] 1 VUs    0m15.2s/4m0s  0/1 iters, 1 per VU
+upload  ✓ [ 100% ] 1 VUs    0m03.0s/5m0s  1/1 iters, 1 per VU
+widget    [  51% ] 1/1 VUs  15.2s/30.0s  
+
+running (0m16.2s), 2/4 VUs, 8 complete and 0 interrupted iterations
+admin     [  81% ] 1/1 VUs  16.2s/20.0s  
+journey ✓ [ 100% ] 1 VUs    0m15.7s/4m0s  1/1 iters, 1 per VU
+upload  ✓ [ 100% ] 1 VUs    0m03.0s/5m0s  1/1 iters, 1 per VU
+widget    [  54% ] 1/1 VUs  16.2s/30.0s  
+
+running (0m17.2s), 2/4 VUs, 9 complete and 0 interrupted iterations
+admin     [  86% ] 1/1 VUs  17.2s/20.0s  
+journey ✓ [ 100% ] 1 VUs    0m15.7s/4m0s  1/1 iters, 1 per VU
+upload  ✓ [ 100% ] 1 VUs    0m03.0s/5m0s  1/1 iters, 1 per VU
+widget    [  57% ] 1/1 VUs  17.2s/30.0s  
+
+running (0m18.2s), 2/4 VUs, 11 complete and 0 interrupted iterations
+admin     [  91% ] 1/1 VUs  18.2s/20.0s  
+journey ✓ [ 100% ] 1 VUs    0m15.7s/4m0s  1/1 iters, 1 per VU
+upload  ✓ [ 100% ] 1 VUs    0m03.0s/5m0s  1/1 iters, 1 per VU
+widget    [  61% ] 1/1 VUs  18.2s/30.0s  
+
+running (0m19.2s), 2/4 VUs, 11 complete and 0 interrupted iterations
+admin     [  96% ] 1/1 VUs  19.2s/20.0s  
+journey ✓ [ 100% ] 1 VUs    0m15.7s/4m0s  1/1 iters, 1 per VU
+upload  ✓ [ 100% ] 1 VUs    0m03.0s/5m0s  1/1 iters, 1 per VU
+widget    [  64% ] 1/1 VUs  19.2s/30.0s  
+
+running (0m20.2s), 2/4 VUs, 12 complete and 0 interrupted iterations
+admin   ↓ [ 100% ] 1/1 VUs  20s          
+journey ✓ [ 100% ] 1 VUs    0m15.7s/4m0s  1/1 iters, 1 per VU
+upload  ✓ [ 100% ] 1 VUs    0m03.0s/5m0s  1/1 iters, 1 per VU
+widget    [  67% ] 1/1 VUs  20.2s/30.0s  
+
+running (0m21.2s), 1/4 VUs, 13 complete and 0 interrupted iterations
+admin   ✓ [ 100% ] 0/1 VUs  20s          
+journey ✓ [ 100% ] 1 VUs    0m15.7s/4m0s  1/1 iters, 1 per VU
+upload  ✓ [ 100% ] 1 VUs    0m03.0s/5m0s  1/1 iters, 1 per VU
+widget    [  71% ] 1/1 VUs  21.2s/30.0s  
+
+running (0m22.2s), 1/4 VUs, 13 complete and 0 interrupted iterations
+admin   ✓ [ 100% ] 0/1 VUs  20s          
+journey ✓ [ 100% ] 1 VUs    0m15.7s/4m0s  1/1 iters, 1 per VU
+upload  ✓ [ 100% ] 1 VUs    0m03.0s/5m0s  1/1 iters, 1 per VU
+widget    [  74% ] 1/1 VUs  22.2s/30.0s  
+
+running (0m23.2s), 1/4 VUs, 14 complete and 0 interrupted iterations
+admin   ✓ [ 100% ] 0/1 VUs  20s          
+journey ✓ [ 100% ] 1 VUs    0m15.7s/4m0s  1/1 iters, 1 per VU
+upload  ✓ [ 100% ] 1 VUs    0m03.0s/5m0s  1/1 iters, 1 per VU
+widget    [  77% ] 1/1 VUs  23.2s/30.0s  
+
+running (0m24.2s), 1/4 VUs, 15 complete and 0 interrupted iterations
+admin   ✓ [ 100% ] 0/1 VUs  20s          
+journey ✓ [ 100% ] 1 VUs    0m15.7s/4m0s  1/1 iters, 1 per VU
+upload  ✓ [ 100% ] 1 VUs    0m03.0s/5m0s  1/1 iters, 1 per VU
+widget    [  81% ] 1/1 VUs  24.2s/30.0s  
+
+running (0m25.2s), 1/4 VUs, 15 complete and 0 interrupted iterations
+admin   ✓ [ 100% ] 0/1 VUs  20s          
+journey ✓ [ 100% ] 1 VUs    0m15.7s/4m0s  1/1 iters, 1 per VU
+upload  ✓ [ 100% ] 1 VUs    0m03.0s/5m0s  1/1 iters, 1 per VU
+widget    [  84% ] 1/1 VUs  25.2s/30.0s  
+
+running (0m26.2s), 1/4 VUs, 15 complete and 0 interrupted iterations
+admin   ✓ [ 100% ] 0/1 VUs  20s          
+journey ✓ [ 100% ] 1 VUs    0m15.7s/4m0s  1/1 iters, 1 per VU
+upload  ✓ [ 100% ] 1 VUs    0m03.0s/5m0s  1/1 iters, 1 per VU
+widget    [  87% ] 1/1 VUs  26.2s/30.0s  
+
+running (0m27.2s), 1/4 VUs, 16 complete and 0 interrupted iterations
+admin   ✓ [ 100% ] 0/1 VUs  20s          
+journey ✓ [ 100% ] 1 VUs    0m15.7s/4m0s  1/1 iters, 1 per VU
+upload  ✓ [ 100% ] 1 VUs    0m03.0s/5m0s  1/1 iters, 1 per VU
+widget    [  91% ] 1/1 VUs  27.2s/30.0s  
+
+running (0m28.2s), 1/4 VUs, 16 complete and 0 interrupted iterations
+admin   ✓ [ 100% ] 0/1 VUs  20s          
+journey ✓ [ 100% ] 1 VUs    0m15.7s/4m0s  1/1 iters, 1 per VU
+upload  ✓ [ 100% ] 1 VUs    0m03.0s/5m0s  1/1 iters, 1 per VU
+widget    [  94% ] 1/1 VUs  28.2s/30.0s  
+
+running (0m29.2s), 1/4 VUs, 16 complete and 0 interrupted iterations
+admin   ✓ [ 100% ] 0/1 VUs  20s          
+journey ✓ [ 100% ] 1 VUs    0m15.7s/4m0s  1/1 iters, 1 per VU
+upload  ✓ [ 100% ] 1 VUs    0m03.0s/5m0s  1/1 iters, 1 per VU
+widget    [  97% ] 1/1 VUs  29.2s/30.0s  
+
+running (0m30.2s), 1/4 VUs, 17 complete and 0 interrupted iterations
+admin   ✓ [ 100% ] 0/1 VUs  20s          
+journey ✓ [ 100% ] 1 VUs    0m15.7s/4m0s  1/1 iters, 1 per VU
+upload  ✓ [ 100% ] 1 VUs    0m03.0s/5m0s  1/1 iters, 1 per VU
+widget  ↓ [ 100% ] 1/1 VUs  30s          
+
+running (0m31.2s), 1/4 VUs, 17 complete and 0 interrupted iterations
+admin   ✓ [ 100% ] 0/1 VUs  20s          
+journey ✓ [ 100% ] 1 VUs    0m15.7s/4m0s  1/1 iters, 1 per VU
+upload  ✓ [ 100% ] 1 VUs    0m03.0s/5m0s  1/1 iters, 1 per VU
+widget  ↓ [ 100% ] 1/1 VUs  30s          
+
+running (0m32.2s), 1/4 VUs, 17 complete and 0 interrupted iterations
+admin   ✓ [ 100% ] 0/1 VUs  20s          
+journey ✓ [ 100% ] 1 VUs    0m15.7s/4m0s  1/1 iters, 1 per VU
+upload  ✓ [ 100% ] 1 VUs    0m03.0s/5m0s  1/1 iters, 1 per VU
+widget  ↓ [ 100% ] 1/1 VUs  30s          
+
+running (0m32.3s), 0/4 VUs, 18 complete and 0 interrupted iterations
+admin   ✓ [ 100% ] 0/1 VUs  20s          
+journey ✓ [ 100% ] 1 VUs    0m15.7s/4m0s  1/1 iters, 1 per VU
+upload  ✓ [ 100% ] 1 VUs    0m03.0s/5m0s  1/1 iters, 1 per VU
+widget  ✓ [ 100% ] 0/1 VUs  30s          
+PROFILE=smoke BASE=http://app:80
+iterations=18 http_reqs=61 rps=1.9 failed=0.00% vus_max=4
+http p95 ms: 297.5
+submit p95 ms: 270.0
+status p95 ms: 161.0
+e2e p95 ms: 15679.0
+
+running (0m32.3s), 0/4 VUs, 18 complete and 0 interrupted iterations
+admin   ✓ [ 100% ] 0/1 VUs  20s          
+journey ✓ [ 100% ] 1 VUs    0m15.7s/4m0s  1/1 iters, 1 per VU
+upload  ✓ [ 100% ] 1 VUs    0m03.0s/5m0s  1/1 iters, 1 per VU
+widget  ✓ [ 100% ] 0/1 VUs  30s          
+
+--- stderr ---
+ Container brixperf-k6-run-7f26899dcd77 Creating 
+ Container brixperf-k6-run-7f26899dcd77 Created 

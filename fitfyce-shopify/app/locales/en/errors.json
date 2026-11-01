@@ -1,0 +1,21 @@
+{
+  "generic": "Something went wrong",
+  "network": "Network error. Please try again.",
+  "auth_required": "Sign in required",
+  "forbidden": "You do not have access to this.",
+  "not_found": "Not found",
+  "invalid_request": "The request is invalid",
+  "rate_limited": "Too many requests. Try again in a moment.",
+  "plan_limit": "You have reached your plan limit of {limit} generations this month",
+  "tryon": {
+    "no_face_detected": "No face detected in the uploaded photo",
+    "invalid_image": "The image could not be read",
+    "generation_failed": "Try-on generation failed: {reason}",
+    "model_not_ready": "The selected model is not ready",
+    "queued": "Your try-on is queued"
+  },
+  "upload": {
+    "too_large": "The file is too large (max {max_mb} MB)",
+    "unsupported_type": "That file type is not supported"
+  }
+}

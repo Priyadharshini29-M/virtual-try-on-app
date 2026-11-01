@@ -12,6 +12,7 @@ Input/output shape matches RunpodVtonClient::submitAccessoryRun() and
 extractImages()/extractError() in fitfyce-php/src/RunpodVtonClient.php, so no
 PHP changes are needed once RUNPOD_ACCESSORY_ENDPOINT_ID points here:
   input:  {person_image, accessory_image, prompt?, seed?, guidance_scale?, num_inference_steps?}
+      or  {image, prompt, seed?, guidance_scale?, num_inference_steps?}   (single-image edit)
   output: {images: [base64 png]}  on success
           {error: "..."}          on failure (RunPod marks the job FAILED)
 """
@@ -80,21 +81,33 @@ def handler(event):
 
         person_b64 = inp.get("person_image")
         accessory_b64 = inp.get("accessory_image")
-        if not person_b64 or not accessory_b64:
-            return {"error": "person_image and accessory_image are required"}
+        edit_b64 = inp.get("image")
 
-        person_image = _decode_image(person_b64)
-        accessory_image = _decode_image(accessory_b64)
+        if edit_b64 and not accessory_b64:
+            # Single-image edit mode (flat-lay -> worn reference, pose variants):
+            # one source photo + an instruction prompt. The object-fusion LoRA is
+            # switched off (weight 0) so it does not pull the edit toward inpainting.
+            if not inp.get("prompt"):
+                return {"error": "prompt is required when editing a single image"}
+            images = [_decode_image(edit_b64)]
+            lora_weight = 0.0
+        elif person_b64 and accessory_b64:
+            images = [_decode_image(person_b64), _decode_image(accessory_b64)]
+            lora_weight = 1.0
+        else:
+            return {"error": "send either image + prompt (edit) or person_image + accessory_image (accessory try-on)"}
+
         prompt = str(inp.get("prompt") or DEFAULT_PROMPT)
         seed = int(inp.get("seed", 42))
         guidance_scale = float(inp.get("guidance_scale", 1.0))
         num_inference_steps = int(inp.get("num_inference_steps", 4))
 
         pipe = _load_pipeline()
+        pipe.set_adapters([FUSION_ADAPTER_NAME], adapter_weights=[lora_weight])
         generator = torch.Generator(device="cuda").manual_seed(seed)
 
         result = pipe(
-            image=[person_image, accessory_image],
+            image=images,
             prompt=prompt,
             num_inference_steps=num_inference_steps,
             guidance_scale=guidance_scale,

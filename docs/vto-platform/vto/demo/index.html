@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Demo Store – Women Kurtas</title>
+<style>
+body{font-family:system-ui,sans-serif;margin:0;background:#fafafa}
+header{background:#222;color:#fff;padding:14px 24px}header a{color:#fff;margin-right:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px;padding:24px}
+.sc-x7Yh2 {background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.plp-tile-img img{width:100%;height:300px;object-fit:cover;display:block}
+.plp-info{padding:10px}.plp-price{font-weight:700}
+</style></head>
+<body>
+<header><a href="/demo/index.html">Home</a><a href="/demo/product.html">Kurtas</a><a href="/cart">Cart</a></header>
+<h1 style="padding:0 24px">Women Kurtas</h1>
+<!-- deliberately unusual markup: no "product-card" class names, hashed classes, so Plan B (block) must find the cards -->
+<div class="grid" id="list">
+  <div class="sc-x7Yh2 tile-wrap"><a href="/demo/product.html?id=1"><div class="plp-tile-img"><img src="http://127.0.0.1:8081/demo/img/k1.jpg" alt="Blue cotton kurta"></div></a><div class="plp-info"><a href="/demo/product.html?id=1">Blue cotton kurta</a><div class="plp-price">₹1,299</div></div></div>
+  <div class="sc-x7Yh2 tile-wrap"><a href="/demo/product.html?id=2"><div class="plp-tile-img"><img src="http://127.0.0.1:8081/demo/img/k2.jpg" alt="Red silk kurta"></div></a><div class="plp-info"><a href="/demo/product.html?id=2">Red silk kurta</a><div class="plp-price">₹2,499</div></div></div>
+  <div class="sc-x7Yh2 tile-wrap"><a href="/demo/product.html?id=3"><div class="plp-tile-img"><img src="http://127.0.0.1:8081/demo/img/k3.jpg" alt="Green kurta"></div></a><div class="plp-info"><a href="/demo/product.html?id=3">Green linen kurta</a><div class="plp-price">₹1,799</div></div></div>
+  <div class="sc-x7Yh2 tile-wrap"><a href="/demo/product.html?id=4"><div class="plp-tile-img"><img src="http://127.0.0.1:8081/demo/img/k4.jpg" alt="Yellow kurta"></div></a><div class="plp-info"><a href="/demo/product.html?id=4">Yellow printed kurta</a><div class="plp-price">₹999</div></div></div>
+</div>
+<script>
+// simulate infinite scroll: more cards arrive later (React-style)
+setTimeout(function(){
+  var g=document.getElementById('list');
+  for(var i=5;i<=8;i++){var d=document.createElement('div');d.className='sc-x7Yh2 tile-wrap';
+    d.innerHTML='<a href="/demo/product.html?id='+i+'"><div class="plp-tile-img"><img src="http://127.0.0.1:8081/demo/img/k'+i+'.jpg" alt="Kurta '+i+'"></div></a><div class="plp-info"><a href="#">Kurta '+i+'</a><div class="plp-price">₹1,'+i+'99</div></div>';
+    g.appendChild(d);}
+}, 2500);
+</script>
+<script async src="/widget/vto.js" data-vto-key="4849b03972e29146903ee6f7f8e261420d749cc7" data-api="/backend/api" data-debug="1"></script>
+</body></html>

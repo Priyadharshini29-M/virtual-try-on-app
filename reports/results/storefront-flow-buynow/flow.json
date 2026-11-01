@@ -1,0 +1,97 @@
+{
+ "when": "2026-10-22T06:59:39.867Z",
+ "steps": [
+  {
+   "step": "widget button visible",
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "step": "open modal -> consent step",
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "step": "accept consent -> upload step",
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "step": "reject non-image upload",
+   "result": "PASS",
+   "note": "processing started=false; shown: \"Something went wrong\n\nPlea e upload an image file (JPEG, PNG, or WebP).\n\nTry Again\""
+  },
+  {
+   "step": "valid upload -> processing",
+   "result": "PASS",
+   "note": ""
+  },
+  {
+   "step": "processing -> result (mock GPU ~14s+)",
+   "result": "PASS",
+   "note": "18.2 s from upload"
+  },
+  {
+   "step": "result image loaded",
+   "result": "PASS",
+   "note": "{\"src\":\"http://localhost:8080/results/tryon_result_20261022_065914_7\",\"w\":768,\"h\":1152}"
+  },
+  {
+   "step": "lead gate shown",
+   "result": "PASS",
+   "note": "lead form (email field or submit) visible"
+  },
+  {
+   "step": "lead submit w/ invalid email rejected",
+   "result": "PASS",
+   "note": "form still shown after invalid email"
+  },
+  {
+   "step": "lead submit without consent is blocked",
+   "result": "PASS",
+   "note": "message: \"Please agree to the Privacy Policy and Terms of Service to continue.\""
+  },
+  {
+   "step": "lead submit with consent unlocks look",
+   "result": "PASS",
+   "note": "lead capture response: 200 http://localhost:5190/apps/tryfit/api/lead/capture?shop=perf-test.myshopify.com"
+  },
+  {
+   "step": "save image triggers a download",
+   "result": "FAIL",
+   "note": "real downloads=0; fallback window.open(s) of image=1 (result image has no CORS header, so fetch->blob download fails)"
+  },
+  {
+   "step": "share on WhatsApp opens wa.me link",
+   "result": "PASS",
+   "note": "https://wa.me/?text=Cotton%20T-Shirt%0Ahttp%3A%2F%2Flocalhost%3A5190%2Fproducts%2Fcotton-t-shirt%0AMy%20virtual%20try-on%3A%20http%3A%2F%2Flocalhost%3"
+  },
+  {
+   "step": "buy now posts to cart (mock); checkout nav not followed",
+   "result": "PASS",
+   "note": "fresh cart post: {\"t\":1792652377750,\"ct\":\"application/json\",\"body\":\"{\\\"id\\\":1001,\\\"quantity\\\":1,\\\"properties\\\":{}}\"}; /checkout is a stub host"
+  }
+ ],
+ "hosts": [
+  "localhost:5190",
+  "fonts.googleapis.com",
+  "",
+  "localhost:8080"
+ ],
+ "apiResponses": [
+  "200 http://localhost:5190/apps/tryfit/api/widget-settings?shop=perf-test.myshopify.com",
+  "200 http://localhost:5190/apps/tryfit/api/widget-event",
+  "200 http://localhost:5190/apps/tryfit/api/session/create?shop=perf-test.myshopify.com",
+  "200 http://localhost:5190/apps/tryfit/api/tryon?shop=perf-test.myshopify.com",
+  "200 http://localhost:5190/apps/tryfit/api/tryon-status?job_id=db39a23d-066d-4b04-b292-f52e82361cf4-mock&shop=perf-",
+  "200 http://localhost:5190/apps/tryfit/api/tryon-status?job_id=db39a23d-066d-4b04-b292-f52e82361cf4-mock&shop=perf-",
+  "200 http://localhost:5190/apps/tryfit/api/tryon-status?job_id=db39a23d-066d-4b04-b292-f52e82361cf4-mock&shop=perf-",
+  "200 http://localhost:5190/apps/tryfit/api/tryon-status?job_id=db39a23d-066d-4b04-b292-f52e82361cf4-mock&shop=perf-",
+  "200 http://localhost:5190/apps/tryfit/api/tryon-status?job_id=db39a23d-066d-4b04-b292-f52e82361cf4-mock&shop=perf-",
+  "200 http://localhost:5190/apps/tryfit/api/tryon-status?job_id=db39a23d-066d-4b04-b292-f52e82361cf4-mock&shop=perf-",
+  "200 http://localhost:5190/apps/tryfit/api/tryon-status?job_id=db39a23d-066d-4b04-b292-f52e82361cf4-mock&shop=perf-",
+  "200 http://localhost:5190/apps/tryfit/api/lead/capture?shop=perf-test.myshopify.com"
+ ],
+ "actions": [],
+ "consoleErrors": []
+}

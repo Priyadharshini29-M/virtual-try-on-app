@@ -12,12 +12,6 @@ declare(strict_types=1);
  * /status/{id} until COMPLETED, then the result image is decoded here.
  * This is the only engine — Fashn.ai has been fully retired from this app.
  *
- * fal.ai "Kling Kolors Virtual Try-On v1.5" is TEMPORARILY DISABLED below
- * (fal.ai account is currently locked pending top-up) — its code is
- * commented out, not removed, so it can be swapped back in later by
- * uncommenting the "KOLORS (disabled)" block and commenting out the
- * "RUNPOD (active)" block in the two places marked below.
- *
  * ── Request ─────────────────────────────────────────────────────────────
  * POST multipart/form-data:
  *   model_image         (file, required)  — photo of the person
@@ -41,13 +35,12 @@ declare(strict_types=1);
  * 4xx/5xx JSON: { "error": "..." }
  *
  * ── Config ──────────────────────────────────────────────────────────────
- * Reads RUNPOD_API_KEY / RUNPOD_ENDPOINT_ID (RunPod, active) and FAL_API_KEY
- * (Kolors, disabled) from a .env file next to this script (same simple
+ * Reads RUNPOD_API_KEY / RUNPOD_ENDPOINT_ID
+ * from a .env file next to this script (same simple
  * parser used elsewhere in this project), or from real server environment
  * variables — set whichever you prefer.
  *   RUNPOD_API_KEY      required — https://runpod.io
  *   RUNPOD_ENDPOINT_ID  required — your serverless endpoint id
- *   FAL_API_KEY         only needed if you switch back to Kolors — https://fal.ai/dashboard/keys
  */
 
 header('Access-Control-Allow-Origin: *');
@@ -90,7 +83,7 @@ if (is_file($envFile)) {
     }
 }
 
-// ── RUNPOD (active — Kolors temporarily disabled) ─────────────────────────
+// ── RUNPOD ─────────────────────────
 require_once __DIR__ . '/src/RunpodVtonClient.php';
 use VTON\RunpodVtonClient;
 $runpodApiKey     = (string)(getenv('RUNPOD_API_KEY') ?: '');
@@ -99,13 +92,6 @@ if ($runpodApiKey === '' || $runpodEndpointId === '') {
     respond(['error' => 'Server not configured: set RUNPOD_API_KEY and RUNPOD_ENDPOINT_ID in .env or as environment variables'], 500);
 }
 
-// ── KOLORS (disabled) ─────────────────────────────────────────────────────
-// require_once __DIR__ . '/src/KolorsClient.php';
-// use VTON\KolorsClient;
-// $apiKey = (string)(getenv('FAL_API_KEY') ?: '');
-// if ($apiKey === '') {
-//     respond(['error' => 'Server not configured: set FAL_API_KEY in .env or as an environment variable'], 500);
-// }
 
 // RunPod generation (incl. cold worker queue time) can take up to ~2 minutes.
 @set_time_limit(150);
@@ -180,7 +166,7 @@ if ($garmentUri === null) {
 
 // ── Run the try-on (submit + poll until complete) ───────────────────────
 
-// ── RUNPOD (active — Kolors temporarily disabled) ─────────────────────────
+// ── RUNPOD ─────────────────────────
 $client = new RunpodVtonClient($runpodApiKey, $runpodEndpointId);
 $params = [
     'person_image'      => $modelUri,
@@ -206,12 +192,6 @@ $result = [
     'error_details' => $runpodResult['error_details'],
 ];
 
-// ── KOLORS (disabled) ─────────────────────────────────────────────────────
-// $client = new KolorsClient($apiKey);
-// $result = $client->tryOn([
-//     'human_image_url'   => $modelUri,
-//     'garment_image_url' => $garmentUri,
-// ]);
 
 if ($result['status_code'] !== 200 || $result['image_bytes'] === null) {
     $statusCode = match ($result['status_code']) {

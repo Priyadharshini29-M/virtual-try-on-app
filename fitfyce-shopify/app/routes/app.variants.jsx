@@ -2,6 +2,7 @@ import { useLoaderData, useSubmit, useNavigation, useActionData } from "react-ro
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { FsPage, FsCard, FsButton, FsPill, FsProgress, FsEmpty, FsIcon } from "../components/fs-ui";
+import { TOURS } from "../lib/tours";
 import { authenticate } from "../shopify.server";
 import phpApiClient from "../lib/php-api.server";
 import { ensureMerchant } from "../lib/merchant.server";
@@ -287,7 +288,7 @@ function VariantRow({ variant, mapping, productImages, internalProductId, produc
             )}
             <label className="fs-input-row" style={{ marginTop: 10 }}>
               <FsIcon name="link" size={16} />
-              <input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="Or paste an image URL — https://…" aria-label="Try-on image URL" autoComplete="off" />
+              <input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="Or paste an image URL: https://…" aria-label="Try-on image URL" autoComplete="off" />
             </label>
           </div>
 
@@ -339,7 +340,7 @@ function VariantRow({ variant, mapping, productImages, internalProductId, produc
               {isSaving ? "Saving…" : saved ? "Saved" : isMapped ? "Save changes" : "Save mapping"}
             </FsButton>
             {saved && <span style={{ fontSize: 13, color: "var(--fs-success-ink)", fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}><FsIcon name="check" size={14} strokeWidth={3} />Live on your storefront</span>}
-            {!internalProductId && <span style={{ fontSize: 12, color: "var(--fs-warning-ink)" }}>Product isn&apos;t synced yet — refresh to retry.</span>}
+            {!internalProductId && <span style={{ fontSize: 12, color: "var(--fs-warning-ink)" }}>Product isn&apos;t synced yet: refresh to retry.</span>}
           </div>
         </div>
       )}
@@ -361,7 +362,7 @@ export default function Variants() {
 
   if (!product) {
     return (
-      <FsPage title="Variant mapping">
+      <FsPage title="Try-on photos">
         <FsCard>
           <FsEmpty icon="image" text="Choose a product first, then give each variant its try-on image." cta="Go to products" to="/app/products" />
         </FsCard>
@@ -378,8 +379,9 @@ export default function Variants() {
 
   return (
     <FsPage
+      tour={TOURS.variants}
       title={product.title}
-      subtitle="Give each variant a try-on image so shoppers see the exact color and style they picked."
+      subtitle="Try-on photos: pick the photo the AI dresses shoppers in for each variant (color/size), so the result matches exactly what they selected."
       actions={<FsButton to="/app/products" variant="ghost" icon="arrowLeft">Products</FsButton>}
     >
       {syncError && (

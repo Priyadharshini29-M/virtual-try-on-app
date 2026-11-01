@@ -1,0 +1,6 @@
+scrapy>=2.11
+PyMySQL>=1.1
+python-dotenv>=1.0
+# Optional – for JavaScript-rendered stores (React/Next/Angular SPAs such as Nykaa, Ajio):
+#   pip install scrapy-playwright && playwright install chromium
+# then set VTO_USE_PLAYWRIGHT=1

@@ -5,7 +5,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import { useFetcher, useNavigate } from "react-router";
 import { FsIcon, FsPill } from "./fs-ui";
-import { PLAN_LABELS, PLAN_PRICES, PLAN_TRYONS } from "../lib/plans";
 
 const TUTORIAL_YOUTUBE_ID = "fMRsrR3o4Zk";
 
@@ -15,7 +14,7 @@ const STEPS = [
   { key: "products", label: "Products" },
   { key: "theme", label: "Add to store" },
   { key: "contact", label: "Alerts" },
-  { key: "plan", label: "Plan" },
+  { key: "plan", label: "Credits" },
   { key: "done", label: "Launch" },
 ];
 
@@ -87,13 +86,12 @@ function OptionCard({ selected, onClick, icon, title, desc, role = "checkbox" })
 
 OptionCard.propTypes = { selected: PropTypes.bool, onClick: PropTypes.func, icon: PropTypes.string, title: PropTypes.string, desc: PropTypes.string, role: PropTypes.string };
 
-export default function OnboardingWizard({ shop, apiKey, onboarding, currentPlan, onClose }) {
+export default function OnboardingWizard({ shop, onboarding, onClose }) {
   const navigate = useNavigate();
   const saved = onboarding?.saved ?? {};
   const saveFetcher = useFetcher();
   const productsFetcher = useFetcher();
   const enableFetcher = useFetcher();
-  const planFetcher = useFetcher();
 
   const [step, setStep] = useState(() => Math.min(Math.max(Number(saved.step) || 0, 0), STEPS.length - 1));
   const [earned, setEarned] = useState(() => new Set(STEPS.slice(0, Number(saved.step) || 0).map((s) => s.key)));
@@ -111,7 +109,6 @@ export default function OnboardingWizard({ shop, apiKey, onboarding, currentPlan
   const [contactName, setContactName] = useState(saved.contact_name ?? onboarding?.shopName ?? "");
   const [contactEmail, setContactEmail] = useState(saved.contact_email ?? onboarding?.shopEmail ?? "");
   const [contactPhone, setContactPhone] = useState(saved.contact_phone ?? "");
-  const [selectedPlan, setSelectedPlan] = useState(saved.selected_plan ?? "");
 
   const dialogRef = useRef(null);
   const current = STEPS[step];
@@ -126,15 +123,6 @@ export default function OnboardingWizard({ shop, apiKey, onboarding, currentPlan
 
   useEffect(() => { dialogRef.current?.scrollTo?.({ top: 0 }); setError(null); }, [step]);
 
-  // Billing: the plans action returns a Shopify confirmation URL for paid plans.
-  useEffect(() => {
-    if (planFetcher.data?.billingUrl) {
-      try { window.top.location.href = planFetcher.data.billingUrl; } catch { /* fallback link shown */ }
-    } else if (planFetcher.data?.error) {
-      setError(planFetcher.data.error);
-    }
-  }, [planFetcher.data]);
-
   useEffect(() => {
     if (saveFetcher.data?.ok === false) setError(saveFetcher.data.error ?? "We couldn't save your progress.");
   }, [saveFetcher.data]);
@@ -142,7 +130,7 @@ export default function OnboardingWizard({ shop, apiKey, onboarding, currentPlan
   const answers = {
     goals, heard_from: heardFrom, store_type: storeType, catalog_size: catalogSize, product_scope: productScope,
     embed_confirmed: embedConfirmed, block_confirmed: blockConfirmed,
-    contact_name: contactName, contact_email: contactEmail, contact_phone: contactPhone, selected_plan: selectedPlan,
+    contact_name: contactName, contact_email: contactEmail, contact_phone: contactPhone,
   };
 
   const persist = (extra) => {
@@ -219,19 +207,6 @@ export default function OnboardingWizard({ shop, apiKey, onboarding, currentPlan
     enableFetcher.submit(fd, { method: "POST", action: "/app/products" });
   };
 
-  const choosePlan = (plan) => {
-    setSelectedPlan(plan);
-    award();
-    persist({ step: step + 1, selected_plan: plan });
-    if (plan === "free" || plan === currentPlan) {
-      setStep(step + 1);
-      return;
-    }
-    const fd = new FormData();
-    fd.set("plan", plan);
-    planFetcher.submit(fd, { method: "POST", action: "/app/plans" });
-  };
-
   const emailValid = !contactEmail || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail);
   const canContinue = {
     goals: goals.length > 0,
@@ -243,8 +218,8 @@ export default function OnboardingWizard({ shop, apiKey, onboarding, currentPlan
     done: true,
   }[current.key];
 
-  const embedUrl = `https://${shop}/admin/themes/current/editor?context=apps&activateAppId=${apiKey}/tryon-embed`;
-  const blockUrl = `https://${shop}/admin/themes/current/editor?template=product&addAppBlockId=${apiKey}/tryon-button&target=mainSection`;
+  const embedUrl = `https://${shop}/admin/themes/current/editor?context=apps`;
+  const blockUrl = `https://${shop}/admin/themes/current/editor?template=product`;
   return (
     <div className="fs-ob-backdrop">
       <div className="fs-ob-shell">
@@ -282,7 +257,7 @@ export default function OnboardingWizard({ shop, apiKey, onboarding, currentPlan
 
           {current.key === "goals" && (
             <>
-              <StepTitle n={1} title="What do you want try-on to do for you?" sub="Pick any that apply — we'll tailor your setup." />
+              <StepTitle n={1} title="What do you want try-on to do for you?" sub="Pick any that apply: we'll tailor your setup." />
               <div className="fs-ob-grid-3">
                 {GOALS.map((g) => (
                   <OptionCard key={g.id} icon={g.icon} title={g.title} desc={g.desc} selected={goals.includes(g.id)}
@@ -356,7 +331,7 @@ export default function OnboardingWizard({ shop, apiKey, onboarding, currentPlan
               </div>
               {lastFailed > 0 && toEnable.length > 0 && (
                 <p className="fs-help" style={{ color: "var(--fs-warning-ink)" }}>
-                  {enabledCount > 0 ? `${enabledCount} enabled. ` : ""}{toEnable.length} {toEnable.length === 1 ? "product" : "products"} couldn&apos;t be enabled — click Retry to try {toEnable.length === 1 ? "it" : "them"} again.
+                  {enabledCount > 0 ? `${enabledCount} enabled. ` : ""}{toEnable.length} {toEnable.length === 1 ? "product" : "products"} couldn&apos;t be enabled: click Retry to try {toEnable.length === 1 ? "it" : "them"} again.
                   {enableFetcher.data?.error && <><br /><span style={{ color: "var(--fs-muted)" }}>Reason: {enableFetcher.data.error}</span></>}
                 </p>
               )}
@@ -405,7 +380,7 @@ export default function OnboardingWizard({ shop, apiKey, onboarding, currentPlan
 
           {current.key === "contact" && (
             <>
-              <StepTitle n={5} title="Who should we alert when try-ons run low?" sub="We'll only use this for important account alerts — never marketing." />
+              <StepTitle n={5} title="Who should we alert when try-ons run low?" sub="We'll only use this for important account alerts: never marketing." />
               <div style={{ maxWidth: 520, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16 }}>
                 <div>
                   <label className="fs-label" htmlFor="ob-name">Your name</label>
@@ -426,26 +401,28 @@ export default function OnboardingWizard({ shop, apiKey, onboarding, currentPlan
 
           {current.key === "plan" && (
             <>
-              <StepTitle n={6} title="Choose your plan" sub="Start free and upgrade whenever you're ready. Paid plans include a 3-day free trial." />
-              <div className="fs-ob-grid-3">
-                {["free", "growth", "pro"].map((p) => (
-                  <div key={p} className={`fs-ob-plan${p === "growth" ? " is-featured" : ""}${currentPlan === p ? " is-current" : ""}`}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", minHeight: 24 }}>
-                      <span style={{ fontSize: 15, fontWeight: 600 }}>{PLAN_LABELS[p]}</span>
-                      {currentPlan === p ? <FsPill tone="success">Current</FsPill> : p === "growth" ? <FsPill tone="primary">Recommended</FsPill> : null}
-                    </div>
-                    <div className="fs-tabular" style={{ fontSize: 30, fontWeight: 700, letterSpacing: "-.02em" }}>{PLAN_PRICES[p].replace("/month", "")}<small style={{ fontSize: 13, fontWeight: 400, color: "var(--fs-muted)" }}>{p === "free" ? "" : " / month"}</small></div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}><FsIcon name="bolt" size={14} style={{ color: "var(--fs-primary)" }} />{PLAN_TRYONS[p]} try-ons every month</div>
-                    <button type="button" className={p === "growth" ? "fs-ob-primary" : "fs-ob-secondary"} style={{ width: "100%", marginTop: "auto" }}
-                      disabled={planFetcher.state !== "idle"} onClick={() => choosePlan(p)}>
-                      {planFetcher.state !== "idle" && selectedPlan === p ? "Opening billing…" : currentPlan === p ? "Keep this plan" : p === "free" ? "Continue free" : `Choose ${PLAN_LABELS[p]}`}
-                    </button>
-                  </div>
-                ))}
+              <StepTitle n={6} title="You're set up with try-on credits" sub="Pay only for what you use. 1 credit = 1 try-on or AI generation. Top up anytime." />
+              <div className="fs-ob-plan is-featured" style={{ maxWidth: 420, margin: "0 auto" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", minHeight: 24 }}>
+                  <span style={{ fontSize: 15, fontWeight: 600 }}>Welcome credits</span>
+                  <FsPill tone="success">Free</FsPill>
+                </div>
+                <div className="fs-tabular" style={{ fontSize: 30, fontWeight: 700, letterSpacing: "-.02em" }}>
+                  25<small style={{ fontSize: 13, fontWeight: 400, color: "var(--fs-muted)" }}> credits</small>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}>
+                  <FsIcon name="bolt" size={14} style={{ color: "var(--fs-primary)" }} />
+                  Enough to test try-on across your products
+                </div>
+                <button type="button" className="fs-ob-primary" style={{ width: "100%", marginTop: "auto" }}
+                  onClick={() => { award(); persist({ step: step + 1 }); setStep(step + 1); }}>
+                  Continue
+                </button>
+                <button type="button" className="fs-ob-link" style={{ width: "100%" }}
+                  onClick={() => { award(); persist({ step: step + 1 }); onClose(); navigate("/app/wallet"); }}>
+                  Top up now instead
+                </button>
               </div>
-              {planFetcher.data?.billingUrl && (
-                <p className="fs-help" style={{ textAlign: "center" }}>Not redirected? <a href={planFetcher.data.billingUrl} target="_top" rel="noreferrer">Open Shopify billing</a></p>
-              )}
             </>
           )}
 
@@ -499,9 +476,7 @@ export default function OnboardingWizard({ shop, apiKey, onboarding, currentPlan
 
 OnboardingWizard.propTypes = {
   shop: PropTypes.string.isRequired,
-  apiKey: PropTypes.string.isRequired,
   onboarding: PropTypes.object,
-  currentPlan: PropTypes.string,
   onClose: PropTypes.func.isRequired,
 };
 

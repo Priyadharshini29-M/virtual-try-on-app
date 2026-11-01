@@ -2,13 +2,15 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
 import {
   useLoaderData,
+  useRouteLoaderData,
   useSubmit,
   useNavigate,
   useNavigation,
   useActionData,
 } from "react-router";
 import { useCelebrate } from "../components/AppShell";
-import { FsPage, FsCard, FsButton, FsPill, FsEmpty, FsIcon } from "../components/fs-ui";
+import { FsPage, FsCard, FsButton, FsEmpty, FsIcon } from "../components/fs-ui";
+import { TOURS } from "../lib/tours";
 import { authenticate } from "../shopify.server";
 import phpApiClient from "../lib/php-api.server";
 import { ensureMerchant } from "../lib/merchant.server";
@@ -551,9 +553,28 @@ Menu.propTypes = { label: PropTypes.string, items: PropTypes.array.isRequired };
 
 // ─── Collections ──────────────────────────────────────────────────────────────
 
-function CollectionRow({ collection, shop, submit, isSubmitting, onViewProducts }) {
+function CoverageRing({ value, total }) {
+  const pct = total ? value / total : 0;
+  const r = 15;
+  const c = 2 * Math.PI * r;
+  return (
+    <span className="fs-col-ring" role="img" aria-label={`${value} of ${total} products have try-on`}>
+      <svg width="38" height="38" viewBox="0 0 38 38" aria-hidden="true">
+        <circle cx="19" cy="19" r={r} fill="none" stroke="var(--fs-primary-soft)" strokeWidth="4" />
+        <circle cx="19" cy="19" r={r} fill="none" stroke={pct === 1 ? "var(--fs-success)" : "var(--fs-ink)"} strokeWidth="4" strokeLinecap="round"
+          strokeDasharray={`${c * pct} ${c}`} transform="rotate(-90 19 19)" />
+      </svg>
+      <span className="fs-tabular">{Math.round(pct * 100)}%</span>
+    </span>
+  );
+}
+
+CoverageRing.propTypes = { value: PropTypes.number.isRequired, total: PropTypes.number.isRequired };
+
+function CollectionRow({ collection, shop, submit, isSubmitting, expanded, onExpand, onToggleProduct, pending }) {
+  const navigate = useNavigate();
   const enabledCount = collection.products.filter((p) => p.isTryonEnabled).length;
-  const pct = collection.productCount ? Math.round((enabledCount / collection.productCount) * 100) : 0;
+  const panelId = `col-panel-${collection.numericId}`;
 
   function handleToggleCollection() {
     const fd = new FormData();
@@ -587,32 +608,39 @@ function CollectionRow({ collection, shop, submit, isSubmitting, onViewProducts 
     submit(fd, { method: "post" });
   }
 
+  const stack = collection.products.slice(0, 4);
+  const extra = collection.productCount - stack.length;
+
   return (
-    <tr>
-      <td>
-        <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-          <span className="fs-thumb" style={{ width: 30, height: 30, borderRadius: 6 }}>
-            {collection.image ? <img src={collection.image.url} alt="" /> : <FsIcon name="grid" size={13} />}
+    <div className={`fs-col${expanded ? " is-open" : ""}`}>
+      <div className="fs-col-head">
+        <button type="button" className="fs-col-main" aria-expanded={expanded} aria-controls={panelId} onClick={onExpand}>
+          <span className="fs-col-chevron"><FsIcon name="chevronRight" size={14} /></span>
+          <span className="fs-thumb" style={{ width: 40, height: 40, borderRadius: 9 }}>
+            {collection.image ? <img src={collection.image.url} alt="" /> : <FsIcon name="grid" size={15} />}
           </span>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 13, fontWeight: 600 }}>{collection.title}</div>
-            <div style={{ fontSize: 11, color: "var(--fs-muted)", marginTop: 1 }}>/{collection.handle}</div>
-          </div>
-        </div>
-      </td>
-      <td className="fs-tabular">{collection.productCount} products</td>
-      <td style={{ width: 200 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div className="fs-progress fs-progress--primary" style={{ height: 5, flex: 1 }}><span style={{ width: `${pct}%` }} /></div>
-          <span className="fs-tabular" style={{ fontSize: 11, color: "#4B5563", width: 48 }}>{enabledCount} of {collection.productCount}</span>
-        </div>
-      </td>
-      <td>
-        <FsButton variant="plain" size="sm" onClick={() => onViewProducts(collection.id)}>View products</FsButton>
-      </td>
-      <td className="num">
-        <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 11, fontWeight: 600, color: collection.isTryonEnabled ? "var(--fs-success-ink)" : "var(--fs-muted)", width: 18 }}>{collection.isTryonEnabled ? "On" : "Off"}</span>
+          <span style={{ minWidth: 0, flex: 1 }}>
+            <span className="fs-col-title">{collection.title}</span>
+            <span className="fs-col-meta">/{collection.handle} · {collection.productCount} product{collection.productCount === 1 ? "" : "s"}</span>
+          </span>
+          <span className="fs-col-stack" aria-hidden="true">
+            {stack.map((p) => (
+              <span key={p.id} className="fs-col-stack-item">
+                {p.featuredImage?.url ? <img src={p.featuredImage.url} alt="" /> : <FsIcon name="image" size={11} />}
+              </span>
+            ))}
+            {extra > 0 && <span className="fs-col-stack-item fs-col-stack-more fs-tabular">+{extra}</span>}
+          </span>
+          <span className="fs-col-coverage">
+            <CoverageRing value={enabledCount} total={collection.productCount} />
+            <span className="fs-col-coverage-text">
+              <strong className="fs-tabular">{enabledCount} of {collection.productCount}</strong>
+              <span>with try-on</span>
+            </span>
+          </span>
+        </button>
+        <div className="fs-col-actions">
+          <span className={`fs-col-state${collection.isTryonEnabled ? " is-on" : ""}`}>{collection.isTryonEnabled ? "On" : "Off"}</span>
           <Switch checked={collection.isTryonEnabled} onChange={handleToggleCollection} disabled={isSubmitting} label={`Try-on for ${collection.title} collection`} />
           <Menu
             label={`More actions for ${collection.title}`}
@@ -624,8 +652,32 @@ function CollectionRow({ collection, shop, submit, isSubmitting, onViewProducts 
             ]}
           />
         </div>
-      </td>
-    </tr>
+      </div>
+
+      {expanded && (
+        <ul id={panelId} className="fs-col-panel" aria-label={`Products in ${collection.title}`}>
+          {collection.products.map((p) => {
+            const enabled = pending?.id === p.id ? pending.enabled : p.isTryonEnabled;
+            return (
+              <li key={p.id} className="fs-col-item">
+                <span className="fs-thumb" style={{ width: 34, height: 34, borderRadius: 7 }}>
+                  {p.featuredImage?.url ? <img src={p.featuredImage.url} alt="" /> : <FsIcon name="image" size={14} />}
+                </span>
+                <span style={{ minWidth: 0, flex: 1 }}>
+                  <span className="fs-col-item-title" title={p.title}>{p.title}</span>
+                  <span className="fs-col-meta fs-tabular">{formatPrice(p.price, p.currency)}{p.vendor ? ` · ${p.vendor}` : ""}</span>
+                </span>
+                {enabled
+                  ? <span className="fs-pill fs-product-status is-on"><span className="fs-dot" />Try-on active</span>
+                  : <span className="fs-pill fs-product-status">Off</span>}
+                <TryonPhotoButton product={p} onClick={() => navigate(variantsUrl(p))} />
+                <Switch checked={enabled} onChange={() => onToggleProduct(p, collection)} disabled={isSubmitting} label={`Try-on for ${p.title}`} />
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
   );
 }
 
@@ -634,12 +686,31 @@ CollectionRow.propTypes = {
   shop: PropTypes.string,
   submit: PropTypes.func,
   isSubmitting: PropTypes.bool,
-  onViewProducts: PropTypes.func,
+  expanded: PropTypes.bool,
+  onExpand: PropTypes.func,
+  onToggleProduct: PropTypes.func,
+  pending: PropTypes.object,
 };
+
+// Opens /app/variants, where each variant (color/size) gets the photo, garment
+// type and photo style the AI uses for try-on. Labelled so merchants know that.
+function TryonPhotoButton({ product, onClick }) {
+  return (
+    <button type="button" className="fs-btn fs-btn--ghost fs-btn--sm fs-tryon-photo-btn" onClick={onClick}
+      aria-label={`Set up try-on photos for ${product.title}`}
+      title="Pick the photo the AI uses for each variant (color/size), plus garment type and photo style">
+      <FsIcon name="image" size={14} />
+      <span>Try-on photos</span>
+    </button>
+  );
+}
+
+TryonPhotoButton.propTypes = { product: PropTypes.object.isRequired, onClick: PropTypes.func };
 
 // ─── Product row ──────────────────────────────────────────────────────────────
 
 function ProductRow({ product, shop, selected, onSelect, onToggle, isSubmitting, pendingEnabled }) {
+  const aiStudioEnabled = useRouteLoaderData("routes/app")?.aiStudioEnabled ?? false;
   const navigate = useNavigate();
   const enabled = pendingEnabled ?? product.isTryonEnabled;
 
@@ -674,15 +745,16 @@ function ProductRow({ product, shop, selected, onSelect, onToggle, isSubmitting,
           <button type="button" className="fs-btn fs-btn--ghost fs-btn--sm" aria-label={`Preview ${product.title} on store`} onClick={() => window.open(`https://${shop}/products/${product.handle}`, "_blank")}>
             <FsIcon name="eye" size={14} />
           </button>
-          <button type="button" className="fs-btn fs-btn--ghost fs-btn--sm" aria-label={`Edit variants for ${product.title}`} onClick={() => navigate(variantsUrl(product))}>
-            <FsIcon name="pencil" size={14} />
-          </button>
+          <TryonPhotoButton product={product} onClick={() => navigate(variantsUrl(product))} />
           <Switch checked={enabled} onChange={onToggle} disabled={isSubmitting} label={`Try-on for ${product.title}`} />
           <Menu
             label={`More actions for ${product.title}`}
             items={[
+              { label: "Set up try-on photos per variant", onSelect: () => navigate(variantsUrl(product)) },
               { label: "Edit in Shopify admin", onSelect: () => window.open(`https://${shop}/admin/products/${product.numericId}`, "_blank") },
-              { label: "Create AI model photo", onSelect: () => navigate("/app/studio/create") },
+              ...(aiStudioEnabled
+                ? [{ label: "Create AI model photo", onSelect: () => navigate("/app/studio/create") }]
+                : []),
               ...(enabled
                 ? [{ divider: true }, { label: "Turn off try-on", danger: true, confirmTitle: "Turn off try-on?", confirmText: "Shoppers won't see the try-on button on this product.", confirmCta: "Turn off", onSelect: onToggle }]
                 : []),
@@ -719,6 +791,7 @@ export default function Products() {
 
   const [collectionQuery, setCollectionQuery] = useState("");
   const [collectionPage, setCollectionPage] = useState(1);
+  const [expandedCollection, setExpandedCollection] = useState(null);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
   const [collectionFilter, setCollectionFilter] = useState("all");
@@ -773,9 +846,9 @@ export default function Products() {
   });
   const visibleProducts = filteredProducts.slice(0, shown);
 
-  function toggleProduct(product) {
+  function toggleProduct(product, collection = product.collection) {
     const newEnabled = !product.isTryonEnabled;
-    const c = product.collection;
+    const c = collection;
     const fd = new FormData();
     fd.set("intent", "toggle_product");
     fd.set("shopify_product_id", product.numericId);
@@ -820,13 +893,6 @@ export default function Products() {
     return next;
   });
 
-  const viewCollectionProducts = (id) => {
-    setCollectionFilter(id);
-    setStatus("all");
-    setShown(PRODUCTS_PER_PAGE);
-    gridRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
   const chips = [
     ["all", "All", total],
     ["active", "Try-on active", enabledCount],
@@ -835,6 +901,7 @@ export default function Products() {
 
   return (
     <FsPage
+      tour={TOURS.products}
       title="Products"
       subtitle="Choose which products show the try-on button in your store."
       actions={<a className="fs-btn fs-btn--ghost" href={`https://${shop}`} target="_blank" rel="noopener noreferrer"><FsIcon name="store" size={16} />View store</a>}
@@ -850,11 +917,11 @@ export default function Products() {
       ) : (
         <>
           {/* Collections */}
-          <FsCard style={{ padding: 0, gap: 0, overflow: "visible" }}>
+          <FsCard style={{ padding: 0, gap: 0, overflow: "visible" }} tour="prod-collections">
             <div className="fs-card-head" style={{ padding: "20px 24px", flexWrap: "wrap" }}>
               <div style={{ flex: 1, minWidth: 220 }}>
                 <h3 className="fs-h3">Collections</h3>
-                <p className="fs-card-sub">Switch on a whole collection at once — every product in it gets try-on.</p>
+                <p className="fs-card-sub">Switch on a whole collection at once, or open one to manage its products individually.</p>
               </div>
               <label className="fs-search">
                 <FsIcon name="search" size={16} />
@@ -865,15 +932,20 @@ export default function Products() {
               <FsEmpty icon="search" text={`No collections match “${collectionQuery}”.`} cta="Clear search" onClick={() => setCollectionQuery("")} />
             ) : (
               <>
-                <div className="fs-table-wrap" style={{ overflow: "visible" }}>
-                  <table className="fs-table">
-                    <thead><tr><th>Collection</th><th>Products</th><th>Try-on coverage</th><th /><th className="num">Try-on</th></tr></thead>
-                    <tbody>
-                      {pagedCollections.map((collection) => (
-                        <CollectionRow key={collection.id} collection={collection} shop={shop} submit={submit} isSubmitting={isSubmitting} onViewProducts={viewCollectionProducts} />
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="fs-col-list">
+                  {pagedCollections.map((collection) => (
+                    <CollectionRow
+                      key={collection.id}
+                      collection={collection}
+                      shop={shop}
+                      submit={submit}
+                      isSubmitting={isSubmitting}
+                      expanded={expandedCollection === collection.id}
+                      onExpand={() => setExpandedCollection((cur) => (cur === collection.id ? null : collection.id))}
+                      onToggleProduct={toggleProduct}
+                      pending={pending}
+                    />
+                  ))}
                 </div>
                 {collectionPages > 1 && (
                   <div className="fs-pager">
@@ -891,7 +963,7 @@ export default function Products() {
 
           {/* Product grid */}
           <div ref={gridRef} style={{ display: "flex", flexDirection: "column", gap: 16, scrollMarginTop: 84 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }} data-tour="prod-filters">
               <label className="fs-search">
                 <FsIcon name="search" size={16} />
                 <input type="search" placeholder="Search products or vendors" aria-label="Search products" value={query} onChange={(e) => { setQuery(e.target.value); setShown(PRODUCTS_PER_PAGE); }} />
@@ -928,7 +1000,7 @@ export default function Products() {
                 <FsEmpty icon="search" text="No products match these filters." cta="Clear filters" onClick={() => { setQuery(""); setStatus("all"); setCollectionFilter("all"); }} />
               </FsCard>
             ) : (
-              <FsCard style={{ padding: 0, gap: 0 }}>
+              <FsCard style={{ padding: 0, gap: 0 }} tour="prod-table">
                 <div className="fs-table-wrap">
                   <table className="fs-table">
                     <thead>

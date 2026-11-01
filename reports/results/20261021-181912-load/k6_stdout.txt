@@ -1,0 +1,382 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+     execution: local
+        script: /work/k6/main.js
+ web dashboard: http://127.0.0.1:5665
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 50 max VUs, 2m10s max duration (incl. graceful stop):
+              * widget: Up to 50 looping VUs for 1m40s over 4 stages (gracefulRampDown: 10s, exec: widget, gracefulStop: 30s)
+
+
+Init     [  28% ] 14/50 VUs initialized
+widget   [   0% ]
+
+Init     [  58% ] 29/50 VUs initialized
+widget   [   0% ]
+
+Init     [  94% ] 47/50 VUs initialized
+widget   [   0% ]
+
+running (0m00.9s), 01/50 VUs, 0 complete and 0 interrupted iterations
+widget   [   1% ] 01/50 VUs  0m00.9s/1m40.0s
+
+running (0m01.9s), 03/50 VUs, 0 complete and 0 interrupted iterations
+widget   [   2% ] 03/50 VUs  0m01.9s/1m40.0s
+
+running (0m02.9s), 05/50 VUs, 1 complete and 0 interrupted iterations
+widget   [   3% ] 05/50 VUs  0m02.9s/1m40.0s
+
+running (0m03.9s), 08/50 VUs, 3 complete and 0 interrupted iterations
+widget   [   4% ] 08/50 VUs  0m03.9s/1m40.0s
+
+running (0m04.9s), 10/50 VUs, 8 complete and 0 interrupted iterations
+widget   [   5% ] 10/50 VUs  0m04.9s/1m40.0s
+
+running (0m05.9s), 12/50 VUs, 10 complete and 0 interrupted iterations
+widget   [   6% ] 12/50 VUs  0m05.9s/1m40.0s
+
+running (0m06.9s), 14/50 VUs, 17 complete and 0 interrupted iterations
+widget   [   7% ] 14/50 VUs  0m06.9s/1m40.0s
+
+running (0m07.9s), 16/50 VUs, 25 complete and 0 interrupted iterations
+widget   [   8% ] 16/50 VUs  0m07.9s/1m40.0s
+
+running (0m08.9s), 18/50 VUs, 31 complete and 0 interrupted iterations
+widget   [   9% ] 18/50 VUs  0m08.9s/1m40.0s
+
+running (0m09.9s), 20/50 VUs, 42 complete and 0 interrupted iterations
+widget   [  10% ] 20/50 VUs  0m09.9s/1m40.0s
+
+running (0m10.9s), 22/50 VUs, 48 complete and 0 interrupted iterations
+widget   [  11% ] 22/50 VUs  0m10.9s/1m40.0s
+
+running (0m11.9s), 24/50 VUs, 58 complete and 0 interrupted iterations
+widget   [  12% ] 24/50 VUs  0m11.9s/1m40.0s
+
+running (0m12.9s), 25/50 VUs, 70 complete and 0 interrupted iterations
+widget   [  13% ] 25/50 VUs  0m12.9s/1m40.0s
+
+running (0m13.9s), 26/50 VUs, 78 complete and 0 interrupted iterations
+widget   [  14% ] 26/50 VUs  0m13.9s/1m40.0s
+
+running (0m14.9s), 26/50 VUs, 89 complete and 0 interrupted iterations
+widget   [  15% ] 26/50 VUs  0m14.9s/1m40.0s
+
+running (0m15.9s), 27/50 VUs, 97 complete and 0 interrupted iterations
+widget   [  16% ] 27/50 VUs  0m15.9s/1m40.0s
+
+running (0m16.9s), 28/50 VUs, 107 complete and 0 interrupted iterations
+widget   [  17% ] 28/50 VUs  0m16.9s/1m40.0s
+
+running (0m17.9s), 29/50 VUs, 119 complete and 0 interrupted iterations
+widget   [  18% ] 29/50 VUs  0m17.9s/1m40.0s
+
+running (0m18.9s), 29/50 VUs, 131 complete and 0 interrupted iterations
+widget   [  19% ] 29/50 VUs  0m18.9s/1m40.0s
+
+running (0m19.9s), 30/50 VUs, 137 complete and 0 interrupted iterations
+widget   [  20% ] 30/50 VUs  0m19.9s/1m40.0s
+
+running (0m20.9s), 31/50 VUs, 148 complete and 0 interrupted iterations
+widget   [  21% ] 31/50 VUs  0m20.9s/1m40.0s
+
+running (0m21.9s), 31/50 VUs, 157 complete and 0 interrupted iterations
+widget   [  22% ] 31/50 VUs  0m21.9s/1m40.0s
+
+running (0m22.9s), 32/50 VUs, 167 complete and 0 interrupted iterations
+widget   [  23% ] 32/50 VUs  0m22.9s/1m40.0s
+
+running (0m23.9s), 33/50 VUs, 178 complete and 0 interrupted iterations
+widget   [  24% ] 33/50 VUs  0m23.9s/1m40.0s
+
+running (0m24.9s), 33/50 VUs, 190 complete and 0 interrupted iterations
+widget   [  25% ] 33/50 VUs  0m24.9s/1m40.0s
+
+running (0m25.9s), 34/50 VUs, 198 complete and 0 interrupted iterations
+widget   [  26% ] 34/50 VUs  0m25.9s/1m40.0s
+
+running (0m26.9s), 35/50 VUs, 207 complete and 0 interrupted iterations
+widget   [  27% ] 35/50 VUs  0m26.9s/1m40.0s
+
+running (0m27.9s), 36/50 VUs, 216 complete and 0 interrupted iterations
+widget   [  28% ] 36/50 VUs  0m27.9s/1m40.0s
+
+running (0m28.9s), 36/50 VUs, 226 complete and 0 interrupted iterations
+widget   [  29% ] 36/50 VUs  0m28.9s/1m40.0s
+
+running (0m29.9s), 37/50 VUs, 232 complete and 0 interrupted iterations
+widget   [  30% ] 37/50 VUs  0m29.9s/1m40.0s
+
+running (0m30.9s), 38/50 VUs, 244 complete and 0 interrupted iterations
+widget   [  31% ] 38/50 VUs  0m30.9s/1m40.0s
+
+running (0m31.9s), 38/50 VUs, 254 complete and 0 interrupted iterations
+widget   [  32% ] 38/50 VUs  0m31.9s/1m40.0s
+
+running (0m32.9s), 39/50 VUs, 266 complete and 0 interrupted iterations
+widget   [  33% ] 39/50 VUs  0m32.9s/1m40.0s
+
+running (0m33.9s), 40/50 VUs, 274 complete and 0 interrupted iterations
+widget   [  34% ] 40/50 VUs  0m33.9s/1m40.0s
+
+running (0m34.9s), 40/50 VUs, 287 complete and 0 interrupted iterations
+widget   [  35% ] 40/50 VUs  0m34.9s/1m40.0s
+
+running (0m35.9s), 41/50 VUs, 295 complete and 0 interrupted iterations
+widget   [  36% ] 41/50 VUs  0m35.9s/1m40.0s
+
+running (0m36.9s), 42/50 VUs, 307 complete and 0 interrupted iterations
+widget   [  37% ] 42/50 VUs  0m36.9s/1m40.0s
+
+running (0m37.9s), 42/50 VUs, 316 complete and 0 interrupted iterations
+widget   [  38% ] 42/50 VUs  0m37.9s/1m40.0s
+
+running (0m38.9s), 43/50 VUs, 325 complete and 0 interrupted iterations
+widget   [  39% ] 43/50 VUs  0m38.9s/1m40.0s
+
+running (0m39.9s), 44/50 VUs, 337 complete and 0 interrupted iterations
+widget   [  40% ] 44/50 VUs  0m39.9s/1m40.0s
+
+running (0m40.9s), 45/50 VUs, 344 complete and 0 interrupted iterations
+widget   [  41% ] 45/50 VUs  0m40.9s/1m40.0s
+
+running (0m41.9s), 45/50 VUs, 354 complete and 0 interrupted iterations
+widget   [  42% ] 45/50 VUs  0m41.9s/1m40.0s
+
+running (0m42.9s), 46/50 VUs, 366 complete and 0 interrupted iterations
+widget   [  43% ] 46/50 VUs  0m42.9s/1m40.0s
+
+running (0m43.9s), 47/50 VUs, 371 complete and 0 interrupted iterations
+widget   [  44% ] 47/50 VUs  0m43.9s/1m40.0s
+
+running (0m44.9s), 47/50 VUs, 381 complete and 0 interrupted iterations
+widget   [  45% ] 47/50 VUs  0m44.9s/1m40.0s
+
+running (0m45.9s), 48/50 VUs, 391 complete and 0 interrupted iterations
+widget   [  46% ] 48/50 VUs  0m45.9s/1m40.0s
+
+running (0m46.9s), 49/50 VUs, 401 complete and 0 interrupted iterations
+widget   [  47% ] 49/50 VUs  0m46.9s/1m40.0s
+
+running (0m47.9s), 49/50 VUs, 411 complete and 0 interrupted iterations
+widget   [  48% ] 49/50 VUs  0m47.9s/1m40.0s
+
+running (0m48.9s), 50/50 VUs, 420 complete and 0 interrupted iterations
+widget   [  49% ] 50/50 VUs  0m48.9s/1m40.0s
+
+running (0m49.9s), 50/50 VUs, 430 complete and 0 interrupted iterations
+widget   [  50% ] 50/50 VUs  0m49.9s/1m40.0s
+
+running (0m50.9s), 50/50 VUs, 441 complete and 0 interrupted iterations
+widget   [  51% ] 50/50 VUs  0m50.9s/1m40.0s
+
+running (0m51.9s), 50/50 VUs, 452 complete and 0 interrupted iterations
+widget   [  52% ] 50/50 VUs  0m51.9s/1m40.0s
+
+running (0m52.9s), 50/50 VUs, 460 complete and 0 interrupted iterations
+widget   [  53% ] 50/50 VUs  0m52.9s/1m40.0s
+
+running (0m53.9s), 50/50 VUs, 467 complete and 0 interrupted iterations
+widget   [  54% ] 50/50 VUs  0m53.9s/1m40.0s
+
+running (0m54.9s), 50/50 VUs, 480 complete and 0 interrupted iterations
+widget   [  55% ] 50/50 VUs  0m54.9s/1m40.0s
+
+running (0m55.9s), 50/50 VUs, 489 complete and 0 interrupted iterations
+widget   [  56% ] 50/50 VUs  0m55.9s/1m40.0s
+
+running (0m56.9s), 50/50 VUs, 500 complete and 0 interrupted iterations
+widget   [  57% ] 50/50 VUs  0m56.9s/1m40.0s
+
+running (0m57.9s), 50/50 VUs, 509 complete and 0 interrupted iterations
+widget   [  58% ] 50/50 VUs  0m57.9s/1m40.0s
+
+running (0m58.9s), 50/50 VUs, 518 complete and 0 interrupted iterations
+widget   [  59% ] 50/50 VUs  0m58.9s/1m40.0s
+
+running (0m59.9s), 50/50 VUs, 527 complete and 0 interrupted iterations
+widget   [  60% ] 50/50 VUs  0m59.9s/1m40.0s
+
+running (1m00.9s), 50/50 VUs, 535 complete and 0 interrupted iterations
+widget   [  61% ] 50/50 VUs  1m00.9s/1m40.0s
+
+running (1m01.9s), 50/50 VUs, 547 complete and 0 interrupted iterations
+widget   [  62% ] 50/50 VUs  1m01.9s/1m40.0s
+
+running (1m02.9s), 50/50 VUs, 555 complete and 0 interrupted iterations
+widget   [  63% ] 50/50 VUs  1m02.9s/1m40.0s
+
+running (1m03.9s), 50/50 VUs, 565 complete and 0 interrupted iterations
+widget   [  64% ] 50/50 VUs  1m03.9s/1m40.0s
+
+running (1m04.9s), 50/50 VUs, 575 complete and 0 interrupted iterations
+widget   [  65% ] 50/50 VUs  1m04.9s/1m40.0s
+
+running (1m05.9s), 50/50 VUs, 584 complete and 0 interrupted iterations
+widget   [  66% ] 50/50 VUs  1m05.9s/1m40.0s
+
+running (1m06.9s), 50/50 VUs, 593 complete and 0 interrupted iterations
+widget   [  67% ] 50/50 VUs  1m06.9s/1m40.0s
+
+running (1m07.9s), 50/50 VUs, 603 complete and 0 interrupted iterations
+widget   [  68% ] 50/50 VUs  1m07.9s/1m40.0s
+
+running (1m08.9s), 50/50 VUs, 616 complete and 0 interrupted iterations
+widget   [  69% ] 50/50 VUs  1m08.9s/1m40.0s
+
+running (1m09.9s), 50/50 VUs, 623 complete and 0 interrupted iterations
+widget   [  70% ] 50/50 VUs  1m09.9s/1m40.0s
+
+running (1m10.9s), 50/50 VUs, 636 complete and 0 interrupted iterations
+widget   [  71% ] 50/50 VUs  1m10.9s/1m40.0s
+
+running (1m11.9s), 50/50 VUs, 643 complete and 0 interrupted iterations
+widget   [  72% ] 50/50 VUs  1m11.9s/1m40.0s
+
+running (1m12.9s), 50/50 VUs, 656 complete and 0 interrupted iterations
+widget   [  73% ] 50/50 VUs  1m12.9s/1m40.0s
+
+running (1m13.9s), 50/50 VUs, 664 complete and 0 interrupted iterations
+widget   [  74% ] 50/50 VUs  1m13.9s/1m40.0s
+
+running (1m14.9s), 50/50 VUs, 674 complete and 0 interrupted iterations
+widget   [  75% ] 50/50 VUs  1m14.9s/1m40.0s
+
+running (1m15.9s), 50/50 VUs, 684 complete and 0 interrupted iterations
+widget   [  76% ] 50/50 VUs  1m15.9s/1m40.0s
+
+running (1m16.9s), 50/50 VUs, 695 complete and 0 interrupted iterations
+widget   [  77% ] 50/50 VUs  1m16.9s/1m40.0s
+
+running (1m17.9s), 50/50 VUs, 703 complete and 0 interrupted iterations
+widget   [  78% ] 50/50 VUs  1m17.9s/1m40.0s
+
+running (1m18.9s), 50/50 VUs, 713 complete and 0 interrupted iterations
+widget   [  79% ] 50/50 VUs  1m18.9s/1m40.0s
+
+running (1m19.9s), 50/50 VUs, 723 complete and 0 interrupted iterations
+widget   [  80% ] 50/50 VUs  1m19.9s/1m40.0s
+
+running (1m20.9s), 50/50 VUs, 733 complete and 0 interrupted iterations
+widget   [  81% ] 50/50 VUs  1m20.9s/1m40.0s
+
+running (1m21.9s), 50/50 VUs, 742 complete and 0 interrupted iterations
+widget   [  82% ] 50/50 VUs  1m21.9s/1m40.0s
+
+running (1m22.9s), 50/50 VUs, 751 complete and 0 interrupted iterations
+widget   [  83% ] 50/50 VUs  1m22.9s/1m40.0s
+
+running (1m23.9s), 50/50 VUs, 763 complete and 0 interrupted iterations
+widget   [  84% ] 50/50 VUs  1m23.9s/1m40.0s
+
+running (1m24.9s), 50/50 VUs, 773 complete and 0 interrupted iterations
+widget   [  85% ] 50/50 VUs  1m24.9s/1m40.0s
+
+running (1m25.8s), 50/50 VUs, 783 complete and 0 interrupted iterations
+widget   [  86% ] 50/50 VUs  1m25.9s/1m40.0s
+
+running (1m26.8s), 50/50 VUs, 793 complete and 0 interrupted iterations
+widget   [  87% ] 50/50 VUs  1m26.9s/1m40.0s
+
+running (1m27.8s), 50/50 VUs, 800 complete and 0 interrupted iterations
+widget   [  88% ] 50/50 VUs  1m27.9s/1m40.0s
+
+running (1m28.8s), 50/50 VUs, 811 complete and 0 interrupted iterations
+widget   [  89% ] 50/50 VUs  1m28.9s/1m40.0s
+
+running (1m29.8s), 50/50 VUs, 825 complete and 0 interrupted iterations
+widget   [  90% ] 50/50 VUs  1m29.9s/1m40.0s
+
+running (1m30.8s), 50/50 VUs, 831 complete and 0 interrupted iterations
+widget   [  91% ] 50/50 VUs  1m30.9s/1m40.0s
+
+running (1m31.8s), 50/50 VUs, 841 complete and 0 interrupted iterations
+widget   [  92% ] 50/50 VUs  1m31.9s/1m40.0s
+
+running (1m32.8s), 50/50 VUs, 849 complete and 0 interrupted iterations
+widget   [  93% ] 50/50 VUs  1m32.9s/1m40.0s
+
+running (1m33.8s), 50/50 VUs, 860 complete and 0 interrupted iterations
+widget   [  94% ] 50/50 VUs  1m33.9s/1m40.0s
+
+running (1m34.8s), 50/50 VUs, 871 complete and 0 interrupted iterations
+widget   [  95% ] 50/50 VUs  1m34.9s/1m40.0s
+
+running (1m35.8s), 50/50 VUs, 878 complete and 0 interrupted iterations
+widget   [  96% ] 50/50 VUs  1m35.9s/1m40.0s
+
+running (1m36.8s), 50/50 VUs, 888 complete and 0 interrupted iterations
+widget   [  97% ] 50/50 VUs  1m36.9s/1m40.0s
+
+running (1m37.8s), 50/50 VUs, 897 complete and 0 interrupted iterations
+widget   [  98% ] 50/50 VUs  1m37.9s/1m40.0s
+
+running (1m38.8s), 50/50 VUs, 904 complete and 0 interrupted iterations
+widget   [  99% ] 50/50 VUs  1m38.9s/1m40.0s
+
+running (1m39.8s), 44/50 VUs, 917 complete and 0 interrupted iterations
+widget   [ 100% ] 44/50 VUs  1m39.9s/1m40.0s
+
+running (1m40.8s), 38/50 VUs, 924 complete and 0 interrupted iterations
+widget ↓ [ 100% ] 43/50 VUs  1m40s
+
+running (1m41.8s), 33/50 VUs, 929 complete and 0 interrupted iterations
+widget ↓ [ 100% ] 43/50 VUs  1m40s
+
+running (1m42.8s), 30/50 VUs, 932 complete and 0 interrupted iterations
+widget ↓ [ 100% ] 43/50 VUs  1m40s
+
+running (1m43.8s), 28/50 VUs, 934 complete and 0 interrupted iterations
+widget ↓ [ 100% ] 43/50 VUs  1m40s
+
+running (1m44.8s), 25/50 VUs, 937 complete and 0 interrupted iterations
+widget ↓ [ 100% ] 43/50 VUs  1m40s
+
+running (1m45.8s), 16/50 VUs, 946 complete and 0 interrupted iterations
+widget ↓ [ 100% ] 43/50 VUs  1m40s
+
+running (1m46.8s), 07/50 VUs, 950 complete and 5 interrupted iterations
+widget ↓ [ 100% ] 43/50 VUs  1m40s
+PROFILE=load BASE=http://app:80
+iterations=952 http_reqs=1916 rps=17.9 failed=1.30% vus_max=50
+http p95 ms: 40.9
+
+running (1m47.2s), 00/50 VUs, 952 complete and 10 interrupted iterations
+widget ✓ [ 100% ] 00/50 VUs  1m40s
+
+--- stderr ---
+ Container brixperf-k6-run-45102688f6ab Creating 
+ Container brixperf-k6-run-45102688f6ab Created 
+time="2026-10-21T12:50:40Z" level=warning msg="Request Failed" error="Get \"http://app:80/api/widget-settings?shop=perf-test.myshopify.com\": request timeout"
+time="2026-10-21T12:50:41Z" level=warning msg="Request Failed" error="Get \"http://app:80/api/widget-settings?shop=perf-test.myshopify.com\": request timeout"
+time="2026-10-21T12:50:41Z" level=warning msg="Request Failed" error="Get \"http://app:80/api/widget-settings?shop=perf-test.myshopify.com\": request timeout"
+time="2026-10-21T12:50:42Z" level=warning msg="Request Failed" error="Get \"http://app:80/api/widget-settings?shop=perf-test.myshopify.com\": request timeout"
+time="2026-10-21T12:50:42Z" level=warning msg="Request Failed" error="Get \"http://app:80/api/widget-settings?shop=perf-test.myshopify.com\": request timeout"
+time="2026-10-21T12:50:44Z" level=warning msg="Request Failed" error="Get \"http://app:80/api/widget-settings?shop=perf-test.myshopify.com\": request timeout"
+time="2026-10-21T12:50:45Z" level=warning msg="Request Failed" error="Get \"http://app:80/api/widget-settings?shop=perf-test.myshopify.com\": request timeout"
+time="2026-10-21T12:50:46Z" level=warning msg="Request Failed" error="Get \"http://app:80/api/widget-settings?shop=perf-test.myshopify.com\": request timeout"
+time="2026-10-21T12:50:48Z" level=warning msg="Request Failed" error="Get \"http://app:80/api/widget-settings?shop=perf-test.myshopify.com\": request timeout"
+time="2026-10-21T12:50:49Z" level=warning msg="Request Failed" error="Get \"http://app:80/api/widget-settings?shop=perf-test.myshopify.com\": request timeout"
+time="2026-10-21T12:50:51Z" level=warning msg="Request Failed" error="Get \"http://app:80/api/widget-settings?shop=perf-test.myshopify.com\": request timeout"
+time="2026-10-21T12:50:52Z" level=warning msg="Request Failed" error="Get \"http://app:80/api/widget-settings?shop=perf-test.myshopify.com\": request timeout"
+time="2026-10-21T12:50:54Z" level=warning msg="Request Failed" error="Get \"http://app:80/api/widget-settings?shop=perf-test.myshopify.com\": request timeout"
+time="2026-10-21T12:50:55Z" level=warning msg="Request Failed" error="Get \"http://app:80/api/widget-settings?shop=perf-test.myshopify.com\": request timeout"
+time="2026-10-21T12:50:57Z" level=warning msg="Request Failed" error="Get \"http://app:80/api/widget-settings?shop=perf-test.myshopify.com\": request timeout"
+time="2026-10-21T12:50:58Z" level=warning msg="Request Failed" error="Get \"http://app:80/api/widget-settings?shop=perf-test.myshopify.com\": request timeout"
+time="2026-10-21T12:50:59Z" level=warning msg="Request Failed" error="Get \"http://app:80/api/widget-settings?shop=perf-test.myshopify.com\": request timeout"
+time="2026-10-21T12:51:01Z" level=warning msg="Request Failed" error="Get \"http://app:80/api/widget-settings?shop=perf-test.myshopify.com\": request timeout"
+time="2026-10-21T12:51:02Z" level=warning msg="Request Failed" error="Get \"http://app:80/api/widget-settings?shop=perf-test.myshopify.com\": request timeout"
+time="2026-10-21T12:51:04Z" level=warning msg="Request Failed" error="Get \"http://app:80/api/widget-settings?shop=perf-test.myshopify.com\": request timeout"
+time="2026-10-21T12:51:05Z" level=warning msg="Request Failed" error="Get \"http://app:80/api/widget-settings?shop=perf-test.myshopify.com\": request timeout"
+time="2026-10-21T12:51:07Z" level=warning msg="Request Failed" error="Get \"http://app:80/api/widget-settings?shop=perf-test.myshopify.com\": request timeout"
+time="2026-10-21T12:51:08Z" level=warning msg="Request Failed" error="Get \"http://app:80/api/widget-settings?shop=perf-test.myshopify.com\": request timeout"
+time="2026-10-21T12:51:10Z" level=warning msg="Request Failed" error="Get \"http://app:80/api/widget-settings?shop=perf-test.myshopify.com\": request timeout"
+time="2026-10-21T12:51:11Z" level=warning msg="Request Failed" error="Get \"http://app:80/api/widget-settings?shop=perf-test.myshopify.com\": request timeout"
+time="2026-10-21T12:51:18Z" level=error msg="thresholds on metrics 'http_req_failed{name:widget_settings}' have been crossed"
+

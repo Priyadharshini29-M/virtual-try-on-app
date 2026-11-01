@@ -59,9 +59,10 @@ final class SareeRouting
     }
 
     /**
-     * True for any saree. Strict: a saree is never sent to RunPod, even when
-     * Fashn isn't configured or fails — submitFashn() then returns an error
-     * instead, because RunPod can only render a saree as a stitched dress.
+     * True for any saree. Sarees go to Fashn first. They fall back to RunPod only
+     * when Fashn reports it is out of credits (see submitFashn()) — never because
+     * Fashn is unconfigured or fails for another reason, because RunPod can only
+     * render a saree as a stitched dress and that is a deliberate last resort.
      */
     public static function shouldUseFashn(?string ...$texts): bool
     {
@@ -156,12 +157,17 @@ final class SareeRouting
      *
      * Retries once on a transient failure (network error, 429, 5xx).
      *
-     * @return array{status_code:int, prediction_id:?string, error_details:?string}
+     * If Fashn rejects the job because the account is out of credits, the same
+     * job is submitted to the RunPod VTON endpoint instead and its (unprefixed)
+     * job ID is returned, so checkStatus() polls it on RunPod. The result is
+     * rougher than Fashn's (RunPod can't truly drape a saree) but better than
+     * failing. The returned array then also has 'fallback_from' =>
+     * 'fashn_out_of_credits'. Other Fashn failures are NOT retried on RunPod.
+     *
+     * @return array{status_code:int, prediction_id:?string, error_details:?string, fallback_from?:string}
      */
     // Re-enabled 2026-10-01 — CatVTON RunPod worker testing is done; saree
-    // try-ons go back through Fashn.ai. NOTE: nothing falls back to RunPod for
-    // sarees when this is true — RunPod VTON 1.5 can't drape a saree correctly
-    // (see the 'saree' category note further down).
+    // try-ons go back through Fashn.ai.
     private const FASHN_TEMP_DISABLED = false;
 
     public static function submitFashn(array $params): array
@@ -176,7 +182,7 @@ final class SareeRouting
         }
 
         if (!AppConfig::useFashn()) {
-            writeLog('ERROR', 'Saree try-on blocked: FASHN_API_KEY is not set (sarees never fall back to RunPod)');
+            writeLog('ERROR', 'Saree try-on blocked: FASHN_API_KEY is not set (RunPod fallback applies only when Fashn is out of credits)');
             return [
                 'status_code'   => 503,
                 'prediction_id' => null,
@@ -222,6 +228,69 @@ final class SareeRouting
         if ($result['status_code'] === 200 && !empty($result['prediction_id'])) {
             $result['prediction_id'] = self::JOB_PREFIX . $result['prediction_id'];
             writeLog('INFO', 'Saree try-on routed to Fashn', ['job_id' => $result['prediction_id']]);
+            return $result;
+        }
+
+        if (self::isOutOfCredits((int) $result['status_code'], (string) ($result['error_details'] ?? ''))) {
+            return self::submitSareeToRunpod($params, $result);
+        }
+
+        return $result;
+    }
+
+    /**
+     * True when a Fashn error means the account has no credits left: HTTP 402
+     * (Payment Required) or a message about credits / billing / balance.
+     */
+    public static function isOutOfCredits(int $statusCode, string $message): bool
+    {
+        if ($statusCode === 402) {
+            return true;
+        }
+        return (bool) preg_match(
+            '/out\s+of\s+credits?|no\s+(more\s+)?credits?|insufficient\s+(credits?|balance|funds)|credits?\s+(exhausted|depleted|required|balance)|billing|payment\s+required/i',
+            $message
+        );
+    }
+
+    /**
+     * Fashn is out of credits: send the same saree job to the RunPod VTON
+     * endpoint ('one-pieces' is its full-length-garment category). If RunPod
+     * isn't configured, the original Fashn error is returned unchanged.
+     *
+     * @param array $fashnResult the failed Fashn submit result
+     */
+    private static function submitSareeToRunpod(array $params, array $fashnResult): array
+    {
+        if (!AppConfig::useRunpod()) {
+            writeLog('ERROR', 'Fashn is out of credits and RunPod is not configured — saree try-on cannot fall back', [
+                'fashn_status_code' => $fashnResult['status_code'],
+            ]);
+            return $fashnResult;
+        }
+
+        writeLog('WARNING', 'Fashn out of credits — falling back to RunPod for saree try-on', [
+            'fashn_status_code' => $fashnResult['status_code'],
+            'fashn_error'       => $fashnResult['error_details'] ?? null,
+        ]);
+
+        $photoType = (string) ($params['garment_photo_type'] ?? 'model');
+        $runpodParams = [
+            'person_image'       => $params['person_image'],
+            'garment_image'      => $params['garment_image'],
+            'category'           => 'one-pieces',
+            'garment_photo_type' => in_array($photoType, ['model', 'flat-lay'], true) ? $photoType : 'model',
+        ];
+        if (isset($params['seed'])) {
+            $runpodParams['seed'] = (int) $params['seed'];
+        }
+
+        $client = new RunpodVtonClient(AppConfig::runpodApiKey(), AppConfig::runpodEndpointId());
+        $result = $client->submitRun($runpodParams);
+
+        if ($result['status_code'] === 200 && !empty($result['prediction_id'])) {
+            $result['fallback_from'] = 'fashn_out_of_credits';
+            writeLog('INFO', 'Saree try-on routed to RunPod (Fashn out of credits)', ['job_id' => $result['prediction_id']]);
         }
 
         return $result;

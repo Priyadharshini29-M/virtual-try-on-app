@@ -1,10 +1,11 @@
 import PropTypes from "prop-types";
 import { useLoaderData, useFetcher } from "react-router";
 import PlanGate from "../components/PlanGate";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, createContext, useContext } from "react";
 import { createPortal } from "react-dom";
 import { useCelebrate } from "../components/AppShell";
 import { FsPage, FsCard, FsButton, FsPill, FsEmpty, FsIcon } from "../components/fs-ui";
+import { TOURS } from "../lib/tours";
 import { authenticate } from "../shopify.server";
 import phpApiClient from "../lib/php-api.server";
 import { ensureMerchant } from "../lib/merchant.server";
@@ -455,8 +456,9 @@ const HEX = /^#[0-9A-Fa-f]{6}$/;
 function Section({ id, title, description, action, children }) {
   return (
     <div id={id} className="fs-set-section">
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-        <div style={{ flex: 1 }}>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
+        {/* Text keeps at least 200px; a header action (e.g. device toggle) wraps below it in narrow panels. */}
+        <div style={{ flex: "1 1 200px", minWidth: 0 }}>
           <h3 className="fs-h3">{title}</h3>
           {description && <p className="fs-help" style={{ marginTop: 4 }}>{description}</p>}
         </div>
@@ -481,20 +483,124 @@ function ViewToggle({ value, onChange }) {
 }
 ViewToggle.propTypes = { value: PropTypes.string.isRequired, onChange: PropTypes.func.isRequired };
 
-function TextInput({ label, value, onChange, placeholder, max, help }) {
+// Widget language label (e.g. "Hindi") so AI copy is written in the language shoppers see.
+const AiLanguageContext = createContext("English");
+
+const AI_TONES = [
+  ["friendly", "Friendly"],
+  ["bold", "Bold"],
+  ["luxury", "Luxury"],
+  ["playful", "Playful"],
+  ["minimal", "Minimal"],
+];
+
+function AiCopyPicker({ label, value, max, onPick, children }) {
+  const language = useContext(AiLanguageContext);
+  const [open, setOpen] = useState(false);
+  const [tone, setTone] = useState("friendly");
+  const [instructions, setInstructions] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+  const [error, setError] = useState(null);
+  const wrapRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const onDown = (e) => { if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false); };
+    const onKey = (e) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("mousedown", onDown); document.removeEventListener("keydown", onKey); };
+  }, [open]);
+
+  const generate = async (toneArg = tone) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/ai-copy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ field: label, current: value, max: max ?? 80, tone: toneArg, instructions, language }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !Array.isArray(data.suggestions)) throw new Error(data.error || "AI generation failed");
+      if (!data.suggestions.length) throw new Error("No suggestions came back: try another tone.");
+      setSuggestions(data.suggestions);
+    } catch (e) {
+      setError(e.message || "AI generation failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggle = () => {
+    const next = !open;
+    setOpen(next);
+    if (next && !suggestions.length && !loading) generate();
+  };
+
+  return (
+    <div ref={wrapRef} className="fs-ai-field">
+      {children}
+      <div className="fs-ai">
+        <button type="button" className={`fs-ai-trigger${open ? " is-on" : ""}`} aria-label={`Generate ${label} with AI`} aria-expanded={open} title="Generate with AI" onClick={toggle}>
+          <FsIcon name="sparkle" size={14} />
+        </button>
+      </div>
+      {open && (
+        <div className="fs-ai-pop" role="dialog" aria-label={`AI suggestions for ${label}`}>
+          <div className="fs-ai-head">
+            <FsIcon name="sparkle" size={13} />
+            <span>AI suggestions</span>
+            <span className="fs-ai-lang">{language}</span>
+          </div>
+          <div className="fs-ai-tones" role="radiogroup" aria-label="Tone">
+            {AI_TONES.map(([v, l]) => (
+              <button key={v} type="button" role="radio" aria-checked={tone === v} className={`fs-ai-chip${tone === v ? " is-on" : ""}`}
+                disabled={loading} onClick={() => { setTone(v); generate(v); }}>{l}</button>
+            ))}
+          </div>
+          <div className="fs-ai-list" aria-live="polite">
+            {loading && [0, 1, 2].map((i) => <div key={i} className="fs-ai-skel" />)}
+            {!loading && error && <div className="fs-ai-error">{error}</div>}
+            {!loading && !error && suggestions.map((s) => (
+              <button key={s} type="button" className="fs-ai-option" onClick={() => { onPick(s); setOpen(false); }}>
+                <span>{s}</span>
+                <FsIcon name="check" size={13} />
+              </button>
+            ))}
+          </div>
+          <div className="fs-ai-foot">
+            <input className="fs-input" value={instructions} maxLength={200} placeholder="Describe it (optional): e.g. mention free returns"
+              onChange={(e) => setInstructions(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); generate(); } }} aria-label="Describe what you want" />
+            <button type="button" className="fs-btn fs-btn--plain fs-btn--sm" disabled={loading} onClick={() => generate()} aria-label="Regenerate suggestions">
+              <FsIcon name="refresh" size={13} />
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+AiCopyPicker.propTypes = { label: PropTypes.string.isRequired, value: PropTypes.string.isRequired, max: PropTypes.number, onPick: PropTypes.func.isRequired, children: PropTypes.node };
+
+function TextInput({ label, value, onChange, placeholder, max, help, ai = false }) {
   const id = `set_${label.toLowerCase().replace(/[^a-z0-9]+/g, "_")}`;
+  const input = <input id={id} className="fs-input" value={value} maxLength={max} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} autoComplete="off" style={ai ? { paddingRight: 36 } : undefined} />;
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between" }}>
         <label className="fs-label" htmlFor={id}>{label}</label>
         {max && <span className="fs-tabular" style={{ fontSize: 12, color: "var(--fs-muted)" }}>{value.length} / {max}</span>}
       </div>
-      <input id={id} className="fs-input" value={value} maxLength={max} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} autoComplete="off" />
+      {ai ? (
+        <AiCopyPicker label={label} value={value} max={max} onPick={onChange}>{input}</AiCopyPicker>
+      ) : input}
       {help && <p className="fs-help">{help}</p>}
     </div>
   );
 }
-TextInput.propTypes = { label: PropTypes.string.isRequired, value: PropTypes.string.isRequired, onChange: PropTypes.func.isRequired, placeholder: PropTypes.string, max: PropTypes.number, help: PropTypes.string };
+TextInput.propTypes = { label: PropTypes.string.isRequired, value: PropTypes.string.isRequired, onChange: PropTypes.func.isRequired, placeholder: PropTypes.string, max: PropTypes.number, help: PropTypes.string, ai: PropTypes.bool };
 
 function ImageUploadField({ label, value, onChange }) {
   const inputRef = useRef(null);
@@ -641,6 +747,78 @@ function SpacingInput({ label, values, onChange }) {
   );
 }
 SpacingInput.propTypes = { label: PropTypes.string.isRequired, values: PropTypes.object.isRequired, onChange: PropTypes.func.isRequired };
+
+const LIMIT_RESETS = [
+  { value: "never", label: "Never", hint: "Lifetime", phrase: "for good" },
+  { value: "day", label: "Daily", hint: "Every 24 hours", phrase: "resetting every day" },
+  { value: "week", label: "Weekly", hint: "Every 7 days", phrase: "resetting every week" },
+  { value: "month", label: "Monthly", hint: "Every 30 days", phrase: "resetting every month" },
+];
+
+/** How many storefront try-ons each shopper gets, and when that resets. */
+function TryonLimitField({ enabled, onEnabledChange, count, onCountChange, reset, onResetChange }) {
+  const set = (n) => onCountChange(Math.min(100, Math.max(1, Number.isFinite(n) ? n : 1)));
+  const phrase = LIMIT_RESETS.find((r) => r.value === reset)?.phrase ?? "";
+  return (
+    <div className="fs-limit">
+      <div className={`fs-limit-head${enabled ? " is-on" : ""}`}>
+        <div style={{ minWidth: 0 }}>
+          <div className="fs-limit-title">Limit try-ons per shopper</div>
+          <div className="fs-limit-sub">{enabled ? "Saves your credits for real buyers." : "Off: unlimited try-ons for every shopper."}</div>
+        </div>
+        <button type="button" role="switch" aria-checked={enabled} aria-label="Limit try-ons per shopper" className="fs-switch" onClick={() => onEnabledChange(!enabled)}><span /></button>
+      </div>
+
+      {enabled && (
+        <>
+          <div className="fs-limit-counter" role="group" aria-label="Try-ons per shopper">
+            <button type="button" className="fs-limit-round" aria-label="One fewer" disabled={count <= 1} onClick={() => set(count - 1)}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M5 12h14" /></svg>
+            </button>
+            <div className="fs-limit-value">
+              <input type="number" min={1} max={100} value={count} aria-label="Number of try-ons" className="fs-tabular"
+                onChange={(e) => set(parseInt(e.target.value, 10))} />
+              <span>try-on{count === 1 ? "" : "s"} per shopper</span>
+            </div>
+            <button type="button" className="fs-limit-round" aria-label="One more" disabled={count >= 100} onClick={() => set(count + 1)}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+            </button>
+          </div>
+          <div className="fs-limit-presets" role="group" aria-label="Quick picks">
+            {[1, 3, 5, 10, 20].map((n) => (
+              <button key={n} type="button" className={`fs-limit-preset${count === n ? " is-on" : ""}`} aria-pressed={count === n} onClick={() => set(n)}>{n}</button>
+            ))}
+          </div>
+
+          <div>
+            <span className="fs-label">Reset the count</span>
+            <div className="fs-limit-resets" role="radiogroup" aria-label="Reset the count">
+              {LIMIT_RESETS.map((r) => (
+                <button key={r.value} type="button" role="radio" aria-checked={reset === r.value}
+                  className={`fs-limit-reset${reset === r.value ? " is-on" : ""}`} onClick={() => onResetChange(r.value)}>
+                  <span className="fs-limit-reset-label">{r.label}</span>
+                  <span className="fs-limit-reset-hint">{r.hint}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="fs-limit-summary">
+            <FsIcon name="info" size={13} />
+            <span>
+              Each shopper can try on <strong>{count} {count === 1 ? "time" : "times"}</strong>, {phrase}. When they run out, the try-on window tells them when they can use it again.
+            </span>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+TryonLimitField.propTypes = {
+  enabled: PropTypes.bool.isRequired, onEnabledChange: PropTypes.func.isRequired,
+  count: PropTypes.number.isRequired, onCountChange: PropTypes.func.isRequired,
+  reset: PropTypes.string.isRequired, onResetChange: PropTypes.func.isRequired,
+};
 
 function ToggleRow({ checked, onChange, label, description, icon, badge }) {
   return (
@@ -831,6 +1009,20 @@ function LivePreview({
   const clampPad = (n) => Math.min(18, Math.max(0, Number(n) || 0));
   const safePadding = { top: clampPad(buttonPadding.top), right: clampPad(buttonPadding.right), bottom: clampPad(buttonPadding.bottom), left: clampPad(buttonPadding.left) };
 
+  // Shared, explicit height for both buttons in the preview — "Add to cart"
+  // has only one line of text while Try On has a title + subtitle, so
+  // letting each size itself off its own content ("auto") never matches
+  // even with identical padding/font-size. Computing one estimated height
+  // from Try On's content (padding + title line + subtitle line, if any)
+  // and applying it to both guarantees they always line up, regardless of
+  // which one has more text.
+  const titleLineHeight = safeTitleFontSize * 1.2;
+  const subtitleLineHeight = widgetSubtitle ? 2 + safeSubtitleFontSize * 1.2 : 0;
+  const autoHeight = Math.round(safePadding.top + safePadding.bottom + titleLineHeight + subtitleLineHeight);
+  const fixedHeight = buttonHeight > 0 && buttonHeightUnit !== "auto";
+  const effectiveHeight = fixedHeight ? buttonHeight : autoHeight;
+  const heightStyle = fixedHeight ? { height: effectiveHeight } : { minHeight: effectiveHeight };
+
   const iconBox = (isCollection) => hasIcon && (
     <span style={{
       display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
@@ -846,13 +1038,13 @@ function LivePreview({
       background: btnBg, color: btnTxt, borderRadius, boxSizing: "border-box", overflow: "hidden",
       width: buttonWidth > 0 ? (buttonWidthUnit === "%" ? `${buttonWidth}%` : `${buttonWidth}px`) : "100%",
       maxWidth: "100%",
-      height: buttonHeight > 0 && buttonHeightUnit !== "auto" ? buttonHeight : "auto",
+      ...heightStyle,
       padding: `${safePadding.top}px ${safePadding.right}px ${safePadding.bottom}px ${safePadding.left}px`,
       margin: `${buttonMargin.top}px ${buttonMargin.right}px ${buttonMargin.bottom}px ${buttonMargin.left}px`,
       display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
     }}>
       {iconBox(false)}
-      <span style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+      <span style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, minWidth: 0 }}>
         <span style={{ fontSize: safeTitleFontSize, fontWeight: titleFontWeight || "600", fontFamily: titleFontFamily, lineHeight: 1.2, textAlign: "center" }}>{widgetTitle || "Try On This Look"}</span>
         {widgetSubtitle && <span style={{ fontSize: safeSubtitleFontSize, fontFamily: subtitleFontFamily, lineHeight: 1.2, textAlign: "center", opacity: 0.8 }}>{widgetSubtitle}</span>}
       </span>
@@ -872,6 +1064,7 @@ function LivePreview({
     />
   );
 
+  const k = device === "mobile" ? 1.4 : 1;
   const corner = { top_left: { top: 10, left: 10 }, top_right: { top: 10, right: 10 }, bottom_left: { bottom: 10, left: 10 }, bottom_right: { bottom: 10, right: 10 } }[collectionPosition] ?? { top: 10, right: 10 };
   const image = (
     <div className="fs-preview-img">
@@ -889,32 +1082,65 @@ function LivePreview({
           <div aria-hidden="true" style={{ position: "absolute", top: "50%", left: "50%", width: 26, height: 26, borderRadius: "50%", background: "#FFFFFF", transform: "translate(-50%,-50%)", boxShadow: "0 2px 8px rgba(0,0,0,.25)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 3, color: "#374151" }}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="m9 6-6 6 6 6M15 6l6 6-6 6" /></svg>
           </div>
-          <span style={{ position: "absolute", bottom: 8, left: 8, fontSize: 9, fontWeight: 700, color: "#fff", background: "rgba(17,24,39,.65)", padding: "2px 7px", borderRadius: 999, zIndex: 2 }}>BEFORE</span>
-          <span style={{ position: "absolute", bottom: 8, right: 8, fontSize: 9, fontWeight: 700, color: "#fff", background: "rgba(17,24,39,.65)", padding: "2px 7px", borderRadius: 999, zIndex: 2 }}>AFTER</span>
+          <span style={{ position: "absolute", bottom: 8, left: 8, fontSize: 9 * k, fontWeight: 700, color: "#fff", background: "rgba(17,24,39,.65)", padding: `${2 * k}px ${7 * k}px`, borderRadius: 999, zIndex: 2 }}>BEFORE</span>
+          <span style={{ position: "absolute", bottom: 8, right: 8, fontSize: 9 * k, fontWeight: 700, color: "#fff", background: "rgba(17,24,39,.65)", padding: `${2 * k}px ${7 * k}px`, borderRadius: 999, zIndex: 2 }}>AFTER</span>
         </>
       ) : (
         <svg viewBox="0 0 120 160" style={{ width: "76%", display: "block" }} aria-hidden="true"><circle cx="60" cy="46" r="19" fill="#E4D5C7" /><path d="M41 44a19 19 0 0 1 38 0c-4-7-11-10-19-10s-15 3-19 10z" fill="#3B2F2A" /><path d="M24 160c1-44 15-86 36-86s35 42 36 86z" fill="#B4234A" /></svg>
       )}
       {showOnCollection && (
-        <span style={{ position: "absolute", ...corner, display: "flex", alignItems: "center", gap: 4, padding: "5px 10px", background: `${btnBg}dd`, color: btnTxt, borderRadius, boxShadow: "0 2px 8px rgba(0,0,0,.15)", fontSize: 10, fontWeight: 700 }}>
+        <span style={{ position: "absolute", ...corner, display: "flex", alignItems: "center", gap: 4 * k, padding: `${5 * k}px ${10 * k}px`, background: `${btnBg}dd`, color: btnTxt, borderRadius, boxShadow: "0 2px 8px rgba(0,0,0,.15)", fontSize: 10 * k, fontWeight: 700 }}>
           {iconBox(true)}Try On
         </span>
       )}
     </div>
   );
 
+  // Illustrative "Add to cart" mock — sized from the same padding/height/
+  // font-size settings as the real Try On button, not fixed numbers, so the
+  // two stay visually matched in the preview as the merchant adjusts
+  // padding, height, or font size. (On the real storefront the two buttons
+  // are independent — this is purely so the preview itself looks neat and
+  // aligned, not an actual style sync.)
+  const addToCartMock = (
+    <span
+      style={{
+        ...heightStyle,
+        borderRadius: 8,
+        background: "#111827",
+        color: "#FFFFFF",
+        fontSize: Math.min(safeTitleFontSize, 16),
+        fontWeight: 600,
+        boxSizing: "border-box",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: `${safePadding.top}px ${safePadding.right}px ${safePadding.bottom}px ${safePadding.left}px`,
+      }}
+    >
+      Add to cart
+    </span>
+  );
+
   if (device === "mobile") {
     return (
       <div className="fs-phone">
         <div className="fs-phone-screen">
-          {image}
-          <div style={{ padding: 10, display: "flex", flexDirection: "column", gap: 6 }}>
-            <span style={{ fontSize: 13, fontWeight: 600 }}>Silk Banarasi Saree</span>
-            <span className="fs-tabular" style={{ fontSize: 12 }}>$749.95</span>
-            <span style={{ height: 32, borderRadius: 6, background: "#111827", color: "#FFFFFF", fontSize: 12, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center" }}>Add to cart</span>
-            {examplePosition === "above_button" && exampleCard}
-            <div style={{ display: "flex" }}>{mainBtn}</div>
-            {examplePosition !== "above_button" && exampleCard}
+          <div className="fs-phone-canvas">
+            <div className="fs-phone-status" aria-hidden="true"><span>9:41</span><span className="fs-phone-notch" /><span>100%</span></div>
+            {image}
+            <div style={{ padding: "16px 16px 22px", display: "flex", flexDirection: "column", gap: 12 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <span style={{ fontSize: 12, letterSpacing: ".08em", textTransform: "uppercase", color: "#6B7280" }}>Your store</span>
+                <span style={{ fontSize: 20, fontWeight: 600, lineHeight: 1.3 }}>Silk Banarasi Saree</span>
+                <span className="fs-tabular" style={{ fontSize: 18 }}>$749.95</span>
+              </div>
+              {addToCartMock}
+              {examplePosition === "above_button" && exampleCard}
+              <div style={{ display: "flex" }}>{mainBtn}</div>
+              {examplePosition !== "above_button" && exampleCard}
+              <span style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.5 }}>Free shipping over $150 · Easy returns</span>
+            </div>
           </div>
         </div>
       </div>
@@ -930,7 +1156,7 @@ function LivePreview({
           <span style={{ fontSize: 11, letterSpacing: ".08em", textTransform: "uppercase", color: "#6B7280" }}>Your store</span>
           <span style={{ fontSize: 18, fontWeight: 600, lineHeight: 1.3 }}>Silk Banarasi Saree</span>
           <span className="fs-tabular" style={{ fontSize: 16 }}>$749.95</span>
-          <span style={{ height: 40, borderRadius: 6, background: "#111827", color: "#FFFFFF", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center" }}>Add to cart</span>
+          {addToCartMock}
           {examplePosition === "above_button" && exampleCard}
           <div style={{ display: "flex" }}>{mainBtn}</div>
           {examplePosition !== "above_button" && exampleCard}
@@ -980,18 +1206,18 @@ function ModalEditor({ json, onChange }) {
       {valid ? (
         <>
           {MODAL_TEXT_FIELDS.map(([k, label]) => (
-            <TextInput key={k} label={label} value={String(parsed[k] ?? "")} onChange={(v) => setKey(k, v)} />
+            <TextInput key={k} label={label} value={String(parsed[k] ?? "")} onChange={(v) => setKey(k, v)} ai />
           ))}
           {MODAL_COLOR_FIELDS.map(([k, label]) => (
             <ColorField key={k} label={label} value={String(parsed[k] ?? "#FFFFFF")} onChange={(v) => setKey(k, v)} />
           ))}
         </>
       ) : (
-        <div className="fs-banner fs-banner--warning" role="alert"><FsIcon name="info" size={16} /><span>The JSON below has a syntax error — fix it to use the quick editor again.</span></div>
+        <div className="fs-banner fs-banner--warning" role="alert"><FsIcon name="info" size={16} /><span>The JSON below has a syntax error: fix it to use the quick editor again.</span></div>
       )}
       <Collapsible title="Advanced: edit all modal text as JSON" hint={valid ? `${Object.keys(parsed).length} keys` : "needs fixing"}>
         <textarea className="fs-textarea fs-code" value={json} onChange={(e) => onChange(e.target.value)} rows={18} spellCheck={false} aria-label="Modal content JSON" />
-        <p className="fs-help">Every modal label and color can be overridden here — camera, countdown, coupon, error and watermark texts included.</p>
+        <p className="fs-help">Every modal label and color can be overridden here: camera, countdown, coupon, error and watermark texts included.</p>
       </Collapsible>
     </>
   );
@@ -1008,6 +1234,7 @@ const TABS = [
   { id: "example", label: "Before/after images", icon: "image" },
   { id: "collection", label: "Collection icon", icon: "grid" },
   { id: "features", label: "Features", icon: "sliders" },
+  { id: "limits", label: "Try-on limits", icon: "target" },
 ];
 
 const DEFAULT_MODAL = {
@@ -1019,7 +1246,7 @@ const DEFAULT_MODAL = {
   upload_subheading: "Choose a front-facing photo for the best result.",
   upload_primary_desktop: "Click or drag & drop your photo",
   upload_primary_mobile: "Tap to choose a photo or use your camera",
-  upload_secondary: "JPEG, PNG or WebP — up to 5 MB",
+  upload_secondary: "JPEG, PNG or WebP: up to 5 MB",
   camera_title: "Allow Camera Access",
   camera_description: "We need your camera to take a photo.",
   camera_allow_text: "Allow Camera",
@@ -1113,6 +1340,9 @@ function SettingsForm({ settings, shop, currentPlan, onDiscard }) {
   const [shareWa, setShareWa] = useState(Boolean(settings?.share_whatsapp_enabled ?? true));
   const [saveImg, setSaveImg] = useState(Boolean(settings?.save_image_enabled ?? true));
   const [privacy, setPrivacy] = useState(Boolean(settings?.privacy_notice_shown ?? true));
+  const [limitEnabled, setLimitEnabled] = useState(Boolean(settings?.tryon_limit_enabled ?? true));
+  const [limitCount, setLimitCount] = useState(Number(settings?.tryon_limit_count ?? 3) || 3);
+  const [limitReset, setLimitReset] = useState(settings?.tryon_limit_reset ?? "never");
 
   // Before/After slider & promo video
   const [beforeAfterEnabled] = useState(Boolean(settings?.before_after_enabled ?? false));
@@ -1146,10 +1376,15 @@ function SettingsForm({ settings, shop, currentPlan, onDiscard }) {
   const [viewMode, setViewMode] = useState("desktop");
   const [widgetDimensions, setWidgetDimensions] = useState({
     desktop: {
-      width: settings?.desktop_widget_width ?? 480,
+      // 0 matches the real default everywhere else (AppConfig, WidgetController,
+      // the live storefront JS) — "0 = full width / auto height", not a fixed
+      // pixel size. A stale 480/600 fallback here made the preview button a
+      // fixed size instead of stretching to match "Add to cart" like it
+      // actually does on the storefront.
+      width: settings?.desktop_widget_width ?? 0,
       widthUnit: settings?.desktop_widget_width_unit ?? "px",
-      height: settings?.desktop_widget_height ?? 600,
-      heightUnit: settings?.desktop_widget_height_unit ?? "px",
+      height: settings?.desktop_widget_height ?? 0,
+      heightUnit: settings?.desktop_widget_height_unit ?? "auto",
     },
     mobile: {
       width: settings?.mobile_widget_width ?? 100,
@@ -1249,6 +1484,9 @@ function SettingsForm({ settings, shop, currentPlan, onDiscard }) {
     share_whatsapp_enabled: shareWa,
     save_image_enabled: saveImg,
     privacy_notice_shown: privacy,
+    tryon_limit_enabled: limitEnabled,
+    tryon_limit_count: limitCount,
+    tryon_limit_reset: limitReset,
     before_after_enabled: beforeAfterEnabled,
     promo_video_url: promoVideoUrl,
     promo_video_position: promoVideoPosition,
@@ -1318,8 +1556,8 @@ function SettingsForm({ settings, shop, currentPlan, onDiscard }) {
     button: (
       <>
         <Section title="Button text" description="The label shoppers see on product pages.">
-          <TextInput label="Button title" value={widgetTitle} onChange={setWidgetTitle} placeholder="Try On This Look" max={60} help="Short and action-led works best." />
-          <TextInput label="Subtitle" value={widgetSubtitle} onChange={setWidgetSubtitle} placeholder="See how it fits before you buy" max={200} />
+          <TextInput label="Button title" value={widgetTitle} onChange={setWidgetTitle} placeholder="Try On This Look" max={60} help="Short and action-led works best." ai />
+          <TextInput label="Subtitle" value={widgetSubtitle} onChange={setWidgetSubtitle} placeholder="See how it fits before you buy" max={200} ai />
         </Section>
         <Section title="Colors and shape">
           <ColorField label="Button color" value={buttonColor} onChange={setButtonColor} />
@@ -1358,14 +1596,7 @@ function SettingsForm({ settings, shop, currentPlan, onDiscard }) {
     typography: (
       <PlanGate currentPlan={currentPlan} requiredPlan="growth" featureName="Typography & branding controls" mode="overlay">
         <Section title="Typography" description="Weight and family for the button (size is set in Button design)." action={<ViewToggle value={viewMode} onChange={setViewMode} />}>
-          <div>
-            <span className="fs-label">Title weight</span>
-            <div className="fs-seg" role="group" aria-label="Title font weight" style={{ display: "flex" }}>
-              {FONT_WEIGHT_OPTIONS.map((o) => (
-                <button key={o.value} type="button" style={{ flex: 1, fontWeight: Number(o.value) }} className={titleFontWeight === o.value ? "is-on" : ""} aria-pressed={titleFontWeight === o.value} onClick={() => setTitleFontWeight(o.value)}>{o.label.split(" ")[0]}</button>
-              ))}
-            </div>
-          </div>
+          <SelectField label="Title weight" value={titleFontWeight} onChange={setTitleFontWeight} options={FONT_WEIGHT_OPTIONS} />
           <SelectField label="Title font" value={titleFontFamily} onChange={setTitleFontFamily} options={FONT_FAMILY_OPTIONS} />
           <SelectField label="Subtitle font" value={subtitleFontFamily} onChange={setSubtitleFontFamily} options={FONT_FAMILY_OPTIONS} />
         </Section>
@@ -1394,7 +1625,7 @@ function SettingsForm({ settings, shop, currentPlan, onDiscard }) {
           />
         </Section>
         */}
-        <Section title="Promo video" description="An optional clip shown above or below the Try On button on your product pages — how it works, not the try-on result itself.">
+        <Section title="Promo video" description="An optional clip shown above or below the Try On button on your product pages: how it works, not the try-on result itself.">
           <TextInput
             label="Video URL"
             value={promoVideoUrl}
@@ -1418,7 +1649,7 @@ function SettingsForm({ settings, shop, currentPlan, onDiscard }) {
     example: (
       <Section
         title="Before/after images"
-        description="A static before/after comparison slider shown above or below the Try On button. You upload both images — not tied to any product."
+        description="A static before/after comparison slider shown above or below the Try On button. You upload both images: not tied to any product."
         action={<button type="button" role="switch" aria-checked={exampleBeforeAfterEnabled} aria-label="Show before/after images" className="fs-switch" onClick={() => setExampleBeforeAfterEnabled(!exampleBeforeAfterEnabled)}><span /></button>}
       >
         {exampleBeforeAfterEnabled && (
@@ -1442,6 +1673,7 @@ function SettingsForm({ settings, shop, currentPlan, onDiscard }) {
                 placeholder="e.g. See the Transformation"
                 max={80}
                 help="Optional heading shown above the slider. Leave blank to hide."
+                ai
               />
               <SliderField label="Width" value={exampleWidth} onChange={setExampleWidth} min={100} max={800} hints={["100px", "800px"]} />
               <SliderField label="Height" value={exampleHeight} onChange={setExampleHeight} min={0} max={800} hints={["0 = auto (3:4 ratio)", "800px"]} />
@@ -1501,10 +1733,23 @@ function SettingsForm({ settings, shop, currentPlan, onDiscard }) {
         </Section>
       </PlanGate>
     ),
+    limits: (
+      <Section title="Try-on limits" description="How many times each shopper can use try-on on your store.">
+        <TryonLimitField
+          enabled={limitEnabled} onEnabledChange={setLimitEnabled}
+          count={limitCount} onCountChange={setLimitCount}
+          reset={limitReset} onResetChange={setLimitReset}
+        />
+      </Section>
+    ),
   };
 
+  const aiLanguage = WORLD_LANGUAGES.find((l) => l.value === language)?.label ?? "English";
+
   return (
+    <AiLanguageContext.Provider value={aiLanguage}>
     <FsPage
+      tour={TOURS.settings}
       title={
         <span style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           Try-on button and modal
@@ -1608,6 +1853,7 @@ function SettingsForm({ settings, shop, currentPlan, onDiscard }) {
         </aside>
       </div>
     </FsPage>
+    </AiLanguageContext.Provider>
   );
 }
 SettingsForm.propTypes = { settings: PropTypes.object, shop: PropTypes.string, currentPlan: PropTypes.string, onDiscard: PropTypes.func };

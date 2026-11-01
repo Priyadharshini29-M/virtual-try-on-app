@@ -1,0 +1,16 @@
+{
+  "title": "Settings",
+  "description": "Configure how FitFyce appears to your customers.",
+  "save_success": "Settings saved",
+  "save_error": "Could not save settings: {reason}",
+  "locale_updated": "Language updated",
+  "sections": {
+    "widget": "Widget",
+    "appearance": "Appearance",
+    "behavior": "Behavior",
+    "sharing": "Sharing",
+    "limits": "Try-on limits",
+    "advanced": "Advanced",
+    "language": "Language"
+  }
+}

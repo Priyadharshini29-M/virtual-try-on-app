@@ -14,7 +14,7 @@ import http from "node:http";
 
 const phpHttpsAgent = new https.Agent({ rejectUnauthorized: false });
 
-export default function phpApiClient(apiKey, baseUrl, shopDomain = null) {
+export default function phpApiClient(apiKey, baseUrl, shopDomain = null, locale = null) {
   const base = baseUrl.replace(/\/$/, '');
 
   function request(method, path, body = null, timeoutMs = 10_000) {
@@ -41,6 +41,7 @@ export default function phpApiClient(apiKey, baseUrl, shopDomain = null) {
       'X-Requested-With': 'XMLHttpRequest',
     };
     if (shopDomain) headers['X-Shop-Domain'] = shopDomain;
+    if (locale) headers['Accept-Language'] = locale;
 
     const bodyStr = body !== null ? JSON.stringify(body) : null;
     if (bodyStr) headers['Content-Length'] = Buffer.byteLength(bodyStr).toString();
@@ -72,12 +73,17 @@ export default function phpApiClient(apiKey, baseUrl, shopDomain = null) {
           res.on('end', () => {
             clearTimeout(timer);
             let data = {};
-            try { data = JSON.parse(raw); } catch { data = {}; }
+            let parseFailed = false;
+            try { data = JSON.parse(raw); } catch { data = {}; parseFailed = raw.trim() !== ''; }
             if (!res.ok && (res.statusCode < 200 || res.statusCode >= 300)) {
               const errMsg = data.error ?? data.message ?? data.msg ?? data.detail ?? (Array.isArray(data.errors) ? data.errors[0] : null) ?? `Request failed (HTTP ${res.statusCode})`;
               resolve({ ok: false, error: errMsg, status: res.statusCode, data });
             } else {
-              resolve({ ok: true, data });
+              // A 200 whose body is not JSON (e.g. a PHP warning printed before the JSON) used to look
+              // like an empty success; keep a snippet so callers can show what actually came back.
+              resolve(parseFailed
+                ? { ok: true, data, parseFailed: true, rawSnippet: raw.trim().slice(0, 200) }
+                : { ok: true, data });
             }
           });
         }
@@ -127,14 +133,21 @@ export default function phpApiClient(apiKey, baseUrl, shopDomain = null) {
     getLeads: (limit = 100) =>
       request('GET', `/leads?limit=${limit}`),
 
-    getPlans: () =>
-      request('GET', '/plans'),
+    // Wallet credits — a merchant pays per use (1 credit = 1 try-on or
+    // AI generation). checkPlanLimit() is kept as an alias of the balance
+    // call so legacy loaders (dashboard shell, analytics) keep working
+    // without re-plumbing. The payload is the balance shape.
+    getWallet: () =>
+      request('GET', '/wallet'),
 
     checkPlanLimit: () =>
-      request('GET', '/plan/limit'),
+      request('GET', '/wallet'),
 
-    updatePlan: (plan) =>
-      request('POST', '/plan/update', { plan }),
+    walletTopup: (packId) =>
+      request('POST', '/wallet/topup', { pack_id: packId }),
+
+    walletVerify: (data) =>
+      request('POST', '/wallet/verify', data),
 
     recordConversion: (data) =>
       request('POST', '/conversion', data),
@@ -151,6 +164,9 @@ export default function phpApiClient(apiKey, baseUrl, shopDomain = null) {
     patchWidgetSettings: (data) =>
       request('PATCH', '/widget/settings', data),
 
+    generateFieldCopy: (data) =>
+      request('POST', '/widget/ai-copy', data, 30_000),
+
     // ── Built-in AI Studio model library ─────────────────────────────────────
     getDefaultModels: () =>
       request('GET', '/studio/default-models'),
@@ -164,6 +180,10 @@ export default function phpApiClient(apiKey, baseUrl, shopDomain = null) {
 
     saveOnboarding: (data) =>
       request('POST', '/merchant/onboarding', data),
+
+    // ── i18n ────────────────────────────────────────────────────────────────
+    saveLocale: (locale) =>
+      request('POST', '/api/settings/locale', { locale }),
 
     // ── Garment Studio ───────────────────────────────────────────────────────
 
@@ -186,6 +206,17 @@ export default function phpApiClient(apiKey, baseUrl, shopDomain = null) {
       const qs = new URLSearchParams(params).toString();
       return request('GET', `/studio/sessions${qs ? '?' + qs : ''}`);
     },
+
+    // Duo & Group: combine finished per-person try-ons into one photo (returns a session to poll).
+    studioGroupCompose: (data) =>
+      request('POST', '/studio/group/compose', data, 60_000),
+
+    // Duo & Group from one photo: cut it per person, then paste the dressed people back.
+    studioGroupSplit: (data) =>
+      request('POST', '/studio/group/split', data, 60_000),
+
+    studioGroupStitch: (data) =>
+      request('POST', '/studio/group/stitch', data, 60_000),
 
     studioSaveGallery: (sessionId) =>
       request('POST', '/studio/save-gallery', { session_id: sessionId }),

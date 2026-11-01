@@ -52,5 +52,13 @@ Input (`input`):
 | `guidance_scale` | float | no | 1.0 |
 | `num_inference_steps` | int | no | 4 |
 
+**Single-image edit mode** (used by `RunpodVtonClient::editImage()` for AI Studio
+flat-lay → worn-reference conversion and pose variants): send `image` (base64 or
+data URI) and `prompt` instead of `person_image`/`accessory_image`. The fusion
+LoRA is set to weight 0 for these calls. Point `RUNPOD_IMAGE_EDIT_ENDPOINT_ID`
+at this endpoint (or leave it blank to reuse `RUNPOD_ACCESSORY_ENDPOINT_ID`).
+This mode has not been run on a GPU yet - check output quality before relying
+on it for sarees/lehengas.
+
 Output: `{"images": ["<base64 png>"]}` on success, `{"error": "..."}` on
 failure (RunPod marks the job `FAILED` and the PHP client surfaces `error`).

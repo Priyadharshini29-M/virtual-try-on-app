@@ -1,0 +1,72 @@
+{
+ "run": "20261022-101317-recovery",
+ "profile": "recovery",
+ "integration": "MOCKED (AI provider) / local Docker replica of PHP+MariaDB",
+ "args": {
+  "profile": "recovery",
+  "mock_workers": 10,
+  "mock_gen_ms": 14000,
+  "mock_fail_rate": 0.0,
+  "mock_max_queue": 0,
+  "app_workers": 20,
+  "max_vus": 50,
+  "dur_scale": 1.0,
+  "rate_scale": 1.0,
+  "soak_min": 30,
+  "only": "",
+  "widget_event": "1",
+  "keepalive": "Off",
+  "no_restart": true,
+  "extra_polls": 0,
+  "yes_i_am_authorised": false
+ },
+ "started": 1792644210.7744858,
+ "ended": 1792644534.8118627,
+ "duration_s": 324.0,
+ "k6_exit_code": 0,
+ "pre": {
+  "count_m1": 0,
+  "count_m2": 95
+ },
+ "post": {
+  "count_m1": 10,
+  "count_m2": 95,
+  "analytics_completed": "10",
+  "result_files": "10",
+  "db_slow_queries": "675",
+  "db_max_used_connections": "3",
+  "app_error_log_tail": "0.5 - - [22/Oct/2026:04:48:42 +0000] \"GET /api/tryon-status?job_id=4b20e508-4cea-46ab-8b96-d440f6143375-mock&shop=perf-test.myshopify.com&seed=42 HTTP/1.1\" 200 345 \"-\" \"k6/0.54.0 (https://k6.io/)\"\n172.19.0.5 - - [22/Oct/2026:04:48:45 +0000] \"GET /api/tryon-status?job_id=4b20e508-4cea-46ab-8b96-d440f6143375-mock&shop=perf-test.myshopify.com&seed=42 HTTP/1.1\" 200 345 \"-\" \"k6/0.54.0 (https://k6.io/)\"\n172.19.0.1 - - [22/Oct/2026:04:48:46 +0000] \"GET /server-status?auto HTTP/1.1\" 200 906 \"-\" \"Python-urllib/3.13\"\n172.19.0.5 - - [22/Oct/2026:04:48:47 +0000] \"GET /api/tryon-status?job_id=4b20e508-4cea-46ab-8b96-d440f6143375-mock&shop=perf-test.myshopify.com&seed=42 HTTP/1.1\" 200 345 \"-\" \"k6/0.54.0 (https://k6.io/)\"\n172.19.0.5 - - [22/Oct/2026:04:48:50 +0000] \"GET /api/tryon-status?job_id=4b20e508-4cea-46ab-8b96-d440f6143375-mock&shop=perf-test.myshopify.com&seed=42 HTTP/1.1\" 200 345 \"-\" \"k6/0.54.0 (https://k6.io/)\"\n172.19.0.5 - - [22/Oct/2026:04:48:52 +0000] \"GET /api/tryon-status?job_id=4b20e508-4cea-46ab-8b96-d440f6143375-mock&shop=perf-test.myshopify.com&seed=42 HTTP/1.1\" 200 438 \"-\" \"k6/0.54.0 (https://k6.io/)\"\n172.19.0.5 - - [22/Oct/2026:04:48:52 +0000] \"GET /results/tryon_result_20261022_044852_203835.jpg HTTP/1.1\" 200 19310 \"-\" \"k6/0.54.0 (https://k6.io/)\"\n172.19.0.1 - - [22/Oct/2026:04:48:54 +0000] \"GET /server-status?auto HTTP/1.1\" 200 906 \"-\" \"Python-urllib/3.13\"\n172.19.0.1 - - [22/Oct/2026:04:49:02 +0000] \"GET /server-status?auto HTTP/1.1\" 200 905 \"-\" \"Python-urllib/3.13\"\n"
+ },
+ "mock_stats": {
+  "cfg": {
+   "port": 4010,
+   "workers": 10,
+   "genMs": 14000,
+   "jitterMs": 1000,
+   "failRate": 0,
+   "maxQueue": 0
+  },
+  "submitted": 104,
+  "rejected429": 0,
+  "statusCalls": 579,
+  "maxQueueDepth": 3,
+  "jobs": 104,
+  "completed": 104,
+  "failed": 0,
+  "running": 0,
+  "queueDepthNow": 0,
+  "queueWaitMs": {
+   "p50": 0,
+   "p95": 2088,
+   "max": 3781,
+   "avg": 306
+  }
+ },
+ "k6_tryon_completed": 10,
+ "consistency": {
+  "merchant1_count_delta": 10,
+  "k6_completed_jobs": 10,
+  "double_counted": 0,
+  "analytics_completed": "10"
+ }
+}

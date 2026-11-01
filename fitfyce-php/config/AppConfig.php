@@ -117,15 +117,21 @@ final class AppConfig
         return self::fashnApiKey() !== '';
     }
 
-    public static function falApiKey(): string
+    /**
+     * RunPod endpoint running a single-image edit model (Qwen-Image-Edit — see
+     * runpod-accessory-worker/). Used for flat-lay → worn-reference conversion
+     * only. Falls back to the accessory endpoint, which
+     * is the same worker image.
+     */
+    public static function runpodImageEditEndpointId(): string
     {
-        return (string) (getenv('FAL_API_KEY') ?: '');
+        return (string) (getenv('RUNPOD_IMAGE_EDIT_ENDPOINT_ID') ?: getenv('RUNPOD_ACCESSORY_ENDPOINT_ID') ?: '');
     }
 
-    /** Returns true when FAL.ai flat-lay pre-processing is enabled. */
+    /** Returns true when RunPod image-edit (flat-lay → worn-reference conversion) is configured. */
     public static function useFlatLayConverter(): bool
     {
-        return self::falApiKey() !== '';
+        return self::runpodApiKey() !== '' && self::runpodImageEditEndpointId() !== '';
     }
 
     public static function masterApiKey(): string
@@ -136,6 +142,46 @@ final class AppConfig
     public static function shopifyApiSecret(): string
     {
         return (string) (getenv('SHOPIFY_API_SECRET') ?: '');
+    }
+
+    public static function shopifyApiKey(): string
+    {
+        return (string) (getenv('SHOPIFY_API_KEY') ?: '');
+    }
+
+    /** Comma-separated OAuth scopes. Mirrors `scopes` in shopify.app.toml. */
+    public static function shopifyScopes(): string
+    {
+        return (string) (getenv('SHOPIFY_SCOPES') ?: 'read_orders,read_products,write_products');
+    }
+
+    /**
+     * Public base URL of the PHP admin app (no trailing slash). Shopify
+     * uses this to build OAuth redirect URLs; must match the entry under
+     * [auth].redirect_urls in shopify.app.toml. When the env var is empty
+     * (local dev through `php -S`), we fall back to the current request's
+     * scheme + host so the pages still work without extra configuration.
+     * Shopify OAuth itself needs the real domain, so set this on production.
+     */
+    public static function adminBaseUrl(): string
+    {
+        $configured = rtrim((string)(getenv('ADMIN_BASE_URL') ?: ''), '/');
+
+        $host = (string)($_SERVER['HTTP_HOST'] ?? '');
+        $scheme = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http';
+        $requestBase = $host !== '' ? ($scheme . '://' . $host) : '';
+
+        // Local dev through `php -S` (or any time the request host doesn't match
+        // the configured production host): prefer the request's own host so
+        // links and asset URLs render pointing at localhost, not production.
+        if ($configured !== '' && $requestBase !== '') {
+            $configuredHost = parse_url($configured, PHP_URL_HOST);
+            if ($configuredHost !== null && strcasecmp((string)$configuredHost, $host) !== 0) {
+                return $requestBase;
+            }
+        }
+
+        return $configured !== '' ? $configured : $requestBase;
     }
 
     public static function openAiApiKey(): string
@@ -186,6 +232,12 @@ final class AppConfig
         // unrelated to the AI generation itself, just a merchant-provided
         // walkthrough clip. Empty = not shown.
         'promo_video_url'        => '',
+        // Storefront try-on limit per shopper (counted in the shopper's
+        // browser). On with 3 by default, matching the widget's old fixed
+        // limit; reset: never | day | week | month (rolling from first use).
+        'tryon_limit_enabled'    => 1,
+        'tryon_limit_count'      => 3,
+        'tryon_limit_reset'      => 'never',
         'promo_video_position'   => 'below_button',
         // Static merchant-uploaded before/after example images — fully manual,
         // not tied to any product or AI Studio generation. Off by default;
@@ -256,7 +308,6 @@ final class AppConfig
     public const CONVERSION_ATTRIBUTION_DAYS = 7;
 
     // ── File upload ────────────────────────────────────────────────────────────
-    public const UPLOAD_MAX_BYTES   = 5 * 1024 * 1024;
     public const UPLOAD_TTL_SECONDS = 600;
     public const JPEG_QUALITY       = 90;
 

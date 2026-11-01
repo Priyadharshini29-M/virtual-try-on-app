@@ -1,0 +1,13 @@
+{
+  "title": "Products",
+  "sync_now": "Sync now",
+  "sync_started": "Product sync started",
+  "sync_complete": "Synced {count} products",
+  "sync_failed": "Product sync failed: {reason}",
+  "search_placeholder": "Search products",
+  "empty": "No products yet. Sync from Shopify to get started.",
+  "variant_mapping": {
+    "title": "Variant mapping",
+    "save_success": "Mapping saved"
+  }
+}

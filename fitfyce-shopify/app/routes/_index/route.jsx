@@ -39,7 +39,7 @@ export default function App() {
         <p className={styles.text}>
           Let shoppers see how clothes look on them before they buy. Reduce
           returns, increase conversions, and build buyer confidence with
-          AI-powered virtual fitting — directly on your Shopify product pages.
+          AI-powered virtual fitting: directly on your Shopify product pages.
         </p>
         {showForm && (
           <Form className={styles.form} method="post" action="/auth/login">
@@ -56,7 +56,7 @@ export default function App() {
         <ul className={styles.list}>
           <li>
             <strong>AI-powered try-on.</strong> Shoppers upload a photo and
-            instantly see the product on their body — no guesswork needed.
+            instantly see the product on their body: no guesswork needed.
           </li>
           <li>
             <strong>Zero-code setup.</strong> Add the Brix-TryOn block to any

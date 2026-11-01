@@ -7,7 +7,8 @@ namespace TryFit\Controllers;
 
 use TryFit\AppConfig;
 use TryFit\Db\MerchantRepo;
-use TryFit\Middleware\PlanLimitCheck;
+use TryFit\Db\WalletRepo;
+use TryFit\Middleware\WalletCheck;
 use VTON\ImageUtils;
 use VTON\RunpodVtonClient;
 use VTON\SareeRouting;
@@ -64,6 +65,15 @@ class TryOnController
             return;
         }
 
+        // A job that was already finalised returns its stored outcome. Nothing is
+        // saved, counted or logged again, and the provider is not called again, so
+        // retries, a second tab or a lost response cannot double-count.
+        $final = $this->readJobOutcome($jobId);
+        if ($final !== null) {
+            $this->respondOutcome($final);
+            return;
+        }
+
         $shop  = trim((string)($_GET['shop'] ?? ''));
         $mRepo = new MerchantRepo();
         $merchant = $shop !== '' ? ($mRepo->findByDomain($shop) ?? $mRepo->findByDomainLike($shop)) : null;
@@ -83,19 +93,27 @@ class TryOnController
             return;
         }
 
+        // The provider says the job is finished. Exactly one request may finalise it;
+        // a concurrent poll just reports 'processing' and gets the stored outcome next time.
+        if (!$this->claimJob($jobId)) {
+            respondJson(['status' => 'processing']);
+            return;
+        }
+
         if ($check['job_status'] === 'failed') {
             $rawError = $check['error_details'] ?? 'Try-on API request failed';
             writeLog('WARNING', 'Try-on API failed (async)', ['error_details' => $rawError, 'shop' => $shop]);
             if ($sessionId) {
                 $sessionRepo->updateStatus($sessionId, 'failed', ['error_message' => $rawError]);
             }
+            $this->releaseQuota($mRepo, $merchant);
             $this->logCompletion($analyticsRepo, 'tryon_failed', $merchant);
             // A saree photo Fashn can't find a body in (cropped, seated, face-only)
             // is fixable by the shopper — tell them how, instead of a generic error.
             $userError = SareeRouting::isFashnJob($jobId) && preg_match('/pose|body/i', $rawError)
                 ? "We couldn't see your full body in that photo. Please upload a standing, front-facing photo that shows you from head to toe."
                 : 'Try-on failed. Please try again.';
-            respondJson(['status' => 'failed', 'error' => $userError, 'raw_error' => $rawError], 400);
+            $this->finishJob($jobId, ['status' => 'failed', 'error' => $userError, 'raw_error' => $rawError, 'http' => 400]);
             return;
         }
 
@@ -107,11 +125,17 @@ class TryOnController
         $filename   = 'tryon_result_' . date('Ymd_His') . '_' . bin2hex(random_bytes(3)) . '.jpg';
         $outputPath = $resultsDir . DIRECTORY_SEPARATOR . $filename;
 
-        if (!ImageUtils::saveImageBytes((string)$check['image_bytes'], $outputPath)) {
+        $saved = ImageUtils::saveImageBytes((string)$check['image_bytes'], $outputPath);
+        if ($saved) {
+            // Same finishing as AI Studio: enlarge the ~576px engine output and sharpen.
+            ImageUtils::upscaleForDisplay($outputPath);
+        }
+        if (!$saved) {
             if ($sessionId) {
                 $sessionRepo->updateStatus($sessionId, 'failed', ['error_message' => 'Failed to save result image']);
             }
-            respondJson(['status' => 'failed', 'error' => 'Failed to save result image'], 500);
+            $this->releaseQuota($mRepo, $merchant);
+            $this->finishJob($jobId, ['status' => 'failed', 'error' => 'Failed to save result image', 'http' => 500]);
             return;
         }
 
@@ -124,16 +148,82 @@ class TryOnController
             ]);
         }
 
-        if ($merchant) {
-            try {
-                $mRepo->incrementTryonCount((int)$merchant['id']);
-            } catch (\Throwable $e) {
-                error_log('[FitFyce] merchant count increment failed: ' . $e->getMessage());
-            }
-        }
+        // The quota slot was already taken at submit (see submit()), so nothing to increment here.
         $this->logCompletion($analyticsRepo, 'tryon_completed', $merchant);
 
-        respondJson(['status' => 'completed', 'result_image' => $url, 'seed' => $seed >= 0 ? $seed : null]);
+        $this->finishJob($jobId, ['status' => 'completed', 'result_image' => $url, 'seed' => $seed >= 0 ? $seed : null, 'http' => 200]);
+    }
+
+    // ── Per-job finalisation (idempotency) ───────────────────────────────────
+
+    private function jobsDir(): string
+    {
+        $dir = AppConfig::tempDir() . DIRECTORY_SEPARATOR . '.jobs';
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0755, true);
+        }
+        return $dir;
+    }
+
+    private function jobKey(string $jobId): string
+    {
+        return $this->jobsDir() . DIRECTORY_SEPARATOR . hash('sha256', $jobId);
+    }
+
+    /** @return array<string,mixed>|null the stored final outcome, if this job was already finalised */
+    private function readJobOutcome(string $jobId): ?array
+    {
+        $raw = @file_get_contents($this->jobKey($jobId) . '.json');
+        $data = $raw === false ? null : json_decode($raw, true);
+        return is_array($data) ? $data : null;
+    }
+
+    /**
+     * Atomically claims the right to finalise a job (mkdir is atomic). A claim that
+     * was never completed (request crashed) expires after 60 s so the job can't stay
+     * stuck on 'processing'.
+     */
+    private function claimJob(string $jobId): bool
+    {
+        $lock = $this->jobKey($jobId) . '.lock';
+        if (@mkdir($lock, 0755)) {
+            return true;
+        }
+        if (is_dir($lock) && time() - (int)@filemtime($lock) > 60 && @rmdir($lock)) {
+            return @mkdir($lock, 0755);
+        }
+        return false;
+    }
+
+    /** Stores the final outcome (write-then-rename so readers never see a partial file) and responds with it. */
+    private function finishJob(string $jobId, array $outcome): void
+    {
+        $path = $this->jobKey($jobId) . '.json';
+        $tmp  = $path . '.' . bin2hex(random_bytes(4)) . '.tmp';
+        if (@file_put_contents($tmp, json_encode($outcome)) !== false) {
+            @rename($tmp, $path);
+        }
+        $this->respondOutcome($outcome);
+    }
+
+    private function respondOutcome(array $outcome): void
+    {
+        $http = (int)($outcome['http'] ?? 200);
+        unset($outcome['http']);
+        respondJson($outcome, $http);
+    }
+
+    /** Gives back the credit taken at submit when the generation failed. */
+    private function releaseQuota(MerchantRepo $mRepo, ?array $merchant): void
+    {
+        if ($merchant === null) {
+            return;
+        }
+        try {
+            WalletCheck::release((int)$merchant['id'], \TryFit\Src\WalletSettings::cost('tryon'), 'tryon');
+        } catch (\Throwable $e) {
+            error_log('[FitFyce] credit release failed: ' . $e->getMessage());
+        }
     }
 
     private function submit(): void
@@ -157,15 +247,7 @@ class TryOnController
             return;
         }
 
-        // Auto-reset monthly count when the 30-day billing window has elapsed
-        $billingStart = $merchant['billing_cycle_start'] ?? null;
-        if ($billingStart !== null && strtotime('+30 days', (int)strtotime($billingStart)) <= time()) {
-            $mRepo->resetMonthlyCount((int)$merchant['id']);
-            $merchant['tryon_count_month']    = 0;
-            $merchant['billing_cycle_start']  = date('Y-m-d');
-        }
-
-        PlanLimitCheck::handle($merchant);
+        WalletCheck::handle($merchant);
         // ─────────────────────────────────────────────────────────────────────────
 
         $payload = json_decode((string)file_get_contents('php://input'), true);
@@ -243,7 +325,10 @@ class TryOnController
 
         // Drives both the flat-lay pre-conversion gate below and the RunPod
         // 'category' param (tops/bottoms/one-pieces).
-        $garmentType = $this->resolveGarmentType($mapping, $payload);
+        // What the product photo actually shows (AI, cached per image), since
+        // neither the shopper nor most merchants ever pick a garment type.
+        $detected    = $this->detectGarment($clothingInput);
+        $garmentType = $this->resolveGarmentType($mapping, $payload, $detected);
 
         $seed = isset($payload['seed']) ? (int)$payload['seed'] : -1;
 
@@ -256,7 +341,7 @@ class TryOnController
         // straight into the try-on model. Route these through FlatLayConverter
         // first to get a photorealistic worn reference.
         $clothingPromptText = (string)($mapping['clothing_prompt'] ?? ($payload['clothing_prompt'] ?? ''));
-        // Never for Fashn sarees: FLUX Kontext re-imagines the saree into a
+        // Never for Fashn sarees: the image-edit model re-imagines the saree into a
         // generated "worn" photo (often losing the real colour, pattern or
         // drape), and tryon-max drapes the raw flat-lay photo correctly itself.
         $useFlatLayConversion = $garmentType === 'full'
@@ -271,7 +356,7 @@ class TryOnController
         $gotWornReference = false;
         if ($useFlatLayConversion) {
             require_once dirname(__DIR__) . '/src/FlatLayConverter.php';
-            $converter    = new \VTON\FlatLayConverter(AppConfig::falApiKey(), AppConfig::tempDir());
+            $converter    = new \VTON\FlatLayConverter(AppConfig::runpodApiKey(), AppConfig::runpodImageEditEndpointId(), AppConfig::tempDir());
             $clothingPath = $converter->getWornReference($clothingInput, $flatLayHint, $tempFiles);
             if ($clothingPath === null) {
                 writeLog('WARNING', 'FlatLayConverter failed, falling back to raw flat-lay image', [
@@ -302,8 +387,9 @@ class TryOnController
         // 768 px minimum gives the model enough pixel detail to preserve anatomy
         // and render garment texture accurately.  512 px is the hard API floor but
         // produces noticeably worse anatomy and fabric quality.
-        $clothingPath = ImageUtils::ensureMinimumSize($clothingPath, 768, 768, $tempFiles);
-        $avatarPath   = ImageUtils::ensureMinimumSize($avatarPath,   768, 768, $tempFiles);
+        // Same input sizing as AI Studio (portrait 768x1024 minimum).
+        $clothingPath = ImageUtils::ensureMinimumSize($clothingPath, RunpodVtonClient::INPUT_MIN_WIDTH, RunpodVtonClient::INPUT_MIN_HEIGHT, $tempFiles);
+        $avatarPath   = ImageUtils::ensureMinimumSize($avatarPath,   RunpodVtonClient::INPUT_MIN_WIDTH, RunpodVtonClient::INPUT_MIN_HEIGHT, $tempFiles);
 
         // RunPod's FASHN VTON 1.5 has no separate concept for ghost-mannequin —
         // only a worn reference ('model') vs an unworn/flat photo ('flat-lay').
@@ -315,6 +401,10 @@ class TryOnController
         $garmentPhotoType = ($mappingHasImageType && !$gotWornReference && in_array($imageType, ['flat_lay', 'ghost_mannequin'], true))
             ? 'flat-lay'
             : 'model';
+        // No photo type set by the merchant: use what the photo itself shows.
+        if (!$mappingHasImageType && !$gotWornReference && $detected !== null && in_array($detected['photo'], ['flat_lay', 'mannequin'], true)) {
+            $garmentPhotoType = 'flat-lay';
+        }
         // 'saree' is listed in this RunPod endpoint's sample UI but is not
         // actually implemented in the deployed pipeline — passing it crashes
         // the worker (FASHN_LABELS_TO_IDS lookup returns None). Confirmed via
@@ -326,31 +416,46 @@ class TryOnController
             default  => 'tops',
         };
 
-        $runpodParams = [
+        // Exactly the request AI Studio sends: shared quality settings
+        // (segmentation on, 30 steps, random seed) and no free-text prompt,
+        // which only pulls the result away from the garment photo.
+        $runpodParams = array_merge([
             'person_image'       => ImageUtils::fileToBase64Uri($avatarPath),
             'garment_image'      => ImageUtils::fileToBase64Uri($clothingPath),
             'category'           => $category,
             'garment_photo_type' => $garmentPhotoType,
-        ];
-        if ($clothingPromptText !== '') {
-            $runpodParams['prompt'] = $clothingPromptText;
-        }
+        ], RunpodVtonClient::qualityParams());
         if ($seed >= 0) {
-            $runpodParams['seed'] = $seed;
+            $runpodParams['seed'] = $seed; // an explicit seed (testing) still wins
         }
 
-        $sessionId = $payload['session_id'] ?? null;
+        $sessionId    = $payload['session_id'] ?? null;
+        $sessionIdRef = is_string($sessionId) && $sessionId !== '' ? $sessionId : null;
 
-        if ($useFashn) {
-            $submitResult = SareeRouting::submitFashn($runpodParams);
-        } else {
-            $runpodClient = new RunpodVtonClient(AppConfig::runpodApiKey(), AppConfig::runpodEndpointId());
-            $submitResult = $runpodClient->submitRun($runpodParams);
-        }
-
+        // The images are already in $runpodParams as base64, so the temp files are no longer needed.
         $this->cleanupTempFiles($tempFiles);
 
+        // Debit one credit atomically right before the job goes out (responds 402 if the
+        // wallet is empty). The earlier WalletCheck::handle() is only a cheap read, so
+        // concurrent submits could all pass it. The credit is released below if the
+        // submit fails, or in pollStatus() if the generation fails.
+        $tryonCost = \TryFit\Src\WalletSettings::cost('tryon');   // set in the platform admin
+        WalletCheck::reserve($merchant, 'tryon', $tryonCost, 'tryon', $sessionIdRef);
+
+        try {
+            if ($useFashn) {
+                $submitResult = SareeRouting::submitFashn($runpodParams);
+            } else {
+                $runpodClient = new RunpodVtonClient(AppConfig::runpodApiKey(), AppConfig::runpodEndpointId());
+                $submitResult = $runpodClient->submitRun($runpodParams);
+            }
+        } catch (\Throwable $e) {
+            WalletCheck::release((int)$merchant['id'], $tryonCost, 'tryon', $sessionIdRef);
+            throw $e;
+        }
+
         if ($submitResult['status_code'] !== 200 || empty($submitResult['prediction_id'])) {
+            WalletCheck::release((int)$merchant['id'], $tryonCost, 'tryon', $sessionIdRef);
             $rawError = $submitResult['error_details'] ?? 'Try-on API request failed';
 
             writeLog('WARNING', 'Try-on API submit failed', [
@@ -543,7 +648,42 @@ class TryOnController
      * Returns 'top', 'bottom', or 'full'.
      * DB field takes priority; falls back to keyword detection from clothing_prompt.
      */
-    private function resolveGarmentType(?array $mapping, array $payload): string
+    /**
+     * Asks the AI what garment the product photo shows. Cached on disk per
+     * image URL, so each product image costs one quick vision call ever.
+     * Returns null when OpenAI isn't configured or the check fails; the
+     * caller then falls back to keyword/mapping detection.
+     *
+     * @return array{garment:string, category:string, photo:string}|null
+     */
+    private function detectGarment(string $clothingInput): ?array
+    {
+        if ($clothingInput === '' || str_starts_with($clothingInput, 'data:') || AppConfig::openAiApiKey() === '') {
+            return null;
+        }
+        $dir  = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR . 'garment-types';
+        $file = $dir . DIRECTORY_SEPARATOR . md5($clothingInput) . '.json';
+        if (is_file($file)) {
+            $cached = json_decode((string) @file_get_contents($file), true);
+            if (is_array($cached) && isset($cached['category'], $cached['photo'])) {
+                return $cached;
+            }
+        }
+        try {
+            $result = (new \VTON\OpenAIClient(AppConfig::openAiApiKey()))->classifyGarmentImage($clothingInput);
+        } catch (\Throwable $e) {
+            writeLog('WARNING', 'Garment auto-detection failed', ['error' => $e->getMessage()]);
+            return null;
+        }
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0755, true);
+        }
+        @file_put_contents($file, json_encode($result));
+        writeLog('INFO', 'Garment auto-detected', $result);
+        return $result;
+    }
+
+    private function resolveGarmentType(?array $mapping, array $payload, ?array $detected = null): string
     {
         // Merchants using the plain widget button (no Garment Studio mapping)
         // never set clothing_prompt/garment_type — fall back to the Shopify
@@ -558,6 +698,12 @@ class TryOnController
         // pre-conversion gate below, not an upstream API parameter.
         if (!empty($prompt) && $this->inferGarmentTypeFromPrompt($prompt) === 'full') {
             return 'full';
+        }
+
+        // The photo itself is the best signal: the mapping's garment_type
+        // defaults to 'top' even when nobody ever chose it.
+        if ($detected !== null) {
+            return $detected['category'];
         }
 
         if (!empty($mapping['garment_type'])) {
@@ -583,6 +729,10 @@ class TryOnController
 
         // Full-body garments — replace entire outfit
         if (preg_match('/\b(saree|sari|lehenga|jumpsuit|dungaree|romper|dress|gown|overall|abaya|pantsuit|playsuit|salwar\s*kameez|anarkali)\b/', $p)) {
+            return 'full';
+        }
+        // Kurta/kurti sold with matching bottoms is one full-body outfit.
+        if (preg_match('/\b(kurt[ai]s?\s*(set|suit|with\s+(pants?|palazzo|salwar|churidar))|salwar\s*suit|churidar\s*(set|suit)|co-?ord\s*set)\b/', $p)) {
             return 'full';
         }
 

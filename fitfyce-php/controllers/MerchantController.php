@@ -81,6 +81,9 @@ class MerchantController
                    ->execute([$domain, $existing['id']]);
             }
 
+            if (class_exists(\TryFit\Src\PlatformSync::class)) {
+                \TryFit\Src\PlatformSync::storeChanged((int)$existing['id'], 'login');
+            }
             respondJson(['id' => $existing['id'], 'api_key' => $existing['api_key'], 'created' => false]);
         }
 
@@ -109,6 +112,9 @@ class MerchantController
             'INSERT IGNORE INTO merchant_settings (merchant_id, shopify_domain, shopify_store_id) VALUES (?, ?, ?)'
         )->execute([$id, $domain, $storeId]);
 
+        if (class_exists(\TryFit\Src\PlatformSync::class)) {
+            \TryFit\Src\PlatformSync::storeChanged((int)$id, 'install');
+        }
         respondJson(['id' => $id, 'api_key' => $apiKey, 'created' => true]);
     }
 
@@ -137,6 +143,13 @@ class MerchantController
         $db   = Database::getInstance();
         $stmt = $db->prepare('UPDATE merchants SET is_active = 0 WHERE shopify_domain = ?');
         $stmt->execute([$domain]);
+        $gone = $db->prepare('SELECT id FROM merchants WHERE shopify_domain = ?');
+        $gone->execute([$domain]);
+        foreach ($gone->fetchAll(\PDO::FETCH_COLUMN) as $goneId) {
+            if (class_exists(\TryFit\Src\PlatformSync::class)) {
+                \TryFit\Src\PlatformSync::storeChanged((int)$goneId, 'uninstall');
+            }
+        }
 
         respondJson(['ok' => true]);
     }

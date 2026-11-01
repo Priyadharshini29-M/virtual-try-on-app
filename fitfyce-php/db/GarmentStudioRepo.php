@@ -54,6 +54,22 @@ class GarmentStudioRepo
             ALTER TABLE garment_studio_sessions
             ADD COLUMN IF NOT EXISTS fashn_prediction_id VARCHAR(64) NULL AFTER model_key
         ");
+
+        // Paired top + bottom outfit: JSON {url, photo_type} of the bottom
+        // garment still waiting for its try-on pass. Set while the top pass
+        // runs; cleared once the bottom pass is submitted, so a non-NULL value
+        // means "second pass pending".
+        $this->db->exec("
+            ALTER TABLE garment_studio_sessions
+            ADD COLUMN IF NOT EXISTS outfit_pending TEXT NULL AFTER back_image_url
+        ");
+
+        // Pose/background instruction for the image-edit step that runs on
+        // the finished try-on. Cleared once that edit is submitted.
+        $this->db->exec("
+            ALTER TABLE garment_studio_sessions
+            ADD COLUMN IF NOT EXISTS post_edit_prompt TEXT NULL AFTER outfit_pending
+        ");
     }
 
     public function create(array $data): string
@@ -65,8 +81,8 @@ class GarmentStudioRepo
                 (id, merchant_id, product_id, shopify_variant_id,
                  front_image_url, back_image_url,
                  detail_image_1_url, detail_image_2_url, detail_image_3_url,
-                 gender, model_key, garment_type, clothing_prompt, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+                 gender, model_key, garment_type, clothing_prompt, outfit_pending, post_edit_prompt, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
         ");
         $stmt->execute([
             $id,
@@ -82,6 +98,8 @@ class GarmentStudioRepo
             $data['model_key'],
             $data['garment_type'] ?? 'top',
             $data['clothing_prompt'] ?? null,
+            $data['outfit_pending'] ?? null,
+            $data['post_edit_prompt'] ?? null,
         ]);
         return $id;
     }
@@ -91,7 +109,7 @@ class GarmentStudioRepo
         $sets   = ['status = ?', 'updated_at = NOW()'];
         $params = [$status];
 
-        foreach (['result_image_url', 'error_message', 'api_request_at', 'api_response_at', 'fashn_prediction_id'] as $col) {
+        foreach (['result_image_url', 'error_message', 'api_request_at', 'api_response_at', 'fashn_prediction_id', 'outfit_pending', 'post_edit_prompt'] as $col) {
             if (array_key_exists($col, $extra)) {
                 $sets[]   = "`{$col}` = ?";
                 $params[] = $extra[$col];
@@ -113,6 +131,21 @@ class GarmentStudioRepo
         $this->db
             ->prepare('UPDATE garment_studio_sessions SET saved_to_gallery = 1, updated_at = NOW() WHERE id = ?')
             ->execute([$id]);
+    }
+
+    /**
+     * Hides the individual per-person try-ons of a duo/group photo from the
+     * library and Drafts (saved_to_gallery = 2); only the combined photo shows.
+     */
+    public function markHidden(array $ids): void
+    {
+        if (!$ids) {
+            return;
+        }
+        $marks = implode(',', array_fill(0, count($ids), '?'));
+        $this->db
+            ->prepare("UPDATE garment_studio_sessions SET saved_to_gallery = 2, updated_at = NOW() WHERE id IN ({$marks}) AND saved_to_gallery = 0")
+            ->execute(array_values($ids));
     }
 
     public function findById(string $id): ?array

@@ -35,9 +35,12 @@
     return;
   }
 
-  // ── Free-tier usage limit ────────────────────────────────────────────────────
-  var MAX_FREE_TRYONS = 3;
-  var USAGE_KEY       = "tryfit_usage";
+  // ── Per-shopper usage limit ─────────────────────────────────────────────────
+  // Merchant-set in the admin (tryon_limit_*). Until settings load, the old
+  // fixed default applies: 3 try-ons, never reset.
+  var DEFAULT_TRYON_LIMIT = 3;
+  var USAGE_KEY           = "tryfit_usage";
+  var RESET_MS = { day: 864e5, week: 6048e5, month: 2592e6 }; // rolling 1 / 7 / 30 days
 
   // ── Lead capture — once per browser, gated behind the blurred result ───────
   var LEAD_CAPTURED_KEY = "tryfit_lead_captured";
@@ -784,7 +787,7 @@
         })
         .catch(function (proxyErr) {
           log(
-            "proxy fetch failed (" + proxyErr.message + ") — trying direct PHP",
+            "proxy fetch failed (" + proxyErr.message + "): trying direct PHP",
           );
           fetch(PHP_DIRECT + "/api/widget-settings" + shopParam, {
             mode: "cors",
@@ -814,6 +817,13 @@
 
     _applySettings: function (s) {
       if (!s || typeof s !== "object") return;
+
+      var limitCount = parseInt(s.tryon_limit_count, 10);
+      this._limitCfg = {
+        enabled: s.tryon_limit_enabled !== false && s.tryon_limit_enabled !== 0,
+        count: isNaN(limitCount) ? DEFAULT_TRYON_LIMIT : Math.min(100, Math.max(1, limitCount)),
+        reset: RESET_MS[s.tryon_limit_reset] ? s.tryon_limit_reset : "never",
+      };
 
       var btn = document.getElementById("tryfit-open-btn");
       var embedRoot = document.getElementById("tryfit-embed-root");
@@ -1179,8 +1189,6 @@
 
     },
 
-    // Builds and places the optional demo/promo video directly below the
-    // injected Try On button on the product page (not inside the modal —
     // Fire-and-forget engagement ping for the Analytics "Engagement Funnel"
     // (widget_open / camera_granted) — these happen before a tryon_sessions
     // row exists, so they can't go through the session-scoped /session/track
@@ -1200,6 +1208,8 @@
       } catch (ignore) {}
     },
 
+    // Builds and places the optional demo/promo video directly below the
+    // injected Try On button on the product page (not inside the modal —
     // it's a page-level teaser, shown whether or not the shopper ever opens
     // the try-on flow). Direct video URLs get a plain <video> tag; YouTube/
     // Vimeo links get an <iframe> embed since <video src> can't play those.
@@ -1842,7 +1852,7 @@
       log("product button injected");
 
       // Only auto-match width when the merchant left it at the default
-      // ("fill container") — an explicit custom width is left untouched.
+      // ("fill container"): an explicit custom width is left untouched.
       if (initW <= 0) {
         this._matchThemeBuyButtonWidth(btn);
       }
@@ -2055,7 +2065,7 @@
 
       // Build lookup structures from API data.
       // enabled_product_ids / enabled_product_handles are returned by the
-      // PHP public widget-settings endpoint and represent the live enabled state —
+      // PHP public widget-settings endpoint and represent the live enabled state:
       // not the potentially stale CDN-cached metafield on each product page.
       var apiHasData = Array.isArray(s.enabled_product_ids);
       var enabledIds = apiHasData ? s.enabled_product_ids : [];
@@ -2079,7 +2089,7 @@
           ? String(card.dataset.productId)
           : null;
 
-        // Handle match (preferred — available from URL without extra fetches).
+        // Handle match (preferred: available from URL without extra fetches).
         if (handle && enabledHandles.length > 0) {
           var okH = enabledHandles.indexOf(handle) !== -1;
           console.log("[TryFit] TryOn Collection Status:", { handle: handle, enabled: okH });
@@ -2094,7 +2104,7 @@
         }
 
         // API returned data but we can't identify this card's product.
-        // Default CLOSED — never show a button for an unknown product.
+        // Default CLOSED: never show a button for an unknown product.
         console.log("[TryFit] TryOn Collection Status:", {
           handle: handle,
           pid: pid,
@@ -2573,8 +2583,9 @@
         return;
       }
 
-      // ── Free-tier limit check ──────────────────────────────────────────────
-      if (this._getUsageCount() >= MAX_FREE_TRYONS) {
+      // ── Per-shopper limit check ────────────────────────────────────────────
+      var limit = this._getLimit();
+      if (limit.enabled && this._getUsageCount() >= limit.count) {
         this._showLimitReached();
         return;
       }
@@ -3062,22 +3073,46 @@
 
     // ── Free-tier usage limit helpers ────────────────────────────────────────
 
-    _getUsageCount: function () {
+    _getLimit: function () {
+      return this._limitCfg || { enabled: true, count: DEFAULT_TRYON_LIMIT, reset: "never" };
+    },
+
+    /** Stored usage, or a fresh count once the merchant's reset period has passed. */
+    _readUsage: function () {
+      var data = {};
       try {
         var stored = localStorage.getItem(USAGE_KEY);
-        if (!stored) return 0;
-        var data = JSON.parse(stored);
-        return (typeof data.count === "number" && data.count >= 0) ? data.count : 0;
+        data = stored ? JSON.parse(stored) || {} : {};
       } catch (e) {
-        return 0;
+        data = {};
       }
+      var count = (typeof data.count === "number" && data.count >= 0) ? data.count : 0;
+      var since = typeof data.since === "number" ? data.since : null;
+      var period = RESET_MS[this._getLimit().reset];
+      // Counts saved before resets existed have no start time: start them fresh.
+      if (period && (since ? Date.now() - since >= period : count > 0)) {
+        return { count: 0, since: null };
+      }
+      return { count: count, since: since };
+    },
+
+    /** When the current allowance renews, or null if it never resets. */
+    _usageResetAt: function () {
+      var period = RESET_MS[this._getLimit().reset];
+      var since = this._readUsage().since;
+      return period && since ? new Date(since + period) : null;
+    },
+
+    _getUsageCount: function () {
+      return this._readUsage().count;
     },
 
     _incrementUsageCount: function () {
       try {
-        var stored = localStorage.getItem(USAGE_KEY);
-        var data = stored ? JSON.parse(stored) : {};
-        data.count = ((typeof data.count === "number" && data.count >= 0) ? data.count : 0) + 1;
+        var data = this._readUsage();
+        data.count += 1;
+        // The reset window starts at the first try-on of each period.
+        if (!data.since) data.since = Date.now();
         localStorage.setItem(USAGE_KEY, JSON.stringify(data));
         log("try-on usage count:", data.count);
       } catch (e) {
@@ -3251,14 +3286,14 @@
         .then(function (res) {
           if (!res.ok) {
             log("lead capture rejected:", res.data && res.data.error);
-            self.showToast("Could not save your details — you can still use your result.", 4000);
+            self.showToast("Could not save your details: you can still use your result.", 4000);
             return;
           }
           self.showToast("Details saved ✓", 2500);
         })
         .catch(function (err) {
           log("lead capture error:", err.message);
-          self.showToast("Could not save your details — you can still use your result.", 4000);
+          self.showToast("Could not save your details: you can still use your result.", 4000);
         });
     },
 
@@ -3271,11 +3306,13 @@
       }
       var msgEl = document.getElementById("tryfit-error-msg");
       if (msgEl) {
+        var limit = this._getLimit();
+        var resetAt = this._usageResetAt();
         msgEl.textContent =
-          "You’ve used all " +
-          MAX_FREE_TRYONS +
-          " free virtual try-ons for this browser. " +
-          "Visit the full product page to explore more details.";
+          "You’ve used all " + limit.count + " free virtual try-on" + (limit.count === 1 ? "" : "s") + ". " +
+          (resetAt
+            ? "You can try on again from " + resetAt.toLocaleDateString(undefined, { month: "short", day: "numeric" }) + "."
+            : "Visit the full product page to explore more details.");
       }
       var retryBtn = document.getElementById("tryfit-retry-error");
       if (retryBtn) {
@@ -3284,7 +3321,7 @@
         retryBtn.dataset.limitMode = "true";
       }
       this._showStep("error");
-      log("try-on limit reached — max:", MAX_FREE_TRYONS);
+      log("try-on limit reached, max:", this._getLimit().count);
     },
 
     _restoreErrorStep: function () {
@@ -3615,7 +3652,7 @@
             log("saveImage fetch error:", err);
             restoreBtn();
             window.open(url, "_blank", "noopener,noreferrer");
-            self.showToast("Opening in new tab — long press to save.");
+            self.showToast("Opening in new tab: long press to save.");
           });
       }
 

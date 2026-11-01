@@ -1,13 +1,11 @@
 import { Outlet, useLoaderData, useRouteError, redirect } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
-import { AppProvider as ShopifyAppProvider } from "@shopify/shopify-app-react-router/react";
 import { AppProvider as PolarisAppProvider } from "@shopify/polaris";
 import enTranslations from "@shopify/polaris/locales/en.json";
 import { authenticate } from "../shopify.server";
-import { SHOPIFY_API_KEY, PHP_API_URL } from "../lib/env.server";
+import { PHP_API_URL, FEATURE_AI_STUDIO } from "../lib/env.server";
 import phpApiClient from "../lib/php-api.server";
 import { ensureMerchant } from "../lib/merchant.server";
-import { phpPlanToUi } from "../lib/plans";
 import { computeChecklist, isWidgetCustomized } from "../lib/gamification";
 import AppShell from "../components/AppShell";
 
@@ -57,7 +55,7 @@ async function loadGrowth(session) {
       ]);
     const ok = (r) => (r.status === "fulfilled" && r.value.ok ? r.value.data : null);
 
-    const plan = ok(planRes);
+    const wallet = ok(planRes);
     const products = ok(productsRes);
     const productList = Array.isArray(products) ? products : (products?.products ?? []);
     const enabledProducts = productList.filter((p) => Number(p.is_tryon_enabled) === 1).length;
@@ -74,13 +72,12 @@ async function loadGrowth(session) {
       orders: summary.order_count ?? 0,
     });
 
-    const limit = Number(plan?.limit) || 0;
-    const used = Number(plan?.used) || 0;
+    const balance = Number(wallet?.balance ?? wallet?.credits ?? 0);
+    const used = Number(wallet?.used ?? 0);
 
     return {
       checklist,
-      credits: { used, limit, left: Math.max(0, limit - used) },
-      planName: phpPlanToUi(plan?.plan ?? "basic"),
+      credits: { used, limit: balance + used, left: balance, balance },
       counts: {
         enabledProducts,
         totalProducts: productList.length,
@@ -115,7 +112,12 @@ export const loader = async ({ request }) => {
   }
   const onboarding = await loadOnboarding(admin);
   const growth = await loadGrowth(session);
-  return { apiKey: SHOPIFY_API_KEY, growth, onboarding, shop: session.shop };
+  return {
+    growth,
+    onboarding,
+    shop: session.shop,
+    aiStudioEnabled: FEATURE_AI_STUDIO,
+  };
 };
 
 // The shell's growth numbers only need refreshing after something changed
@@ -124,23 +126,21 @@ export const shouldRevalidate = ({ formMethod, defaultShouldRevalidate }) =>
   formMethod ? defaultShouldRevalidate : false;
 
 export default function App() {
-  const { apiKey } = useLoaderData();
+  const { aiStudioEnabled } = useLoaderData();
 
   return (
-    <ShopifyAppProvider embedded apiKey={apiKey}>
-      <PolarisAppProvider i18n={enTranslations}>
-        <s-app-nav>
-          <s-link href="/app/products">Products</s-link>
-          <s-link href="/app/studio">AI Studio</s-link>
-          <s-link href="/app/settings">Widget Settings</s-link>
-          <s-link href="/app/analytics">Analytics</s-link>
-          <s-link href="/app/plans">Plans</s-link>
-        </s-app-nav>
-        <AppShell>
-          <Outlet />
-        </AppShell>
-      </PolarisAppProvider>
-    </ShopifyAppProvider>
+    <PolarisAppProvider i18n={enTranslations}>
+      <s-app-nav>
+        <s-link href="/app/products">Products</s-link>
+        {aiStudioEnabled ? <s-link href="/app/studio">AI Studio</s-link> : null}
+        <s-link href="/app/settings">Widget Settings</s-link>
+        <s-link href="/app/analytics">Analytics</s-link>
+        <s-link href="/app/wallet">Credits</s-link>
+      </s-app-nav>
+      <AppShell>
+        <Outlet />
+      </AppShell>
+    </PolarisAppProvider>
   );
 }
 

@@ -1,0 +1,45 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "products": "Products",
+    "studio": "Studio",
+    "garment_studio": "Garment Studio",
+    "analytics": "Analytics",
+    "settings": "Settings",
+    "plans": "Plans",
+    "onboarding": "Getting started",
+    "size_chart": "Size chart",
+    "complete_look": "Complete the look"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "retry": "Retry",
+    "upload": "Upload",
+    "download": "Download",
+    "generate": "Generate",
+    "regenerate": "Regenerate"
+  },
+  "state": {
+    "loading": "Loading",
+    "saving": "Saving",
+    "saved": "Saved",
+    "empty": "Nothing to show yet",
+    "untitled": "Untitled"
+  },
+  "boolean": {
+    "yes": "Yes",
+    "no": "No",
+    "enabled": "Enabled",
+    "disabled": "Disabled"
+  },
+  "language": {
+    "label": "Language",
+    "change": "Change language"
+  }
+}
