@@ -16,3 +16,7 @@ node_modules/
 docs/vto-platform/vto/backend/storage/uploads/*
 !docs/vto-platform/vto/backend/storage/uploads/.gitkeep
 docs/vto-platform/vto/backend/storage/cache/
+
+# Local tools
+*.exe
+.ngrok_fix/
