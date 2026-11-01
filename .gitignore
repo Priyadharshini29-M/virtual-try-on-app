@@ -1,0 +1,18 @@
+# Secrets: never commit real keys (GitHub push protection blocks them anyway)
+.env
+.env.local
+**/.env
+**/.env.local
+fashn-vton-test/.env.example
+*.pem
+
+# Dependencies and archives
+node_modules/
+*.rar
+*.zip
+
+# Runtime data and logs
+*.log
+docs/vto-platform/vto/backend/storage/uploads/*
+!docs/vto-platform/vto/backend/storage/uploads/.gitkeep
+docs/vto-platform/vto/backend/storage/cache/
